@@ -1,0 +1,42 @@
+.navbar-container{
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar{
+    display: flex;
+    box-sizing: border-box;
+    width: 75vw;
+    height: 5vw;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 10px;
+    background: linear-gradient(to right, var(--dark1), var(--dark2));
+    color: var(--text-color2);
+    border: var(--gray1) 2px solid;
+    border-radius: var(--border-radius);
+}
+
+.nav-links {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-links button {
+    background: transparent;
+    color: var(--text-color2);
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin: .5rem;
+}
+
+.right-button{
+    background: var(--pink1) !important;
+    color: var(--text-color2) !important;
+    border: none !important;
+    border-radius: var(--border-radius);
+}
