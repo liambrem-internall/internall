@@ -1,0 +1,18 @@
+.section-list-container{
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.section-list{
+    display: flex;
+    box-sizing: border-box;
+    width: 75vw;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin: 10px;
+    border: var(--gray1) 2px solid;
+    border-radius: var(--border-radius);
+}
