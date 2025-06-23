@@ -1,0 +1,20 @@
+.add-circular-btn {
+  background: linear-gradient(90deg, #181c2f 0%, #1a1537 100%);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
+  transition: background 0.2s;
+  color: #fff;
+}
+
+.add-circular-btn:hover {
+  background: var(--dark1);
+}
+
+.add-plus-icon {
+  font-size: 3rem;
+  color: white; 
+}
