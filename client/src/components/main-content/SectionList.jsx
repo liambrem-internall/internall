@@ -4,6 +4,7 @@ import "./SectionList.css";
 import { useState } from "react";
 import { DndContext } from "@dnd-kit/core";
 import Container from "react-bootstrap/Container";
+import AddButton from "./Add/AddButton";
 
 
 const SectionList = () => {
@@ -18,6 +19,8 @@ const SectionList = () => {
           <Section>{isDropped ? draggableMarkup : "Drop here"}</Section>
         </DndContext>
       </div>
+
+      <AddButton />
     </Container>
   );
   function handleDragEnd(event) {
