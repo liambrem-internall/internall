@@ -1,0 +1,9 @@
+.section-droppable {
+  height: 30vh;
+  min-width: 20vw;
+  max-width: 20vw;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;;
+}
