@@ -4,9 +4,9 @@ import "./AddButton.css";
 
 const AddButton = () => {
   return (
-    <Button className="add-circular-btn d-flex align-items-center justify-content-center">
+    <button className="add-circular-btn d-flex align-items-center justify-content-center">
       <BsPlus className="add-plus-icon" />
-    </Button>
+    </button>
   );
 };
 
