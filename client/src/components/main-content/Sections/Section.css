@@ -4,14 +4,10 @@
   align-items: center;
   justify-content: center;
   background-color: var(--gray1);
-  width: 25vw;
-  height: 30vh;
   padding: 20px;
   border-radius: 6px;
-}
-
-.section-container {
   min-width: 20vw;
   max-width: 20vw;
+  height: 30vh;
   margin: 0;
 }
