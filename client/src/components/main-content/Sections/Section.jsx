@@ -1,9 +1,8 @@
-//import { DroppableStory } from "@dnd-kit/core";
 import { useDroppable } from "@dnd-kit/core";
 import Container from "react-bootstrap/Container";
 import "./Section.css";
 
-const Section = (props) => {
+const Section = () => {
   const { isOver, setNodeRef } = useDroppable({
     id: "droppable",
   });
@@ -17,7 +16,5 @@ const Section = (props) => {
     </div>
   );
 };
-
-// <DroppableStory containers={["A", "B", "C"]} />
 
 export default Section;

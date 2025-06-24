@@ -1,4 +1,5 @@
 import { useDraggable } from "@dnd-kit/core";
+import "./GhostComponent.css";
 
 const NewComponent = ({ id }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
@@ -13,7 +14,7 @@ const NewComponent = ({ id }) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <div className="ghost-component" ref={setNodeRef} style={style} {...listeners} {...attributes}>
       New Component
     </div>
   );
