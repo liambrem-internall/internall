@@ -1,0 +1,38 @@
+.droppable-section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.531);
+  border-radius: var(--border-radius);
+  min-width: 20vw;
+  max-width: 20vw;
+  min-height: 7vh;
+  margin: 0;
+}
+
+.section-header {
+  display: flex;
+  background-color: var(--dark1);
+  color: white;
+  width: 100%;
+  justify-content: space-between;
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.section-header h3 {
+  margin-left: 10px;
+}
+
+.drag-handle {
+  font-size: 1.5em;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  margin-right: 7px;
+}
+
+.drag-handle:hover {
+  background: var(--dark3);
+}

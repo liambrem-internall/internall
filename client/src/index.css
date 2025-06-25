@@ -1,11 +1,13 @@
 :root {
   --dark1: #17104b;
   --dark2: #020128;
+  --dark3: #453c89;
   --pink1: #e516b8;
   --pink2: #ff74cc;
   --text-color1: #000000;
   --text-color2: #ffffff;
   --gray1: #cdcdcd;
+  --gray2: #8d8d8d;
   --bg-color: #ffffff;
   --border-radius: 8px;
 }
