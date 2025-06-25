@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { BsGripVertical } from "react-icons/bs";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import "./DroppableSection.css";
 
 const DroppableSection = ({ id, items, title }) => {
@@ -21,21 +22,25 @@ const DroppableSection = ({ id, items, title }) => {
   };
 
   return (
-    <div
-      className="droppable-section"
-      ref={setNodeRef}
-      style={style}
-    >
+    <div className="droppable-section" ref={setNodeRef} style={style}>
       <div className="section-header">
         <h3>{title}</h3>
-        <span
-          className="drag-handle"
-          ref={setActivatorNodeRef}
-          {...attributes}
-          {...listeners}
+        <OverlayTrigger
+          placement="top"
+          delay={{ show: 500, hide: 100 }}
+          overlay={
+            <Tooltip id="reorder-section-tooltip">Reorder Sections</Tooltip>
+          }
         >
-          <BsGripVertical size={20} />
-        </span>
+          <span
+            className="drag-handle"
+            ref={setActivatorNodeRef}
+            {...attributes}
+            {...listeners}
+          >
+            <BsGripVertical size={20} />
+          </span>
+        </OverlayTrigger>
       </div>
     </div>
   );

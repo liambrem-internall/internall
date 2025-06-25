@@ -8,7 +8,6 @@ import {
 import {
   arrayMove,
   SortableContext,
-  useSortable,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import GhostComponent from "./Add/GhostComponent";
@@ -20,6 +19,8 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import DroppableSection from "./Sections/DroppableSection";
 import "./SectionList.css";
+import SectionActions from "../../utils/constants";
+
 
 const SectionList = () => {
   const [sections, setSections] = useState({
@@ -53,8 +54,8 @@ const SectionList = () => {
 
     if (
       event.over &&
-      event.over.id === "section-dropzone" &&
-      event.active.data.current?.type === "section"
+      event.over.id === SectionActions.DROPZONE &&
+      event.active.data.current?.type === SectionActions.SECTION
     ) {
       setShowModal(true);
       setPendingSectionTitle("");
@@ -98,14 +99,14 @@ const SectionList = () => {
                     title={sections[sectionId][0]?.title || ""}
                   />
                 ))}
-                {activeId == "add-section" && (
+                {activeId == SectionActions.ADD && (
                   <NewSectionDropZone onDrop={handleDragEnd} />
                 )}
               </div>
             </SortableContext>
             <AddButton />
             <DragOverlay dropAnimation={null}>
-              {activeId === "add-section" ? (
+              {activeId === SectionActions.ADD ? (
                 <GhostComponent id="new-component-preview" />
               ) : null}
             </DragOverlay>

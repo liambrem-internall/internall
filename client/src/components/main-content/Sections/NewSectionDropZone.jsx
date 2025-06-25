@@ -1,6 +1,9 @@
 import { useDroppable } from "@dnd-kit/core";
 import "./NewSectionDropZone.css";
 
+const RELEASE_TO_ADD = "Release to add section";
+const DRAG_TO_ADD = "Drag here to add a new section";
+
 const NewSectionDropZone = () => {
   const { setNodeRef, isOver } = useDroppable({ id: "section-dropzone" });
   return (
@@ -13,7 +16,7 @@ const NewSectionDropZone = () => {
         transition: "background 0.2s, border 0.2s",
       }}
     >
-      {isOver ? "Release to add section" : "Drag here to add a new section"}
+      {isOver ? RELEASE_TO_ADD : DRAG_TO_ADD}
     </div>
   );
 };
