@@ -4,9 +4,10 @@
   --dark3: #453c89;
   --pink1: #e516b8;
   --pink2: #ff74cc;
+  --pink3: #c5adc6;
   --text-color1: #000000;
   --text-color2: #ffffff;
-  --gray1: #cdcdcd;
+  --gray1: #dfdfdf;
   --gray2: #8d8d8d;
   --bg-color: #ffffff;
   --border-radius: 8px;
@@ -14,4 +15,9 @@
 
 * {
   font-family: 'Atlassian Sans Ext'
+}
+
+html, body, #root, .App {
+  height: 100%;
+  overflow-y: hidden;
 }
