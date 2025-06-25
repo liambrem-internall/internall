@@ -13,7 +13,7 @@ import {
 } from "@dnd-kit/sortable";
 import GhostComponent from "./Add/GhostComponent";
 import AddButton from "./Add/AddButton";
-import SectionDroppable from "./Sections/NewSectionDropZone";
+import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import Container from "react-bootstrap/Container";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
@@ -99,7 +99,7 @@ const SectionList = () => {
                   />
                 ))}
                 {activeId == "add-section" && (
-                  <SectionDroppable onDrop={handleDragEnd} />
+                  <NewSectionDropZone onDrop={handleDragEnd} />
                 )}
               </div>
             </SortableContext>
