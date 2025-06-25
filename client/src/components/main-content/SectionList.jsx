@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  DndContext,
-  DragOverlay,
-} from "@dnd-kit/core";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -10,6 +7,7 @@ import {
 } from "@dnd-kit/sortable";
 import GhostComponent from "./Add/GhostComponent";
 import AddButton from "./Add/AddButton";
+import DeleteButton from "./Delete/DeleteButton";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import Container from "react-bootstrap/Container";
 import Modal from "react-bootstrap/Modal";
@@ -20,7 +18,6 @@ import ItemModal from "./Items/ItemModal";
 import "./SectionList.css";
 import { DraggableComponentTypes, SectionActions } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
-
 
 const SectionList = () => {
   const [sections, setSections] = useState({
@@ -246,7 +243,10 @@ const SectionList = () => {
                 )}
               </div>
             </SortableContext>
-            <AddButton />
+            <div className="bottom-row">
+              <DeleteButton />
+              <AddButton />
+            </div>
             <DragOverlay dropAnimation={null}>
               {activeId === SectionActions.ADD ? (
                 <GhostComponent id="new-component-preview" />
@@ -278,7 +278,8 @@ const SectionList = () => {
         onHide={() => setShowItemModal(false)}
         pendingItemContent={pendingItemContent}
         setPendingItemContent={setPendingItemContent}
-        handleSaveItem={handleSaveItem} />
+        handleSaveItem={handleSaveItem}
+      />
     </>
   );
 };
