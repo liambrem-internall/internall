@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  pointerWithin,
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -8,7 +13,7 @@ import {
 } from "@dnd-kit/sortable";
 import GhostComponent from "./Add/GhostComponent";
 import AddButton from "./Add/AddButton";
-import SectionDroppable from "./Sections/SectionDroppable";
+import SectionDroppable from "./Sections/NewSectionDropZone";
 import Container from "react-bootstrap/Container";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
@@ -33,7 +38,10 @@ const SectionList = () => {
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    if (!over) return;
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
 
     if (active.id !== over.id) {
       setSectionOrder((prev) => {
@@ -41,8 +49,6 @@ const SectionList = () => {
         const newIndex = prev.indexOf(over.id);
         return arrayMove(prev, oldIndex, newIndex);
       });
-
-      setActiveId(null);
     }
 
     if (
@@ -53,6 +59,8 @@ const SectionList = () => {
       setShowModal(true);
       setPendingSectionTitle("");
     }
+
+    setActiveId(null);
   };
 
   const handleSaveSection = () => {
@@ -75,7 +83,7 @@ const SectionList = () => {
           <DndContext
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            collisionDetection={closestCenter}
+            collisionDetection={pointerWithin}
           >
             <SortableContext
               items={sectionOrder}
@@ -90,11 +98,13 @@ const SectionList = () => {
                     title={sections[sectionId][0]?.title || ""}
                   />
                 ))}
-                {activeId=="add-section" && <SectionDroppable onDrop={handleDragEnd} />}
+                {activeId == "add-section" && (
+                  <SectionDroppable onDrop={handleDragEnd} />
+                )}
               </div>
             </SortableContext>
             <AddButton />
-            <DragOverlay>
+            <DragOverlay dropAnimation={null}>
               {activeId === "add-section" ? (
                 <GhostComponent id="new-component-preview" />
               ) : null}
