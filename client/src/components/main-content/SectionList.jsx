@@ -6,7 +6,6 @@ import {
   useSortable,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import Section from "./Sections/Section";
 import GhostComponent from "./Add/GhostComponent";
 import AddButton from "./Add/AddButton";
 import SectionDroppable from "./Sections/SectionDroppable";
@@ -14,30 +13,38 @@ import Container from "react-bootstrap/Container";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import SortableSection from "./Sections/SortableSection";
+import DroppableSection from "./Sections/DroppableSection";
 import "./SectionList.css";
 
 const SectionList = () => {
-  const [sections, setSections] = useState([]);
+  const [sections, setSections] = useState({
+    A: [{ id: "A1", title: "Section 1" }],
+    B: [{ id: "B1", title: "Section 2" }],
+    C: [{ id: "C1", title: "Section 3" }],
+  });
   const [activeId, setActiveId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [pendingSectionTitle, setPendingSectionTitle] = useState("");
+  const [sectionOrder, setSectionOrder] = useState(Object.keys(sections));
 
-  function handleDragStart(event) {
+  const handleDragStart = (event) => {
     setActiveId(event.active.id);
-  }
+  };
 
-  function handleDragEnd(event) {
+  const handleDragEnd = (event) => {
     const { active, over } = event;
+    if (!over) return;
 
-    if (active.id !== over?.id && over) {
-    setSections((prevSections) => {
-      const oldIndex = prevSections.findIndex(section => section.id === active.id);
-      const newIndex = prevSections.findIndex(section => section.id === over.id);
-      return arrayMove(prevSections, oldIndex, newIndex);
-    });
-  }
-  
+    if (active.id !== over.id) {
+      setSectionOrder((prev) => {
+        const oldIndex = prev.indexOf(active.id);
+        const newIndex = prev.indexOf(over.id);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+
+      setActiveId(null);
+    }
+
     if (
       event.over &&
       event.over.id === "section-dropzone" &&
@@ -46,11 +53,15 @@ const SectionList = () => {
       setShowModal(true);
       setPendingSectionTitle("");
     }
-  }
+  };
 
   const handleSaveSection = () => {
-    const id = Date.now();
-    setSections((prev) => [...prev, { id, title: pendingSectionTitle }]);
+    const newKey = `S${Date.now()}`; // crates a unique key based on time created
+    setSections((prev) => ({
+      ...prev,
+      [newKey]: [{ id: `${newKey}-1`, title: pendingSectionTitle }],
+    }));
+    setSectionOrder((prev) => [...prev, newKey]);
     setShowModal(false);
     setPendingSectionTitle("");
   };
@@ -67,18 +78,19 @@ const SectionList = () => {
             collisionDetection={closestCenter}
           >
             <SortableContext
-              items={sections.map((section) => section.id)}
+              items={sectionOrder}
               strategy={horizontalListSortingStrategy}
             >
               <div className="sections-row">
-                {sections.map((section) => (
-                  <SortableSection
-                    key={section.id}
-                    id={section.id}
-                    title={section.title}
+                {sectionOrder.map((sectionId) => (
+                  <DroppableSection
+                    key={sectionId}
+                    id={sectionId}
+                    items={sections[sectionId]}
+                    title={sections[sectionId][0]?.title || ""}
                   />
                 ))}
-                {activeId && <SectionDroppable onDrop={handleDragEnd} />}
+                {activeId=="add-section" && <SectionDroppable onDrop={handleDragEnd} />}
               </div>
             </SortableContext>
             <AddButton />
