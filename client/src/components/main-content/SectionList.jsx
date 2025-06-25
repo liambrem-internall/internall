@@ -19,14 +19,35 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import DroppableSection from "./Sections/DroppableSection";
 import "./SectionList.css";
-import SectionActions from "../../utils/constants";
-
+import { DraggableComponentTypes, SectionActions } from "../../utils/constants";
 
 const SectionList = () => {
   const [sections, setSections] = useState({
-    A: [{ id: "A1", title: "Section 1" }],
-    B: [{ id: "B1", title: "Section 2" }],
-    C: [{ id: "C1", title: "Section 3" }],
+    A: {
+      id: "A",
+      title: "Section 1",
+      items: [
+        { id: "A-1", content: "Item 1" },
+        { id: "A-2", content: "Item 2" },
+      ],
+    },
+    B: {
+      id: "B",
+      title: "Section 2",
+      items: [
+        { id: "B-1", content: "Item 1" },
+        { id: "B-2", content: "Item 2" },
+      ],
+    },
+    C: {
+      id: "C",
+      title: "Section 3",
+      items: [
+        { id: "C-1", content: "Item 1" },
+        { id: "C-2", content: "Item 2" },
+        { id: "C-3", content: "Item 3" },
+      ],
+    },
   });
   const [activeId, setActiveId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -37,13 +58,7 @@ const SectionList = () => {
     setActiveId(event.active.id);
   };
 
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-    if (!over) {
-      setActiveId(null);
-      return;
-    }
-
+  const handleDragEndSection = (active, over) => {
     if (active.id !== over.id) {
       setSectionOrder((prev) => {
         const oldIndex = prev.indexOf(active.id);
@@ -51,24 +66,107 @@ const SectionList = () => {
         return arrayMove(prev, oldIndex, newIndex);
       });
     }
+    setActiveId(null);
+  };
 
+  const handleDragEndItem = (active, over) => {
+    const fromSectionId = active.data.current.sectionId;
+    const toSectionId = over.data.current?.sectionId;
+    if (!toSectionId) {
+      setActiveId(null);
+      return;
+    }
+
+    // prevent moving if source and target are the same and position is unchanged
+    if (fromSectionId === toSectionId && active.id === over.id) {
+      setActiveId(null);
+      return;
+    }
+
+    // find the item in the source section
+    const item = sections[fromSectionId].items.find((i) => i.id === active.id);
+
+    setSections((prev) => {
+      // remove from old section
+      const newFromItems = prev[fromSectionId].items.filter(
+        (i) => i.id !== active.id
+      );
+
+      // Remove any existing instance in the target section (defensive)
+      const filteredToItems = prev[toSectionId].items.filter(
+        (i) => i.id !== active.id
+      );
+
+      // Find index to insert into new section
+      const overIndex = filteredToItems.findIndex((i) => i.id === over.id);
+      let newToItems;
+      if (overIndex === -1) {
+        newToItems = [...filteredToItems, item];
+      } else {
+        newToItems = [
+          ...filteredToItems.slice(0, overIndex),
+          item,
+          ...filteredToItems.slice(overIndex),
+        ];
+      }
+
+      return {
+        ...prev,
+        [fromSectionId]: { ...prev[fromSectionId], items: newFromItems },
+        [toSectionId]: { ...prev[toSectionId], items: newToItems },
+      };
+    });
+    setActiveId(null);
+  };
+
+  const handleDragEndAdd = (active, over) => {
+    setShowModal(true);
+    setActiveId(null);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
+
+    // dragging from add button
     if (
-      event.over &&
-      event.over.id === SectionActions.DROPZONE &&
-      event.active.data.current?.type === SectionActions.SECTION
+      over.id === SectionActions.DROPZONE &&
+      active.id === SectionActions.ADD
     ) {
-      setShowModal(true);
-      setPendingSectionTitle("");
+      handleDragEndAdd(active, over);
+      return;
+    }
+
+    // dragging a section
+    if (
+      active.data.current?.type === DraggableComponentTypes.SECTION &&
+      over.data.current?.type === DraggableComponentTypes.SECTION
+    ) {
+      handleDragEndSection(active, over);
+      return;
+    }
+
+    // dragging an item
+    if (active.data.current?.type === DraggableComponentTypes.ITEM) {
+      handleDragEndItem(active, over);
+      return;
     }
 
     setActiveId(null);
   };
 
   const handleSaveSection = () => {
-    const newKey = `S${Date.now()}`; // crates a unique key based on time created
+    const newKey = `S${Date.now()}`;
     setSections((prev) => ({
       ...prev,
-      [newKey]: [{ id: `${newKey}-1`, title: pendingSectionTitle }],
+      [newKey]: {
+        id: newKey,
+        title: pendingSectionTitle,
+        items: [],
+      },
     }));
     setSectionOrder((prev) => [...prev, newKey]);
     setShowModal(false);
@@ -95,8 +193,8 @@ const SectionList = () => {
                   <DroppableSection
                     key={sectionId}
                     id={sectionId}
-                    items={sections[sectionId]}
-                    title={sections[sectionId][0]?.title || ""}
+                    items={sections[sectionId].items}
+                    title={sections[sectionId].title}
                   />
                 ))}
                 {activeId == SectionActions.ADD && (

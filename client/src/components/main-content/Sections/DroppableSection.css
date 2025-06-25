@@ -4,6 +4,7 @@
   align-items: stretch;
   justify-content: flex-start;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.531);
+  background-color: var(--gray1);
   border-radius: var(--border-radius);
   min-width: 20vw;
   max-width: 20vw;
@@ -31,6 +32,7 @@
   display: flex;
   align-items: center;
   margin-right: 7px;
+  border-radius: 4px;
 }
 
 .drag-handle:hover {

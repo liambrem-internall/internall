@@ -1,0 +1,26 @@
+.sortable-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  margin-top: 8px;
+  margin-left: 2px;
+  margin-right: 2px;
+  background-color: white;
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  margin-right: 7px;
+  border-radius: 4px;
+}
+
+.drag-handle:hover {
+  background: var(--gray1) !important;
+}
