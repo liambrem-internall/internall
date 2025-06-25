@@ -20,9 +20,13 @@ const DroppableSection = ({ id, items, title }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, type: DraggableComponentTypes.SECTION });
+  } = useSortable({ id, data: {type: DraggableComponentTypes.SECTION }});
+  const combinedRef = (node) => {
+    setNodeRef(node);
+    setSectionDroppableRef(node);
+  };
 
-  const { setNodeRef: setSectionDroppableRef, isOver: isSectionOver } =
+  const { setNodeRef: setSectionDroppableRef, isSectionOver: isSectionOver } =
     useDroppable({
       id,
       data: { sectionId: id, type: DraggableComponentTypes.SECTION },
@@ -35,7 +39,11 @@ const DroppableSection = ({ id, items, title }) => {
   };
 
   return (
-    <div className="droppable-section" ref={setSectionDroppableRef} style={style}>
+    <div
+      className="droppable-section"
+      ref={combinedRef}
+      style={style}
+    >
       <div className="section-header">
         <h3>{title}</h3>
         <OverlayTrigger
@@ -47,6 +55,7 @@ const DroppableSection = ({ id, items, title }) => {
         >
           <span
             className="drag-handle"
+            style={{ cursor: "grab" }}
             ref={setActivatorNodeRef}
             {...attributes}
             {...listeners}
@@ -62,12 +71,13 @@ const DroppableSection = ({ id, items, title }) => {
         <div className="section-items">
           {items.length === 0 ? (
             <div
-              ref={setEmptyRef}
               style={{
                 minHeight: 40,
-                border: isOver ? "2px dashed var(--pink1)" : "2px dashed #ccc",
+                border: isSectionOver
+                  ? "2px dashed var(--pink1)"
+                  : "2px dashed #ccc",
                 borderRadius: 4,
-                background: isOver ? "var(--pink3)" : "#fafbfc",
+                background: isSectionOver ? "var(--pink3)" : "#fafbfc",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

@@ -2,8 +2,6 @@ import { useState } from "react";
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
-  pointerWithin,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -18,9 +16,11 @@ import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import DroppableSection from "./Sections/DroppableSection";
+import ItemModal from "./Items/ItemModal";
 import "./SectionList.css";
 import { DraggableComponentTypes, SectionActions } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
+
 
 const SectionList = () => {
   const [sections, setSections] = useState({
@@ -64,6 +64,7 @@ const SectionList = () => {
   };
 
   const handleDragEndSection = (active, over) => {
+    console.log("active.id", active.id, "over.id", over.id, sectionOrder);
     if (active.id !== over.id) {
       setSectionOrder((prev) => {
         const oldIndex = prev.indexOf(active.id);
@@ -82,13 +83,11 @@ const SectionList = () => {
       return;
     }
 
-    // prevent moving if source and target are the same and position is unchanged
     if (fromSectionId === toSectionId && active.id === over.id) {
       setActiveId(null);
       return;
     }
 
-    // find the item in the source section
     const item = sections[fromSectionId].items.find((i) => i.id === active.id);
 
     setSections((prev) => {
@@ -97,12 +96,10 @@ const SectionList = () => {
         (i) => i.id !== active.id
       );
 
-      // Remove any existing instance in the target section (defensive)
       const filteredToItems = prev[toSectionId].items.filter(
         (i) => i.id !== active.id
       );
 
-      // Find index to insert into new section
       const overIndex = filteredToItems.findIndex((i) => i.id === over.id);
       let newToItems;
       if (overIndex === -1) {
@@ -152,7 +149,7 @@ const SectionList = () => {
       (over.data?.current?.type === DraggableComponentTypes.SECTION ||
         over.data?.current?.type === DraggableComponentTypes.ITEM)
     ) {
-      // If dropped on an item, use its sectionId
+      // if dropped on an item -> use its sectionId
       const sectionId =
         over.data.current.type === DraggableComponentTypes.SECTION
           ? over.id
@@ -195,6 +192,29 @@ const SectionList = () => {
     setSectionOrder((prev) => [...prev, newKey]);
     setShowModal(false);
     setPendingSectionTitle("");
+  };
+
+  const handleSaveItem = () => {
+    if (!pendingItemContent.trim() || !targetSectionId) {
+      setShowItemModal(false);
+      setPendingItemContent("");
+      setTargetSectionId(null);
+      return;
+    }
+    const newItem = {
+      id: `${targetSectionId}-${Date.now()}`,
+      content: pendingItemContent,
+    };
+    setSections((prev) => ({
+      ...prev,
+      [targetSectionId]: {
+        ...prev[targetSectionId],
+        items: [...prev[targetSectionId].items, newItem],
+      },
+    }));
+    setShowItemModal(false);
+    setPendingItemContent("");
+    setTargetSectionId(null);
   };
 
   const handleCloseModal = () => setShowModal(false);
@@ -253,6 +273,12 @@ const SectionList = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      <ItemModal
+        show={showItemModal}
+        onHide={() => setShowItemModal(false)}
+        pendingItemContent={pendingItemContent}
+        setPendingItemContent={setPendingItemContent}
+        handleSaveItem={handleSaveItem} />
     </>
   );
 };
