@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { DndContext, DragOverlay } from "@dnd-kit/core";
+import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import Section from "./Sections/Section";
 import GhostComponent from "./Add/GhostComponent";
 import AddButton from "./Add/AddButton";
@@ -8,13 +14,13 @@ import Container from "react-bootstrap/Container";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import SortableSection from "./Sections/SortableSection";
 import "./SectionList.css";
 
 const SectionList = () => {
   const [sections, setSections] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [newSectionId, setNewSectionId] = useState(null);
   const [pendingSectionTitle, setPendingSectionTitle] = useState("");
 
   function handleDragStart(event) {
@@ -22,6 +28,16 @@ const SectionList = () => {
   }
 
   function handleDragEnd(event) {
+    const { active, over } = event;
+
+    if (active.id !== over?.id && over) {
+    setSections((prevSections) => {
+      const oldIndex = prevSections.findIndex(section => section.id === active.id);
+      const newIndex = prevSections.findIndex(section => section.id === over.id);
+      return arrayMove(prevSections, oldIndex, newIndex);
+    });
+  }
+  
     if (
       event.over &&
       event.over.id === "section-dropzone" &&
@@ -40,19 +56,31 @@ const SectionList = () => {
   };
 
   const handleCloseModal = () => setShowModal(false);
-  const handleShowModal = () => setShowModal(true);
 
   return (
     <>
       <Container className="section-list-container">
         <div className="sections-scroll-container">
-          <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-            <div className="sections-row">
-              {sections.map((section) => (
-                <Section key={section.id} title={section.title} />
-              ))}
-              <SectionDroppable onDrop={handleDragEnd} />
-            </div>
+          <DndContext
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            collisionDetection={closestCenter}
+          >
+            <SortableContext
+              items={sections.map((section) => section.id)}
+              strategy={horizontalListSortingStrategy}
+            >
+              <div className="sections-row">
+                {sections.map((section) => (
+                  <SortableSection
+                    key={section.id}
+                    id={section.id}
+                    title={section.title}
+                  />
+                ))}
+                {activeId && <SectionDroppable onDrop={handleDragEnd} />}
+              </div>
+            </SortableContext>
             <AddButton />
             <DragOverlay>
               {activeId === "add-section" ? (
@@ -75,9 +103,6 @@ const SectionList = () => {
           onChange={(e) => setPendingSectionTitle(e.target.value)}
         />
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
-            Close
-          </Button>
           <Button variant="primary" onClick={handleSaveSection}>
             Save Changes
           </Button>

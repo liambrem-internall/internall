@@ -8,7 +8,7 @@ const SectionDroppable = ({ onDrop }) => {
       className="section-droppable"
       ref={setNodeRef}
       style={{
-        border: isOver ? "2px dashed #e516b8" : "2px dashed #cdcdcd",
+        background: isOver ? "var(--gray2)" : "var(--gray1)",
       }}
     >
       {isOver ? "Release to add section" : "Drag here to add a new section"}
