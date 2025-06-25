@@ -1,4 +1,5 @@
 import { useDraggable } from "@dnd-kit/core";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { BsPlus } from "react-icons/bs";
 import "./AddButton.css";
 
@@ -9,15 +10,21 @@ const AddButton = () => {
   });
 
   return (
-    <button
-      ref={setNodeRef}
-      className="add-circular-btn"
-      {...listeners}
-      {...attributes}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
+    <OverlayTrigger
+      placement="top"
+      delay={{ show: 500, hide: 100 }}
+      overlay={<Tooltip id="add-section-tooltip">Add a new section</Tooltip>}
     >
-      <BsPlus className="add-plus-icon" />
-    </button>
+      <button
+        ref={setNodeRef}
+        className="add-circular-btn"
+        {...listeners}
+        {...attributes}
+        style={{ opacity: isDragging ? 0.5 : 1 }}
+      >
+        <BsPlus className="add-plus-icon" />
+      </button>
+    </OverlayTrigger>
   );
 };
 
