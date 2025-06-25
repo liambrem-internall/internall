@@ -22,10 +22,11 @@ const DroppableSection = ({ id, items, title }) => {
     isDragging,
   } = useSortable({ id, type: DraggableComponentTypes.SECTION });
 
-  const { setNodeRef: setEmptyRef, isOver } = useDroppable({
-    id: `${id}-empty-dropzone`,
-    data: { sectionId: id },
-  });
+  const { setNodeRef: setSectionDroppableRef, isOver: isSectionOver } =
+    useDroppable({
+      id,
+      data: { sectionId: id, type: DraggableComponentTypes.SECTION },
+    });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -34,7 +35,7 @@ const DroppableSection = ({ id, items, title }) => {
   };
 
   return (
-    <div className="droppable-section" ref={setNodeRef} style={style}>
+    <div className="droppable-section" ref={setSectionDroppableRef} style={style}>
       <div className="section-header">
         <h3>{title}</h3>
         <OverlayTrigger
