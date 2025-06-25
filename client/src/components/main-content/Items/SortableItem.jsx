@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { BsGripVertical } from "react-icons/bs";
 import { DraggableComponentTypes } from "../../../utils/constants";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import "./SortableItem.css";
 
 const SortableItem = ({ id, content, sectionId }) => {
@@ -12,7 +13,10 @@ const SortableItem = ({ id, content, sectionId }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, data: { type: DraggableComponentTypes.ITEM, sectionId } });
+  } = useSortable({
+    id,
+    data: { type: DraggableComponentTypes.ITEM, sectionId },
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -30,7 +34,15 @@ const SortableItem = ({ id, content, sectionId }) => {
     >
       {content}
       <div className="drag-handle">
-        <BsGripVertical size={20} color="var(--gray2)"/>
+        <OverlayTrigger
+          placement="top"
+          delay={{ show: 800, hide: 100 }}
+          overlay={
+            <Tooltip id="reorder-section-tooltip">Reorder Items</Tooltip>
+          }
+        >
+          <BsGripVertical size={20} color="var(--gray2)" />
+        </OverlayTrigger>
       </div>
     </div>
   );
