@@ -1,19 +1,20 @@
 import { useDraggable } from "@dnd-kit/core";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { BsPlus } from "react-icons/bs";
+import { SectionActions, DraggableComponentTypes } from "../../../utils/constants";
 import "./AddButton.css";
 
 const AddButton = () => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: "add-section",
-    data: { type: "section" },
+    id: SectionActions.ADD,
+    data: { type: DraggableComponentTypes.ADD_NEW },
   });
 
   return (
     <OverlayTrigger
       placement="top"
       delay={{ show: 500, hide: 100 }}
-      overlay={<Tooltip id="add-section-tooltip">Add a new section</Tooltip>}
+      overlay={<Tooltip id="add-section-tooltip">Add a new section/item</Tooltip>}
     >
       <button
         ref={setNodeRef}
