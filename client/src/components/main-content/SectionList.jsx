@@ -56,6 +56,8 @@ const SectionList = () => {
   const [pendingItemContent, setPendingItemContent] = useState("");
   const [targetSectionId, setTargetSectionId] = useState(null);
 
+  const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
+
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
@@ -214,7 +216,64 @@ const SectionList = () => {
     setTargetSectionId(null);
   };
 
+  const handleDragOver = (event) => {
+    const { over } = event;
+    setIsDeleteZoneOver(over?.id === "delete-zone");
+  };
+
   const handleCloseModal = () => setShowModal(false);
+
+  const dragOverlayContent = (() => {
+    if (activeId === SectionActions.ADD) {
+      return <GhostComponent id="new-component-preview" text="New Component" />;
+    }
+    // for items
+    for (const section of Object.values(sections)) {
+      const item = section.items.find((i) => i.id === activeId);
+      if (item) {
+        return (
+          <div
+            style={{
+              padding: "12px 24px",
+              background: "#fff",
+              borderRadius: 8,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              opacity: isDeleteZoneOver ? 0.5 : 1,
+              fontWeight: 500,
+              transform: isDeleteZoneOver ? "scale(0.75)" : "scale(1)",
+              transition: "transform 0.1s, opacity 0.1s",
+            }}
+          >
+            {item.content}
+          </div>
+        );
+      }
+    }
+
+    // for sections
+    const section = sections[activeId];
+    if (section) {
+      return (
+        <div
+          style={{
+            minWidth: 200,
+            padding: "24px 32px",
+            background: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.14)",
+            opacity: isDeleteZoneOver ? 0.5 : 1,
+            fontWeight: 600,
+            fontSize: 20,
+            transform: isDeleteZoneOver ? "scale(0.85)" : "scale(1)",
+            transition: "transform 0.1s, opacity 0.1s",
+          }}
+        >
+          {section.title}
+        </div>
+      );
+    }
+    return null;
+  })();
 
   return (
     <>
@@ -224,6 +283,7 @@ const SectionList = () => {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             collisionDetection={customCollisionDetection}
+            onDragOver={handleDragOver}
           >
             <SortableContext
               items={sectionOrder}
@@ -247,11 +307,7 @@ const SectionList = () => {
               <DeleteButton />
               <AddButton />
             </div>
-            <DragOverlay dropAnimation={null}>
-              {activeId === SectionActions.ADD ? (
-                <GhostComponent id="new-component-preview" />
-              ) : null}
-            </DragOverlay>
+            <DragOverlay dropAnimation={null}>{dragOverlayContent}</DragOverlay>
           </DndContext>
         </div>
       </Container>
