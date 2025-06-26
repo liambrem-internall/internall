@@ -1,27 +1,58 @@
 import { Modal, Form, Button } from "react-bootstrap";
+import { useRef } from "react";
 
 const ItemModal = ({
   show,
   onHide,
-  pendingItemContent,
-  setPendingItemContent,
   handleSaveItem,
 }) => {
+  const contentRef = useRef();
+  const linkRef = useRef();
+  const notesRef = useRef();
+
+  const onAdd = () => {
+    handleSaveItem({
+      content: contentRef.current.value,
+      link: linkRef.current.value,
+      notes: notesRef.current.value,
+    });
+    contentRef.current.value = "";
+    linkRef.current.value = "";
+    notesRef.current.value = "";
+  };
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Enter Item Content</Modal.Title>
+        <Modal.Title>Item Content</Modal.Title>
       </Modal.Header>
-      <Form.Control
-        id="itemContent"
-        size="lg"
-        type="text"
-        placeholder="Item content"
-        value={pendingItemContent}
-        onChange={(e) => setPendingItemContent(e.target.value)}
-      />
+      <Form className="p-3">
+        <Form.Group className="mb-3" controlId="itemContent">
+          <Form.Control
+            ref={contentRef}
+            size="lg"
+            type="text"
+            placeholder="Title"
+          />
+        </Form.Group>
+        <Form.Group className="mb-3" controlId="itemLink">
+          <Form.Control
+            ref={linkRef}
+            size="md"
+            type="text"
+            placeholder="Link"
+          />
+        </Form.Group>
+        <Form.Group className="mb-3" controlId="itemNotes">
+          <Form.Control
+            ref={notesRef}
+            size="sm"
+            type="text"
+            placeholder="Notes"
+          />
+        </Form.Group>
+      </Form>
       <Modal.Footer>
-        <Button variant="primary" onClick={handleSaveItem}>
+        <Button variant="primary" onClick={onAdd}>
           Add Item
         </Button>
       </Modal.Footer>

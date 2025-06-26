@@ -53,12 +53,9 @@ const SectionList = () => {
   const [showModal, setShowModal] = useState(false);
   const [pendingSectionTitle, setPendingSectionTitle] = useState("");
   const [sectionOrder, setSectionOrder] = useState(Object.keys(sections));
-
   const [showItemModal, setShowItemModal] = useState(false);
-  const [pendingItemContent, setPendingItemContent] = useState("");
-  const [targetSectionId, setTargetSectionId] = useState(null);
-
   const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
+  const [targetSectionId, setTargetSectionId] = useState(null);
 
   const findItemBySection = (section) => {
     for (const i of section.items) {
@@ -236,16 +233,17 @@ const SectionList = () => {
     setPendingSectionTitle("");
   };
 
-  const handleSaveItem = () => {
-    if (!pendingItemContent.trim() || !targetSectionId) {
+  const handleSaveItem = ({ content, link, notes }) => {
+    if (!content.trim() || !targetSectionId) {
       setShowItemModal(false);
-      setPendingItemContent("");
       setTargetSectionId(null);
       return;
     }
     const newItem = {
       id: `${targetSectionId}-${Date.now()}`,
-      content: pendingItemContent,
+      content,
+      link,
+      notes,
     };
     setSections((prev) => ({
       ...prev,
@@ -255,7 +253,6 @@ const SectionList = () => {
       },
     }));
     setShowItemModal(false);
-    setPendingItemContent("");
     setTargetSectionId(null);
   };
 
@@ -365,8 +362,6 @@ const SectionList = () => {
       <ItemModal
         show={showItemModal}
         onHide={() => setShowItemModal(false)}
-        pendingItemContent={pendingItemContent}
-        setPendingItemContent={setPendingItemContent}
         handleSaveItem={handleSaveItem}
       />
     </>
