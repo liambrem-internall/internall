@@ -30,6 +30,10 @@ const emptySectionOverStyle = {
 };
 
 const DroppableSection = ({ id, items, title, onItemClick }) => {
+  const { setNodeRef: setSectionDroppableRef, isSectionOver } = useDroppable({
+    id,
+    data: { sectionId: id, type: DraggableComponentTypes.SECTION },
+  });
   const {
     setNodeRef,
     setActivatorNodeRef,
@@ -39,41 +43,12 @@ const DroppableSection = ({ id, items, title, onItemClick }) => {
     transition,
     isDragging,
   } = useSortable({ id, data: { type: DraggableComponentTypes.SECTION } });
+
+  // Always combine refs and attach to the container
   const combinedRef = (node) => {
     setNodeRef(node);
     setSectionDroppableRef(node);
   };
-
-  let sectionContent;
-  if (items.length === 0) {
-    sectionContent = (
-      <div style={isSectionOver ? emptySectionOverStyle : emptySectionStyle}>
-        Drop item here
-      </div>
-    );
-  } else {
-    sectionContent = items.map((item) => (
-      <div
-        key={item.id}
-        className="item"
-        onClick={() => onItemClick(item, id)}
-        style={{ cursor: "pointer" }}
-      >
-        <SortableItem
-          id={item.id}
-          content={item.content}
-          sectionId={id}
-          onClick={() => onItemClick(item, id)}
-        />
-      </div>
-    ));
-  }
-
-  const { setNodeRef: setSectionDroppableRef, isSectionOver: isSectionOver } =
-    useDroppable({
-      id,
-      data: { sectionId: id, type: DraggableComponentTypes.SECTION },
-    });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -107,7 +82,29 @@ const DroppableSection = ({ id, items, title, onItemClick }) => {
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="section-items">{sectionContent}</div>
+        <div className="section-items">
+          {items.length === 0 ? (
+            <div style={isSectionOver ? emptySectionOverStyle : emptySectionStyle}>
+              Drop item here
+            </div>
+          ) : (
+            items.map((item) => (
+              <div
+                key={item.id}
+                className="item"
+                onClick={() => onItemClick(item, id)}
+                style={{ cursor: "pointer" }}
+              >
+                <SortableItem
+                  id={item.id}
+                  content={item.content}
+                  sectionId={id}
+                  onClick={() => onItemClick(item, id)}
+                />
+              </div>
+            ))
+          )}
+        </div>
       </SortableContext>
     </div>
   );
