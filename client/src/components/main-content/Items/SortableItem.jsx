@@ -5,7 +5,7 @@ import { DraggableComponentTypes } from "../../../utils/constants";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import "./SortableItem.css";
 
-const SortableItem = ({ id, content, sectionId, isDeleteZoneOver }) => {
+const SortableItem = ({ id, content, sectionId, onClick }) => {
   const {
     setNodeRef,
     attributes,
@@ -29,11 +29,16 @@ const SortableItem = ({ id, content, sectionId, isDeleteZoneOver }) => {
       className="sortable-item"
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      onClick={onClick} 
     >
       {content}
-      <div className="drag-handle">
+      <span
+        className="drag-handle"
+        {...attributes}
+        {...listeners}
+        onClick={e => e.stopPropagation()} 
+        style={{ cursor: "grab", marginLeft: 8 }}
+      >
         <OverlayTrigger
           placement="top"
           delay={{ show: 800, hide: 100 }}
@@ -43,7 +48,7 @@ const SortableItem = ({ id, content, sectionId, isDeleteZoneOver }) => {
         >
           <BsGripVertical size={20} color="var(--gray2)" />
         </OverlayTrigger>
-      </div>
+      </span>
     </div>
   );
 };
