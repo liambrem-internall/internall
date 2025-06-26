@@ -11,7 +11,25 @@ import SortableItem from "../Items/SortableItem";
 import { DraggableComponentTypes } from "../../../utils/constants";
 import "./DroppableSection.css";
 
-const DroppableSection = ({ id, items, title }) => {
+const emptySectionStyle = {
+  minHeight: 40,
+  border: "2px dashed #ccc",
+  borderRadius: 4,
+  background: "#fafbfc",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#888",
+  fontStyle: "italic",
+};
+
+const emptySectionOverStyle = {
+  ...emptySectionStyle,
+  border: "2px dashed var(--pink1)",
+  background: "var(--pink3)",
+};
+
+const DroppableSection = ({ id, items, title, onItemClick }) => {
   const {
     setNodeRef,
     setActivatorNodeRef,
@@ -20,11 +38,36 @@ const DroppableSection = ({ id, items, title }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id, data: {type: DraggableComponentTypes.SECTION }});
+  } = useSortable({ id, data: { type: DraggableComponentTypes.SECTION } });
   const combinedRef = (node) => {
     setNodeRef(node);
     setSectionDroppableRef(node);
   };
+
+  let sectionContent;
+  if (items.length === 0) {
+    sectionContent = (
+      <div style={isSectionOver ? emptySectionOverStyle : emptySectionStyle}>
+        Drop item here
+      </div>
+    );
+  } else {
+    sectionContent = items.map((item) => (
+      <div
+        key={item.id}
+        className="item"
+        onClick={() => onItemClick(item, id)}
+        style={{ cursor: "pointer" }}
+      >
+        <SortableItem
+          id={item.id}
+          content={item.content}
+          sectionId={id}
+          onClick={() => onItemClick(item, id)}
+        />
+      </div>
+    ));
+  }
 
   const { setNodeRef: setSectionDroppableRef, isSectionOver: isSectionOver } =
     useDroppable({
@@ -39,11 +82,7 @@ const DroppableSection = ({ id, items, title }) => {
   };
 
   return (
-    <div
-      className="droppable-section"
-      ref={combinedRef}
-      style={style}
-    >
+    <div className="droppable-section" ref={combinedRef} style={style}>
       <div className="section-header">
         <h3>{title}</h3>
         <OverlayTrigger
@@ -68,36 +107,7 @@ const DroppableSection = ({ id, items, title }) => {
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="section-items">
-          {items.length === 0 ? (
-            <div
-              style={{
-                minHeight: 40,
-                border: isSectionOver
-                  ? "2px dashed var(--pink1)"
-                  : "2px dashed #ccc",
-                borderRadius: 4,
-                background: isSectionOver ? "var(--pink3)" : "#fafbfc",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#888",
-                fontStyle: "italic",
-              }}
-            >
-              Drop item here
-            </div>
-          ) : (
-            items.map((item) => (
-              <SortableItem
-                key={item.id}
-                id={item.id}
-                content={item.content}
-                sectionId={id}
-              />
-            ))
-          )}
-        </div>
+        <div className="section-items">{sectionContent}</div>
       </SortableContext>
     </div>
   );
