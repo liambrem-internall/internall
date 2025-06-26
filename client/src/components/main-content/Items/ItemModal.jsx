@@ -1,14 +1,25 @@
 import { Modal, Form, Button } from "react-bootstrap";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 const ItemModal = ({
   show,
   onHide,
   handleSaveItem,
+  initialContent = "",
+  initialLink = "",
+  initialNotes = "",
 }) => {
   const contentRef = useRef();
   const linkRef = useRef();
   const notesRef = useRef();
+
+  useEffect(() => {
+    if (show) {
+      contentRef.current.value = initialContent;
+      linkRef.current.value = initialLink;
+      notesRef.current.value = initialNotes;
+    }
+  }, [show, initialContent, initialLink, initialNotes]);
 
   const onAdd = () => {
     handleSaveItem({
@@ -20,6 +31,7 @@ const ItemModal = ({
     linkRef.current.value = "";
     notesRef.current.value = "";
   };
+
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
