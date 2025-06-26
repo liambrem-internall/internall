@@ -5,7 +5,7 @@ import { DraggableComponentTypes } from "../../../utils/constants";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import "./SortableItem.css";
 
-const SortableItem = ({ id, content, sectionId }) => {
+const SortableItem = ({ id, content, sectionId, isDeleteZoneOver }) => {
   const {
     setNodeRef,
     attributes,

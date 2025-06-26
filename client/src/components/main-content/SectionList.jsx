@@ -1,8 +1,5 @@
-import { useState } from "react";
-import {
-  DndContext,
-  DragOverlay,
-} from "@dnd-kit/core";
+import { useState, useEffect, useRef, act } from "react";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -10,17 +7,19 @@ import {
 } from "@dnd-kit/sortable";
 import GhostComponent from "./Add/GhostComponent";
 import AddButton from "./Add/AddButton";
+import DeleteButton from "./Delete/DeleteButton";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import Container from "react-bootstrap/Container";
-import Modal from "react-bootstrap/Modal";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
 import DroppableSection from "./Sections/DroppableSection";
 import ItemModal from "./Items/ItemModal";
+import SectionModal from "./Sections/SectionModal";
 import "./SectionList.css";
-import { DraggableComponentTypes, SectionActions } from "../../utils/constants";
+import {
+  DraggableComponentTypes,
+  SectionActions,
+  DragEndActions,
+} from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
-
 
 const SectionList = () => {
   const [sections, setSections] = useState({
@@ -59,12 +58,23 @@ const SectionList = () => {
   const [pendingItemContent, setPendingItemContent] = useState("");
   const [targetSectionId, setTargetSectionId] = useState(null);
 
+  const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
+
+  const findItemBySection = (section) => {
+    for (const i of section.items) {
+      if (i.id === activeId) {
+        return i;
+      }
+    }
+
+    return null;
+  };
+
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
   };
 
   const handleDragEndSection = (active, over) => {
-    console.log("active.id", active.id, "over.id", over.id, sectionOrder);
     if (active.id !== over.id) {
       setSectionOrder((prev) => {
         const oldIndex = prev.indexOf(active.id);
@@ -88,7 +98,7 @@ const SectionList = () => {
       return;
     }
 
-    const item = sections[fromSectionId].items.find((i) => i.id === active.id);
+    const item = findItemBySection(sections[fromSectionId]);
 
     setSections((prev) => {
       // remove from old section
@@ -126,6 +136,31 @@ const SectionList = () => {
     setActiveId(null);
   };
 
+  const handleDragEndDelete = (active, over) => {
+    // Delete item
+    if (active.data.current?.type === DraggableComponentTypes.ITEM) {
+      const fromSectionId = active.data.current.sectionId;
+      setSections((prev) => ({
+        ...prev,
+        [fromSectionId]: {
+          ...prev[fromSectionId],
+          items: prev[fromSectionId].items.filter((i) => i.id !== active.id),
+        },
+      }));
+    }
+    // Delete section
+    if (active.data.current?.type === DraggableComponentTypes.SECTION) {
+      setSections((prev) => {
+        const newSections = { ...prev };
+        delete newSections[active.id];
+        return newSections;
+      });
+      setSectionOrder((prev) => prev.filter((id) => id !== active.id));
+    }
+    setActiveId(null);
+    return;
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (!over) {
@@ -133,50 +168,57 @@ const SectionList = () => {
       return;
     }
 
-    // dragging from add button
-    // dragging to new section
-    if (
+    let actionType = null;
+
+    if (over.id === SectionActions.DELETE_ZONE) {
+      actionType = DragEndActions.DELETE;
+    } else if (
       over.id === SectionActions.DROPZONE &&
       active.id === SectionActions.ADD
     ) {
-      handleDragEndAdd(active, over);
-      return;
-    }
-
-    // dragging into existing section or item within section
-    if (
+      actionType = DragEndActions.ADD_SECTION;
+    } else if (
       active.id === SectionActions.ADD &&
       (over.data?.current?.type === DraggableComponentTypes.SECTION ||
         over.data?.current?.type === DraggableComponentTypes.ITEM)
     ) {
-      // if dropped on an item -> use its sectionId
-      const sectionId =
-        over.data.current.type === DraggableComponentTypes.SECTION
-          ? over.id
-          : over.data.current.sectionId;
-      console.log("Adding item to section:", sectionId);
-      setTargetSectionId(sectionId);
-      setShowItemModal(true);
-      setActiveId(null);
-      return;
-    }
-
-    // dragging a section
-    if (
+      actionType = DragEndActions.ADD_ITEM;
+    } else if (
       active.data.current?.type === DraggableComponentTypes.SECTION &&
       over.data.current?.type === DraggableComponentTypes.SECTION
     ) {
-      handleDragEndSection(active, over);
-      return;
+      actionType = DragEndActions.MOVE_SECTION;
+    } else if (active.data.current?.type === DraggableComponentTypes.ITEM) {
+      actionType = DragEndActions.MOVE_ITEM;
     }
 
-    // dragging an item
-    if (active.data.current?.type === DraggableComponentTypes.ITEM) {
-      handleDragEndItem(active, over);
-      return;
+    switch (actionType) {
+      case DragEndActions.DELETE:
+        handleDragEndDelete(active, over);
+        break;
+      case DragEndActions.ADD_SECTION:
+        handleDragEndAdd(active, over);
+        break;
+      case DragEndActions.ADD_ITEM:
+        {
+          const sectionId =
+            over.data.current.type === DraggableComponentTypes.SECTION
+              ? over.id
+              : over.data.current.sectionId;
+          setTargetSectionId(sectionId);
+          setShowItemModal(true);
+          setActiveId(null);
+        }
+        break;
+      case DragEndActions.MOVE_SECTION:
+        handleDragEndSection(active, over);
+        break;
+      case DragEndActions.MOVE_ITEM:
+        handleDragEndItem(active, over);
+        break;
+      default:
+        setActiveId(null);
     }
-
-    setActiveId(null);
   };
 
   const handleSaveSection = () => {
@@ -217,7 +259,65 @@ const SectionList = () => {
     setTargetSectionId(null);
   };
 
+  const handleDragOver = (event) => {
+    const { over } = event;
+    setIsDeleteZoneOver(over?.id === SectionActions.DELETE_ZONE);
+  };
+
   const handleCloseModal = () => setShowModal(false);
+
+  const dragOverlayContent = (() => {
+    if (activeId === SectionActions.ADD) {
+      return <GhostComponent id="new-component-preview" text="New Component" />;
+    }
+    // for items
+    for (const section of Object.values(sections)) {
+      let item = findItemBySection(section);
+
+      if (item) {
+        return (
+          <div
+            style={{
+              padding: "12px 24px",
+              background: "#fff",
+              borderRadius: 8,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              opacity: isDeleteZoneOver ? 0.5 : 1,
+              fontWeight: 500,
+              transform: isDeleteZoneOver ? "scale(0.75)" : "scale(1)",
+              transition: "transform 0.1s, opacity 0.1s",
+            }}
+          >
+            {item.content}
+          </div>
+        );
+      }
+    }
+
+    // for sections
+    const section = sections[activeId];
+    if (section) {
+      return (
+        <div
+          style={{
+            minWidth: 200,
+            padding: "24px 32px",
+            background: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.14)",
+            opacity: isDeleteZoneOver ? 0.5 : 1,
+            fontWeight: 600,
+            fontSize: 20,
+            transform: isDeleteZoneOver ? "scale(0.85)" : "scale(1)",
+            transition: "transform 0.1s, opacity 0.1s",
+          }}
+        >
+          {section.title}
+        </div>
+      );
+    }
+    return null;
+  })();
 
   return (
     <>
@@ -227,6 +327,7 @@ const SectionList = () => {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             collisionDetection={customCollisionDetection}
+            onDragOver={handleDragOver}
           >
             <SortableContext
               items={sectionOrder}
@@ -246,39 +347,28 @@ const SectionList = () => {
                 )}
               </div>
             </SortableContext>
-            <AddButton />
-            <DragOverlay dropAnimation={null}>
-              {activeId === SectionActions.ADD ? (
-                <GhostComponent id="new-component-preview" />
-              ) : null}
-            </DragOverlay>
+            <div className="bottom-row">
+              <DeleteButton />
+              <AddButton />
+            </div>
+            <DragOverlay dropAnimation={null}>{dragOverlayContent}</DragOverlay>
           </DndContext>
         </div>
       </Container>
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Enter Section Title</Modal.Title>
-        </Modal.Header>
-        <Form.Control
-          id="sectionTitle"
-          size="lg"
-          type="text"
-          placeholder="Title"
-          value={pendingSectionTitle}
-          onChange={(e) => setPendingSectionTitle(e.target.value)}
-        />
-        <Modal.Footer>
-          <Button variant="primary" onClick={handleSaveSection}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <SectionModal
+        show={showModal}
+        onHide={handleCloseModal}
+        pendingSectionTitle={pendingSectionTitle}
+        setPendingSectionTitle={setPendingSectionTitle}
+        handleSaveSection={handleSaveSection}
+      />
       <ItemModal
         show={showItemModal}
         onHide={() => setShowItemModal(false)}
         pendingItemContent={pendingItemContent}
         setPendingItemContent={setPendingItemContent}
-        handleSaveItem={handleSaveItem} />
+        handleSaveItem={handleSaveItem}
+      />
     </>
   );
 };
