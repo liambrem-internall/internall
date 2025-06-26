@@ -1,32 +1,36 @@
 import { Modal, Form, Button } from "react-bootstrap";
+import { useEffect } from "react";
 
-const ItemModal = ({
+const SectionModal = ({
   show,
   onHide,
-  pendingItemContent,
-  setPendingItemContent,
-  handleSaveItem,
+  pendingSectionTitle,
+  setPendingSectionTitle,
+  handleSaveSection,
 }) => {
+
+
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Enter Item Content</Modal.Title>
+        <Modal.Title>Enter Section Title Content</Modal.Title>
       </Modal.Header>
       <Form.Control
-        id="itemContent"
+        id="sectionTitle"
         size="lg"
         type="text"
-        placeholder="Item content"
-        value={pendingItemContent}
-        onChange={(e) => setPendingItemContent(e.target.value)}
+        placeholder="Section Title"
+        value={pendingSectionTitle}
+        onChange={(e) => setPendingSectionTitle(e.target.value)}
+        required
       />
       <Modal.Footer>
-        <Button variant="primary" onClick={handleSaveItem}>
-          Add Item
+        <Button variant="primary" onClick={handleSaveSection} disabled={!pendingSectionTitle.trim()}>
+          Add Section
         </Button>
       </Modal.Footer>
     </Modal>
   );
 };
 
-export default ItemModal;
+export default SectionModal;
