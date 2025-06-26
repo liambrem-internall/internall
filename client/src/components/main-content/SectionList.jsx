@@ -63,7 +63,6 @@ const SectionList = () => {
   };
 
   const handleDragEndSection = (active, over) => {
-    console.log("active.id", active.id, "over.id", over.id, sectionOrder);
     if (active.id !== over.id) {
       setSectionOrder((prev) => {
         const oldIndex = prev.indexOf(active.id);
@@ -125,10 +124,41 @@ const SectionList = () => {
     setActiveId(null);
   };
 
+  const handleDragEndDelete = (active, over) => {
+    // Delete item
+    if (active.data.current?.type === DraggableComponentTypes.ITEM) {
+      const fromSectionId = active.data.current.sectionId;
+      setSections((prev) => ({
+        ...prev,
+        [fromSectionId]: {
+          ...prev[fromSectionId],
+          items: prev[fromSectionId].items.filter((i) => i.id !== active.id),
+        },
+      }));
+    }
+    // Delete section
+    if (active.data.current?.type === DraggableComponentTypes.SECTION) {
+      setSections((prev) => {
+        const newSections = { ...prev };
+        delete newSections[active.id];
+        return newSections;
+      });
+      setSectionOrder((prev) => prev.filter((id) => id !== active.id));
+    }
+    setActiveId(null);
+    return;
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (!over) {
       setActiveId(null);
+      return;
+    }
+
+    // drag to delete
+    if (over.id === "delete-zone") {
+      handleDragEndDelete(active, over);
       return;
     }
 
@@ -153,7 +183,6 @@ const SectionList = () => {
         over.data.current.type === DraggableComponentTypes.SECTION
           ? over.id
           : over.data.current.sectionId;
-      console.log("Adding item to section:", sectionId);
       setTargetSectionId(sectionId);
       setShowItemModal(true);
       setActiveId(null);
