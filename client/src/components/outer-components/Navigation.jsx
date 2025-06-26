@@ -3,6 +3,8 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import { ViewModes } from "../../utils/constants";
+import { useContext } from "react";
+import ViewContext from "../../ViewContext";
 import "./Navbar.css";
 
 
@@ -16,7 +18,9 @@ const notSelectedStyle = {
   color: "#fff",
 };
 
-const Navigation = ({ clickBoard, clickList, mode }) => {
+const Navigation = () => {
+  const { viewMode, setViewMode } = useContext(ViewContext);
+
   return (
     <div className="navbar-float-wrapper">
       <Navbar expand="lg" className="custom-navbar px-4 py-2">
@@ -30,15 +34,15 @@ const Navigation = ({ clickBoard, clickList, mode }) => {
               <Nav className="mx-auto">
                 <Nav.Link
                   className="nav-link-custom"
-                  style={mode === ViewModes.BOARD ? selectedStyle : notSelectedStyle}
-                  onClick={clickBoard}
+                  style={viewMode === ViewModes.BOARD ? selectedStyle : notSelectedStyle}
+                  onClick={() => setViewMode(ViewModes.BOARD)}
                 >
                   Board
                 </Nav.Link>
                 <Nav.Link
                   className="nav-link-custom"
-                  style={mode === ViewModes.LIST ? selectedStyle : notSelectedStyle}
-                  onClick={clickList}
+                  style={viewMode === ViewModes.LIST ? selectedStyle : notSelectedStyle}
+                  onClick={() => setViewMode(ViewModes.LIST)} 
                 >
                   List
                 </Nav.Link>

@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, act } from "react";
+import { useState, useContext } from "react";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   horizontalListSortingStrategy,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import GhostComponent from "./Add/GhostComponent";
 import AddButton from "./Add/AddButton";
@@ -20,8 +21,10 @@ import {
   DragEndActions,
 } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
+import ViewContext from "../../ViewContext";
 
-const SectionList = ({ mode }) => {
+const SectionList = () => {
+  const { viewMode } = useContext(ViewContext);
   const [sections, setSections] = useState({
     A: {
       id: "A",
@@ -289,6 +292,11 @@ const SectionList = ({ mode }) => {
 
   const handleCloseModal = () => setShowModal(false);
 
+  const sortStrategy =
+    viewMode === "list"
+      ? verticalListSortingStrategy
+      : horizontalListSortingStrategy;
+
   const dragOverlayContent = (() => {
     if (activeId === SectionActions.ADD) {
       return <GhostComponent id="new-component-preview" text="New Component" />;
@@ -344,7 +352,7 @@ const SectionList = ({ mode }) => {
 
   return (
     <>
-      <Container className="section-list-container">
+      <Container className={`section-list-container`}>
         <div className="sections-scroll-container">
           <DndContext
             onDragStart={handleDragStart}
@@ -354,16 +362,24 @@ const SectionList = ({ mode }) => {
           >
             <SortableContext
               items={sectionOrder}
-              strategy={horizontalListSortingStrategy}
+              strategy={sortStrategy}
             >
-              <div className="sections-row">
-                {sectionOrder.map((sectionId) => (
+              <div
+                className={`sections-row ${
+                  viewMode === "list" ? "list-view" : "board-view"
+                }`}
+              >
+                {sectionOrder.map((sectionId, idx) => (
                   <DroppableSection
                     key={sectionId}
                     id={sectionId}
                     items={sections[sectionId].items}
                     title={sections[sectionId].title}
                     onItemClick={handleItemClick}
+                    className={`section ${
+                      viewMode === "list" ? "list-view" : "board-view"
+                    }`}
+                    style={{}}
                   />
                 ))}
                 {activeId == SectionActions.ADD && (

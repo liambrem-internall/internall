@@ -29,7 +29,7 @@ const emptySectionOverStyle = {
   background: "var(--pink3)",
 };
 
-const DroppableSection = ({ id, items, title, onItemClick }) => {
+const DroppableSection = ({ id, items, title, onItemClick, className="", style={} }) => {
   const { setNodeRef: setSectionDroppableRef, isSectionOver } = useDroppable({
     id,
     data: { sectionId: id, type: DraggableComponentTypes.SECTION },
@@ -50,14 +50,15 @@ const DroppableSection = ({ id, items, title, onItemClick }) => {
     setSectionDroppableRef(node);
   };
 
-  const style = {
+  const containerStyle = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    ...style,
   };
 
   return (
-    <div className="droppable-section" ref={combinedRef} style={style}>
+    <div className={`droppable-section ${className}`} ref={combinedRef} style={containerStyle}>
       <div className="section-header">
         <h3>{title}</h3>
         <OverlayTrigger
