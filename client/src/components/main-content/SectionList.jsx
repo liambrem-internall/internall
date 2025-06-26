@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -15,6 +15,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import DroppableSection from "./Sections/DroppableSection";
 import ItemModal from "./Items/ItemModal";
+import SectionModal from "./Sections/SectionModal";
 import "./SectionList.css";
 import { DraggableComponentTypes, SectionActions } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
@@ -340,24 +341,12 @@ const SectionList = () => {
           </DndContext>
         </div>
       </Container>
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Enter Section Title</Modal.Title>
-        </Modal.Header>
-        <Form.Control
-          id="sectionTitle"
-          size="lg"
-          type="text"
-          placeholder="Title"
-          value={pendingSectionTitle}
-          onChange={(e) => setPendingSectionTitle(e.target.value)}
-        />
-        <Modal.Footer>
-          <Button variant="primary" onClick={handleSaveSection}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <SectionModal
+        show={showModal}
+        onHide={handleCloseModal}
+        pendingSectionTitle={pendingSectionTitle}
+        setPendingSectionTitle={setPendingSectionTitle}
+        handleSaveSection={handleSaveSection}/>
       <ItemModal
         show={showItemModal}
         onHide={() => setShowItemModal(false)}
