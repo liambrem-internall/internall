@@ -85,7 +85,7 @@ const SectionList = ({ mode }) => {
 
   const handleDragEndItem = (active, over) => {
     const fromSectionId = active.data.current.sectionId;
-    const toSectionId = over.data.current?.sectionId;
+    const toSectionId = over.data.current?.sectionId || over.id;
     if (!toSectionId) {
       setActiveId(null);
       return;
