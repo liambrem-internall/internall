@@ -1,10 +1,11 @@
 import { BsTrashFill } from "react-icons/bs";
 import { useDroppable } from "@dnd-kit/core";
+import { SectionActions } from "../../../utils/constants";
 import "./DeleteButton.css";
 
 const DeleteButton = () => {
   const { setNodeRef, isOver } = useDroppable({
-    id: "delete-zone",
+    id: SectionActions.DELETE_ZONE,
     data: { type: "DELETE" },
   });
 
