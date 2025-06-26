@@ -56,6 +56,7 @@ const SectionList = () => {
   const [showItemModal, setShowItemModal] = useState(false);
   const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
 
   const findItemBySection = (section) => {
     for (const i of section.items) {
@@ -236,29 +237,54 @@ const SectionList = () => {
   const handleSaveItem = ({ content, link, notes }) => {
     if (!content.trim() || !targetSectionId) {
       setShowItemModal(false);
+      setEditingItem(null);
       setTargetSectionId(null);
       return;
     }
-    const newItem = {
-      id: `${targetSectionId}-${Date.now()}`,
-      content,
-      link,
-      notes,
-    };
-    setSections((prev) => ({
-      ...prev,
-      [targetSectionId]: {
-        ...prev[targetSectionId],
-        items: [...prev[targetSectionId].items, newItem],
-      },
-    }));
+
+    setSections((prev) => {
+      const section = prev[targetSectionId];
+      let items;
+      if (editingItem) {
+        // edit existing item
+        items = section.items.map((i) =>
+          i.id === editingItem.id ? { ...i, content, link, notes } : i
+        );
+      } else {
+        // add new item
+        items = [
+          ...section.items,
+          {
+            id: `${targetSectionId}-${Date.now()}`,
+            content,
+            link,
+            notes,
+          },
+        ];
+      }
+      return {
+        ...prev,
+        [targetSectionId]: {
+          ...section,
+          items,
+        },
+      };
+    });
+
     setShowItemModal(false);
+    setEditingItem(null);
     setTargetSectionId(null);
   };
 
   const handleDragOver = (event) => {
     const { over } = event;
     setIsDeleteZoneOver(over?.id === SectionActions.DELETE_ZONE);
+  };
+
+  const handleItemClick = (item, sectionId) => {
+    setEditingItem(item);
+    setTargetSectionId(sectionId);
+    setShowItemModal(true);
   };
 
   const handleCloseModal = () => setShowModal(false);
@@ -337,6 +363,7 @@ const SectionList = () => {
                     id={sectionId}
                     items={sections[sectionId].items}
                     title={sections[sectionId].title}
+                    onItemClick={handleItemClick}
                   />
                 ))}
                 {activeId == SectionActions.ADD && (
@@ -361,8 +388,14 @@ const SectionList = () => {
       />
       <ItemModal
         show={showItemModal}
-        onHide={() => setShowItemModal(false)}
+        onHide={() => {
+          setShowItemModal(false);
+          setEditingItem(null);
+        }}
         handleSaveItem={handleSaveItem}
+        initialContent={editingItem?.content || ""}
+        initialLink={editingItem?.link || ""}
+        initialNotes={editingItem?.notes || ""}
       />
     </>
   );
