@@ -28,9 +28,22 @@
 
 .sections-row {
   display: flex;
-  flex-direction: row;
+  /*flex-direction: row;*/
   gap: 24px;
   align-items: flex-start;
+  transition: flex-direction 0.4s cubic-bezier(.4,2,.6,1), gap 0.4s, width 0.4s;
+}
+
+.sections-row.board-view {
+  flex-direction: row;
+}
+
+.sections-row.list-view {
+  flex-direction: column;
+  gap: 32px;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
 }
 
 .section-list {
@@ -44,3 +57,4 @@
   border: var(--gray1) 2px solid;
   border-radius: var(--border-radius);
 }
+
