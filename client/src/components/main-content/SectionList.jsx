@@ -21,7 +21,7 @@ import {
 } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 
-const SectionList = () => {
+const SectionList = ({ mode }) => {
   const [sections, setSections] = useState({
     A: {
       id: "A",
