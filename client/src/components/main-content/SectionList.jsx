@@ -166,11 +166,13 @@ const SectionList = () => {
           <div
             style={{
               padding: "12px 24px",
-              background: "#fff",
+              background: "#25242d",
               borderRadius: 8,
               boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
               opacity: isDeleteZoneOver ? 0.5 : 1,
               fontWeight: 500,
+              color: "white",
+              border: "4px solid #1f1f1f",
               transform: isDeleteZoneOver ? "scale(0.75)" : "scale(1)",
               transition: "transform 0.1s, opacity 0.1s",
             }}
@@ -189,11 +191,12 @@ const SectionList = () => {
           style={{
             minWidth: 200,
             padding: "24px 32px",
-            background: "#fff",
+            background: "var(--dark2)",
             borderRadius: 12,
             boxShadow: "0 2px 12px rgba(0,0,0,0.14)",
             opacity: isDeleteZoneOver ? 0.5 : 1,
             fontWeight: 600,
+            color: "white",
             fontSize: 20,
             transform: isDeleteZoneOver ? "scale(0.85)" : "scale(1)",
             transition: "transform 0.1s, opacity 0.1s",

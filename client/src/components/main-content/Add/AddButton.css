@@ -1,9 +1,9 @@
 .add-circular-btn {
   background-color: var(--dark2);
-  border: 1px solid var(--gray3);
+  border: none;
   border-radius: 50%;
   padding: 0;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
+  box-shadow: 0 0px 8px 0 rgba(164, 35, 153, 0.869);
   transition: background 0.2s;
   color: #fff;
   position: fixed !important;
