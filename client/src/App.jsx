@@ -11,13 +11,13 @@ import "./App.css";
 const App = () => {
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
   return (
-    <ViewContext.Provider value={{ viewMode, setViewMode }}>
+    <ViewContext value={{ viewMode, setViewMode }}>
       <LightBallsOverlay />
       <div className="App">
         <Navigation />
         <SectionList />
       </div>
-    </ViewContext.Provider>
+    </ViewContext>
   );
 };
 
