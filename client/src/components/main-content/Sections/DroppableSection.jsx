@@ -44,7 +44,6 @@ const DroppableSection = ({ id, items, title, onItemClick, className="", style={
     isDragging,
   } = useSortable({ id, data: { type: DraggableComponentTypes.SECTION } });
 
-  // Always combine refs and attach to the container
   const combinedRef = (node) => {
     setNodeRef(node);
     setSectionDroppableRef(node);
