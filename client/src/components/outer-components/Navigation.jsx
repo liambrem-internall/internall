@@ -4,12 +4,14 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import { ViewModes } from "../../utils/constants";
 import { useContext } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import ViewContext from "../../ViewContext";
 import "./Navbar.css";
 
 
 const Navigation = () => {
   const { viewMode, setViewMode } = useContext(ViewContext);
+  const { logout } = useAuth0();
 
   return (
     <div className="navbar-float-wrapper">
@@ -35,7 +37,7 @@ const Navigation = () => {
                   List
                 </Nav.Link>
               </Nav>
-              <Button className="get-started-btn">Account</Button>
+              <Button className="get-started-btn" onClick={() => logout({ logoutParams: { returnTo: `${window.location.origin}/loggedOut` } })}>Log Out</Button>
             </div>
           </Navbar.Collapse>
         </Container>
