@@ -18,3 +18,8 @@ export const DragEndActions = Object.freeze({
   MOVE_SECTION: "moveSection",
   DELETE: "delete",
 });
+
+export const ViewModes = Object.freeze({
+  BOARD: "board",
+  LIST: "list",
+});
