@@ -211,7 +211,7 @@ const SectionList = () => {
 
   return (
     <>
-      <Container className={`section-list-container`}>
+      <Container className="section-list-container">
         <div className="sections-scroll-container">
           <DndContext
             onDragStart={handleDragStart}
