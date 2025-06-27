@@ -12,8 +12,8 @@ const NewSectionDropZone = () => {
       className="section-droppable"
       ref={setNodeRef}
       style={{
-        background: isOver ? "var(--gray2)" : "var(--gray1)",
-        border: isOver ? "2px solid var(--primary)" : "2px dashed var(--gray3)",
+        background: isOver ? "var(--dark1)" : "var(--dark2)",
+        border: isOver ? "2px solid var(--pink2)" : "2px dashed var(--gray2)",
         transition: "background 0.2s, border 0.2s",
       }}
     >

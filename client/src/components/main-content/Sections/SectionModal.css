@@ -1,0 +1,28 @@
+.modal-content {
+  background: var(--dark2) !important;
+  color: #fff !important;
+}
+
+.modal-title {
+  color: #fff !important;
+}
+
+#sectionTitle.form-control {
+  background: var(--gray2) !important;
+  color: #fff !important;
+  border: 1px solid var(--gray3) !important;
+}
+
+#sectionTitle.form-control:focus {
+  border-color: var(--pink1) !important;
+}
+
+button.btn-primary {
+  background: linear-gradient(135deg, var(--pink1) 0%, var(--pink2) 100%);
+  color: #fff !important;
+  border: none;
+}
+
+.modal-header .btn-close {
+  filter: invert(1);
+}

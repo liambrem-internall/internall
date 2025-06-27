@@ -6,6 +6,7 @@
   width: 100%;
   height: 100%;
   overflow-y: hidden;
+  margin-top:5px;
 }
 
 .sections-scroll-container {
@@ -16,7 +17,6 @@
   padding-bottom: 24px;
   scrollbar-width: thin;
   scrollbar-color: #ccc #f5f5f5;
-  margin-top: 10px;
   overflow-y: hidden; 
 }
 
@@ -32,6 +32,7 @@
   gap: 24px;
   align-items: flex-start;
   transition: flex-direction 0.4s cubic-bezier(.4,2,.6,1), gap 0.4s, width 0.4s;
+  margin-top: 15px; 
 }
 
 .sections-row.board-view {
