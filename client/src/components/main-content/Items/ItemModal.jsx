@@ -1,5 +1,6 @@
 import { Modal, Form, Button } from "react-bootstrap";
 import { useEffect, useRef } from "react";
+import "./ItemModal.css";
 
 const ItemModal = ({
   show,

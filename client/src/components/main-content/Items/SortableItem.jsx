@@ -46,7 +46,7 @@ const SortableItem = ({ id, content, sectionId, onClick }) => {
             <Tooltip id="reorder-section-tooltip">Reorder Items</Tooltip>
           }
         >
-          <BsGripVertical size={20} color="var(--gray2)" />
+          <BsGripVertical size={20} color="white" />
         </OverlayTrigger>
       </span>
     </div>

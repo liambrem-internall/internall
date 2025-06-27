@@ -3,9 +3,13 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.531);
-  background-color: var(--gray1);
+  background: radial-gradient(
+    circle at 50% 50%,
+    #1c1c1ca4 50%,
+    #25252692 100%
+  );
   border-radius: var(--border-radius);
+  /* border: 1px solid var(--gray3); */
   min-width: 20vw;
   max-width: 20vw;
   min-height: 7vh;
@@ -14,12 +18,13 @@
 
 .section-header {
   display: flex;
-  background-color: var(--dark1);
+  background-color: var(--dark2);
   color: white;
   width: 100%;
   padding: 3px;
   justify-content: space-between;
   align-items: center;
+  border: 2px solid #a8229a85;
   border-top-left-radius: var(--border-radius);
   border-top-right-radius: var(--border-radius);
 }
@@ -41,14 +46,20 @@
 }
 
 .droppable-section {
-  transition:
-    min-width 0.5s cubic-bezier(.4,2,.6,1),
-    max-width 0.5s cubic-bezier(.4,2,.6,1),
-    width 0.5s cubic-bezier(.4,2,.6,1),
-    margin 0.5s cubic-bezier(.4,2,.6,1),
-    transform 0.5s cubic-bezier(.4,2,.6,1);
+  transition: min-width 0.5s cubic-bezier(0.4, 2, 0.6, 1),
+    max-width 0.5s cubic-bezier(0.4, 2, 0.6, 1),
+    width 0.5s cubic-bezier(0.4, 2, 0.6, 1),
+    margin 0.5s cubic-bezier(0.4, 2, 0.6, 1),
+    transform 0.5s cubic-bezier(0.4, 2, 0.6, 1),
+    box-shadow 0.4s cubic-bezier(0.4, 2, 0.6, 1);
   transition-delay: calc(var(--section-index, 0) * 60ms);
   will-change: transform, width, margin;
+}
+
+.droppable-section:hover {
+  box-shadow:
+  0 3px 24px 0 rgba(229, 22, 184, 0.409),
+  0 3px 16px 0 rgba(55, 55, 55, 0.10);
 }
 
 .droppable-section.board-view {
@@ -63,4 +74,3 @@
   width: 100%;
   margin: 0 auto;
 }
-

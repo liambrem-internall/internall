@@ -8,16 +8,6 @@ import ViewContext from "../../ViewContext";
 import "./Navbar.css";
 
 
-const selectedStyle = {
-  color: "var(--pink1)",
-  fontWeight: "bold",
-  textDecoration: "underline",
-};
-
-const notSelectedStyle = {
-  color: "#fff",
-};
-
 const Navigation = () => {
   const { viewMode, setViewMode } = useContext(ViewContext);
 
@@ -33,21 +23,19 @@ const Navigation = () => {
             <div className="d-flex ms-auto align-items-center">
               <Nav className="mx-auto">
                 <Nav.Link
-                  className="nav-link-custom"
-                  style={viewMode === ViewModes.BOARD ? selectedStyle : notSelectedStyle}
+                  className={`nav-link-custom${viewMode === ViewModes.BOARD ? " selected" : ""}`}
                   onClick={() => setViewMode(ViewModes.BOARD)}
                 >
                   Board
                 </Nav.Link>
                 <Nav.Link
-                  className="nav-link-custom"
-                  style={viewMode === ViewModes.LIST ? selectedStyle : notSelectedStyle}
+                  className={`nav-link-custom${viewMode === ViewModes.LIST ? " selected" : ""}`}
                   onClick={() => setViewMode(ViewModes.LIST)} 
                 >
                   List
                 </Nav.Link>
               </Nav>
-              <Button className="get-started-btn ms-3">Account</Button>
+              <Button className="get-started-btn">Account</Button>
             </div>
           </Navbar.Collapse>
         </Container>
