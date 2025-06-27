@@ -85,7 +85,7 @@ const handleDragEndAdd = (active, over, { setShowModal, setActiveId }) => {
 };
 
 const handleDragEndDelete = (
-  active,
+  active, over,
   { setSections, setSectionOrder, setActiveId }
 ) => {
   // Delete item
