@@ -4,10 +4,10 @@
 }
 
 .custom-navbar {
-  background: linear-gradient(90deg, var(--dark1) 0%, var(--dark2) 100%);
+  background-color: var(--dark2);
   border-radius: var(--border-radius);
   box-shadow: 0 2px 24px 0 rgba(0,0,0,0.12);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--gray3);
 }
 
 .get-started-btn {
@@ -23,4 +23,19 @@
 .nav-link-custom {
   font-size: 1.1rem;
   margin: 0 0.5rem;
+  color: #fff !important;
+  transition: filter 0.4s, color 0.4s, transform 0.4s cubic-bezier(.4,2,.6,1);
+  will-change: filter, transform, color;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.nav-link-custom.selected,
+.nav-link-custom.selected:hover,
+.nav-link-custom.selected:focus {
+  color: var(--pink1) !important;
+  font-weight: bold;
+  text-decoration: underline;
+  transform: translateY(-4px);
+  filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 16px currentColor);
 }
