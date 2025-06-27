@@ -1,0 +1,13 @@
+.light-balls-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.light-ball {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffbe9cc 0%, #fffbe900 80%);
+  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.341);
+  opacity: 0.25;
+}
