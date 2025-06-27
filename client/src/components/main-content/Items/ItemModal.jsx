@@ -32,36 +32,52 @@ const ItemModal = ({
     notesRef.current.value = "";
   };
 
+
+  // define fields for form to be mapped over
+  const fields = [
+    {
+      ref: contentRef,
+      size: "lg",
+      type: "text",
+      placeholder: "Title",
+      controlId: "itemContent",
+    },
+    {
+      ref: linkRef,
+      size: "md",
+      type: "text",
+      placeholder: "Link",
+      controlId: "itemLink",
+    },
+    {
+      ref: notesRef,
+      size: "sm",
+      type: "text",
+      placeholder: "Notes",
+      controlId: "itemNotes",
+    },
+  ];
+
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
         <Modal.Title>Item Content</Modal.Title>
       </Modal.Header>
       <Form className="p-3">
-        <Form.Group className="mb-3" controlId="itemContent">
-          <Form.Control
-            ref={contentRef}
-            size="lg"
-            type="text"
-            placeholder="Title"
-          />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="itemLink">
-          <Form.Control
-            ref={linkRef}
-            size="md"
-            type="text"
-            placeholder="Link"
-          />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="itemNotes">
-          <Form.Control
-            ref={notesRef}
-            size="sm"
-            type="text"
-            placeholder="Notes"
-          />
-        </Form.Group>
+        {fields.map((field) => (
+          <Form.Group
+            className="mb-3"
+            controlId={field.controlId}
+            key={field.controlId}
+          >
+            <Form.Control>
+              ref={field.ref}
+              size={field.size}
+              type={field.type}
+              placeholder={field.placeholder}
+            </Form.Control>
+          </Form.Group>
+        ))}
       </Form>
       <Modal.Footer>
         <Button variant="primary" onClick={onAdd}>
