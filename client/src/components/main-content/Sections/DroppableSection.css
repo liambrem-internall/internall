@@ -39,3 +39,28 @@
 .drag-handle:hover {
   background: var(--dark3);
 }
+
+.droppable-section {
+  transition:
+    min-width 0.5s cubic-bezier(.4,2,.6,1),
+    max-width 0.5s cubic-bezier(.4,2,.6,1),
+    width 0.5s cubic-bezier(.4,2,.6,1),
+    margin 0.5s cubic-bezier(.4,2,.6,1),
+    transform 0.5s cubic-bezier(.4,2,.6,1);
+  transition-delay: calc(var(--section-index, 0) * 60ms);
+  will-change: transform, width, margin;
+}
+
+.droppable-section.board-view {
+  min-width: 20vw;
+  max-width: 20vw;
+  margin: 0;
+}
+
+.droppable-section.list-view {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+}
+
