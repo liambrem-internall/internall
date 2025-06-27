@@ -32,7 +32,6 @@ const ItemModal = ({
     notesRef.current.value = "";
   };
 
-
   // define fields for form to be mapped over
   const fields = [
     {
@@ -70,12 +69,12 @@ const ItemModal = ({
             controlId={field.controlId}
             key={field.controlId}
           >
-            <Form.Control>
+            <Form.Control
               ref={field.ref}
               size={field.size}
               type={field.type}
               placeholder={field.placeholder}
-            </Form.Control>
+            />
           </Form.Group>
         ))}
       </Form>
