@@ -1,4 +1,5 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -17,6 +18,8 @@ import "./SectionList.css";
 import { SectionActions } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import ViewContext from "../../ViewContext";
+import { useAuth0 } from "@auth0/auth0-react";
+
 
 import {
   handleDragEnd as handleDragEndUtil,
@@ -25,33 +28,9 @@ import {
 
 const SectionList = () => {
   const { viewMode } = useContext(ViewContext);
-  const [sections, setSections] = useState({
-    A: {
-      id: "A",
-      title: "Section 1",
-      items: [
-        { id: "A-1", content: "Item 1" },
-        { id: "A-2", content: "Item 2" },
-      ],
-    },
-    B: {
-      id: "B",
-      title: "Section 2",
-      items: [
-        { id: "B-1", content: "Item 1" },
-        { id: "B-2", content: "Item 2" },
-      ],
-    },
-    C: {
-      id: "C",
-      title: "Section 3",
-      items: [
-        { id: "C-1", content: "Item 1" },
-        { id: "C-2", content: "Item 2" },
-        { id: "C-3", content: "Item 3" },
-      ],
-    },
-  });
+  const { username } = useParams();
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const [sections, setSections] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [pendingSectionTitle, setPendingSectionTitle] = useState("");
@@ -60,6 +39,32 @@ const SectionList = () => {
   const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+
+  useEffect(() => {
+  if (!isAuthenticated || !username) return;
+  const fetchSections = async () => {
+    const token = await getAccessTokenSilently();
+    const response = await fetch(
+      `http://localhost:3000/api/users/${username}/sections`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    // convert to object
+    const sectionsObj = {};
+    const order = [];
+    data.forEach(section => {
+      sectionsObj[section._id] = section;
+      order.push(section._id);
+    });
+    setSections(sectionsObj);
+    setSectionOrder(order);
+  };
+  fetchSections();
+}, [getAccessTokenSilently, isAuthenticated, username]);
 
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
