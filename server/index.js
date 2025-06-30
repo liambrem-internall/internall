@@ -19,7 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/users", checkJwt, userRoutes);
-app.use("/api/:username/sections", checkJwt, sectionRoutes);
+app.use("/api/sections", checkJwt, sectionRoutes);
 app.use("/api/items", checkJwt, itemRoutes);
 
 app.listen(PORT, () => {
