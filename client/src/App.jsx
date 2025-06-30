@@ -78,27 +78,29 @@ const App = () => {
           "openid profile email read:sections write:sections read:items write:items manage:profile collaborate:realtime",
       }}
     >
-      <ViewContext.Provider value={{ viewMode, setViewMode }}>
+      <ViewContext value={{ viewMode, setViewMode }}>
         <Router>
           <EnsureUserInDB onReady={() => setUserReady(true)} />
-          {userReady && (
-            <Routes>
-              <Route path="/" element={<HomeRedirect />} />
-              <Route
-                path="/:username"
-                element={
+          <Routes>
+            <Route path="/" element={<HomeRedirect />} />
+            <Route
+              path="/:username"
+              element={
+                userReady ? (
                   <div className="App">
                     <LightBallsOverlay />
                     <Navigation />
                     <SectionList />
                   </div>
-                }
-              />
-              <Route path="/loggedOut" element={<LoggedOut />} />
-            </Routes>
-          )}
+                ) : (
+                  <div>Loading...</div>
+                )
+              }
+            />
+            <Route path="/loggedOut" element={<LoggedOut />} />
+          </Routes>
         </Router>
-      </ViewContext.Provider>
+      </ViewContext>
     </Auth0Provider>
   );
 };
