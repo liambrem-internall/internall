@@ -15,7 +15,7 @@ import DroppableSection from "./Sections/DroppableSection";
 import ItemModal from "./Items/ItemModal";
 import SectionModal from "./Sections/SectionModal";
 import "./SectionList.css";
-import { SectionActions } from "../../utils/constants";
+import { SectionActions, ViewModes } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import ViewContext from "../../ViewContext";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -183,7 +183,7 @@ const SectionList = () => {
   const handleCloseModal = () => setShowModal(false);
 
   const sortStrategy =
-    viewMode === "list"
+    viewMode === ViewModes.LIST
       ? verticalListSortingStrategy
       : horizontalListSortingStrategy;
 
@@ -256,7 +256,7 @@ const SectionList = () => {
             <SortableContext items={sectionOrder} strategy={sortStrategy}>
               <div
                 className={`sections-row ${
-                  viewMode === "list" ? "list-view" : "board-view"
+                  viewMode === ViewModes.LIST ? "list-view" : "board-view"
                 }`}
               >
                 {sectionOrder.map((sectionId, idx) => (
@@ -267,7 +267,7 @@ const SectionList = () => {
                     title={sections[sectionId].title}
                     onItemClick={handleItemClick}
                     className={`section ${
-                      viewMode === "list" ? "list-view" : "board-view"
+                      viewMode === ViewModes.LIST ? "list-view" : "board-view"
                     }`}
                   />
                 ))}

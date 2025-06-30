@@ -4,7 +4,6 @@ const Section = require('../models/Section');
 exports.getCurrentUser = async (req, res) => {
   try {
     let user = await User.findOne({ auth0Id: req.auth.sub });
-    console.log('User:', user);
     res.json(user);
   } catch (err) {
     console.error(err);
