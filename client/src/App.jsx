@@ -17,6 +17,9 @@ import LoggedOut from "./components/logged-out-page/LoggedOut";
 import LightBallsOverlay from "./components/visuals/LightBallsOverlay";
 import "./App.css";
 
+const URL = import.meta.env.VITE_API_URL;
+const AUDIENCE = import.meta.env.VITE_API_AUDIENCE;
+
 const EnsureUserInDB = ({ onReady }) => {
   const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
   const [loading, setLoading] = useState(true);
@@ -28,7 +31,7 @@ const EnsureUserInDB = ({ onReady }) => {
     }
     const createUserIfNeeded = async () => {
       const token = await getAccessTokenSilently();
-      await fetch("http://localhost:3000/api/users", {
+      await fetch(`${URL}/api/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,7 +76,7 @@ const App = () => {
       clientId={clientId}
       authorizationParams={{
         redirect_uri: window.location.origin,
-        audience: "https://internall-api",
+        audience: AUDIENCE,
         scope:
           "openid profile email read:sections write:sections read:items write:items manage:profile collaborate:realtime",
       }}

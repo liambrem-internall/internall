@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  sections: [
+  sectionOrder: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Section'
