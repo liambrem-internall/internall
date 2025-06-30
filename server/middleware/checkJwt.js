@@ -6,7 +6,6 @@ const authConfig = {
   audience: process.env.AUTH_CONFIG_AUDIENCE,
 };
 
-console.log("HERE", authConfig.domain, authConfig.audience);
 
 const checkJwt = jwt({
   secret: jwksRsa.expressJwtSecret({

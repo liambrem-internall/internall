@@ -31,8 +31,7 @@ const DataFetchTest = () => {
         },
       });
       const data = await response.json();
-      console.log(data);
-    };
+        };
     fetchProtectedData();
   }, [getAccessTokenSilently, isAuthenticated]);
 
@@ -50,6 +49,7 @@ const App = () => {
     if (isLoading) return <div>Loading...</div>;
     if (isAuthenticated && user) {
       const username = user.nickname || user.name;
+      console.log("User:", user);
       return <Navigate to={`/${username}`} replace />;
     }
     return <LoggedOut />;
@@ -64,7 +64,7 @@ const App = () => {
         redirect_uri: window.location.origin,
         audience: "https://internall-api",
         scope:
-          "read:sections write:sections read:items write:items manage:profile collaborate:realtime",
+          "openid profile email read:sections write:sections read:items write:items manage:profile collaborate:realtime",
       }}
     >
       <ViewContext.Provider value={{ viewMode, setViewMode }}>
