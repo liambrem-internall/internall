@@ -17,21 +17,44 @@ import LoggedOut from "./components/logged-out-page/LoggedOut";
 import LightBallsOverlay from "./components/visuals/LightBallsOverlay";
 import "./App.css";
 
+
+const DataFetchTest = () => {
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const fetchProtectedData = async () => {
+      const token = await getAccessTokenSilently();
+      const response = await fetch("http://localhost:3000/api/protected", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      console.log(data);
+    };
+    fetchProtectedData();
+  }, [getAccessTokenSilently, isAuthenticated]);
+
+  return null;
+};
+
 const App = () => {
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
   const domain = import.meta.env.VITE_AUTH0_DOMAIN;
   const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
 
   const HomeRedirect = () => {
-  const { isAuthenticated, user, isLoading } = useAuth0();
+    const { isAuthenticated, user, isLoading } = useAuth0();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isAuthenticated && user) {
-    const username = user.nickname || user.name;
-    return <Navigate to={`/${username}`} replace />;
-  }
-  return <LoggedOut />;
-};
+    if (isLoading) return <div>Loading...</div>;
+    if (isAuthenticated && user) {
+      const username = user.nickname || user.name;
+      return <Navigate to={`/${username}`} replace />;
+    }
+    return <LoggedOut />;
+  };
+
 
   return (
     <Auth0Provider
@@ -39,10 +62,14 @@ const App = () => {
       clientId={clientId}
       authorizationParams={{
         redirect_uri: window.location.origin,
+        audience: "https://internall-api",
+        scope:
+          "read:sections write:sections read:items write:items manage:profile collaborate:realtime",
       }}
     >
       <ViewContext.Provider value={{ viewMode, setViewMode }}>
         <Router>
+          <DataFetchTest />
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
             <Route
