@@ -25,7 +25,7 @@ const DataFetchTest = () => {
     if (!isAuthenticated) return;
     const fetchProtectedData = async () => {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:3000/api/protected", {
+      const response = await fetch("http://localhost:3000/api/sections", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -38,6 +38,7 @@ const DataFetchTest = () => {
   return null;
 };
 
+
 const App = () => {
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
   const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -49,7 +50,6 @@ const App = () => {
     if (isLoading) return <div>Loading...</div>;
     if (isAuthenticated && user) {
       const username = user.nickname || user.name;
-      console.log("User:", user);
       return <Navigate to={`/${username}`} replace />;
     }
     return <LoggedOut />;

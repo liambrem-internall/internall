@@ -18,14 +18,10 @@ const itemRoutes = require("./routes/itemRoutes");
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/users", userRoutes);
-app.use("/api/sections", sectionRoutes);
-app.use("/api/items", itemRoutes);
+app.use("/api/users", checkJwt, userRoutes);
+app.use("/api/:username/sections", checkJwt, sectionRoutes);
+app.use("/api/items", checkJwt, itemRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on ${BASE_URL}`);
-});
-
-app.get("/api/protected", checkJwt, (req, res) => {
-  res.json({ message: "Access granted. Secure data." });
 });
