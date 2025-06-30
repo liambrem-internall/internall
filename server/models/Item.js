@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const ItemSchema = new mongoose.Schema({
-  label: {
+  content: {
     type: String,
     required: true
   },
-  url: {
+  link: {
     type: String
   },
   notes: {

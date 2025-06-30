@@ -1,4 +1,5 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -14,9 +15,13 @@ import DroppableSection from "./Sections/DroppableSection";
 import ItemModal from "./Items/ItemModal";
 import SectionModal from "./Sections/SectionModal";
 import "./SectionList.css";
-import { SectionActions } from "../../utils/constants";
+import { SectionActions, ViewModes } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import ViewContext from "../../ViewContext";
+import { useAuth0 } from "@auth0/auth0-react";
+
+
+const URL = import.meta.env.VITE_API_URL;
 
 import {
   handleDragEnd as handleDragEndUtil,
@@ -25,33 +30,9 @@ import {
 
 const SectionList = () => {
   const { viewMode } = useContext(ViewContext);
-  const [sections, setSections] = useState({
-    A: {
-      id: "A",
-      title: "Section 1",
-      items: [
-        { id: "A-1", content: "Item 1" },
-        { id: "A-2", content: "Item 2" },
-      ],
-    },
-    B: {
-      id: "B",
-      title: "Section 2",
-      items: [
-        { id: "B-1", content: "Item 1" },
-        { id: "B-2", content: "Item 2" },
-      ],
-    },
-    C: {
-      id: "C",
-      title: "Section 3",
-      items: [
-        { id: "C-1", content: "Item 1" },
-        { id: "C-2", content: "Item 2" },
-        { id: "C-3", content: "Item 3" },
-      ],
-    },
-  });
+  const { username } = useParams();
+  const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
+  const [sections, setSections] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [pendingSectionTitle, setPendingSectionTitle] = useState("");
@@ -60,6 +41,38 @@ const SectionList = () => {
   const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || !username) return;
+    const fetchSections = async () => {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(
+        `${URL}/api/users/${username}/sections`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      // convert to object
+      const sectionsObj = {};
+      const order = [];
+      data.forEach((section) => {
+        sectionsObj[section._id] = {
+          ...section,
+          items: (section.items || []).map((item) => ({
+            ...item,
+            id: item.id || item._id,
+          })),
+        };
+        order.push(section._id);
+      });
+      setSections(sectionsObj);
+      setSectionOrder(order);
+    };
+    fetchSections();
+  }, [getAccessTokenSilently, isAuthenticated, username]);
 
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
@@ -75,25 +88,34 @@ const SectionList = () => {
       setSections,
       setSectionOrder,
       sections,
+      getAccessTokenSilently,
+      username: user?.nickname || user?.name || user?.email.split("@")[0],
     });
   };
 
-  const handleSaveSection = () => {
+  const handleSaveSection = async () => {
     const newKey = `S${Date.now()}`;
+    const token = await getAccessTokenSilently();
+    const response = await fetch(`${URL}/api/sections`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ title: pendingSectionTitle }),
+    });
+    const newSection = await response.json();
+
     setSections((prev) => ({
       ...prev,
-      [newKey]: {
-        id: newKey,
-        title: pendingSectionTitle,
-        items: [],
-      },
+      [newSection._id]: { ...newSection, items: [] },
     }));
-    setSectionOrder((prev) => [...prev, newKey]);
+    setSectionOrder((prev) => [...prev, newSection._id]);
     setShowModal(false);
     setPendingSectionTitle("");
   };
 
-  const handleSaveItem = ({ content, link, notes }) => {
+  const handleSaveItem = async ({ content, link, notes }) => {
     if (!content.trim() || !targetSectionId) {
       setShowItemModal(false);
       setEditingItem(null);
@@ -101,34 +123,46 @@ const SectionList = () => {
       return;
     }
 
-    setSections((prev) => {
-      const section = prev[targetSectionId];
-      let items;
-      if (editingItem) {
-        // edit existing item
-        items = section.items.map((i) =>
-          i.id === editingItem.id ? { ...i, content, link, notes } : i
-        );
-      } else {
-        // add new item
-        items = [
-          ...section.items,
-          {
-            id: `${targetSectionId}-${Date.now()}`,
-            content,
-            link,
-            notes,
+    const token = await getAccessTokenSilently();
+
+    if (editingItem) {
+      // Edit existing item
+      await fetch(
+        `${URL}/api/items/${targetSectionId}/items/${editingItem.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        ];
-      }
-      return {
+          body: JSON.stringify({ content, link, notes }),
+        }
+      );
+    } else {
+      // Add new item
+      const response = await fetch(
+        `${URL}/api/items/${targetSectionId}/items`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content, link, notes }),
+        }
+      );
+      const newItem = await response.json();
+      setSections((prev) => ({
         ...prev,
         [targetSectionId]: {
-          ...section,
-          items,
+          ...prev[targetSectionId],
+          items: [
+            ...prev[targetSectionId].items,
+            { ...newItem, id: newItem._id }, // ensure id is set
+          ],
         },
-      };
-    });
+      }));
+    }
 
     setShowItemModal(false);
     setEditingItem(null);
@@ -149,7 +183,7 @@ const SectionList = () => {
   const handleCloseModal = () => setShowModal(false);
 
   const sortStrategy =
-    viewMode === "list"
+    viewMode === ViewModes.LIST
       ? verticalListSortingStrategy
       : horizontalListSortingStrategy;
 
@@ -222,7 +256,7 @@ const SectionList = () => {
             <SortableContext items={sectionOrder} strategy={sortStrategy}>
               <div
                 className={`sections-row ${
-                  viewMode === "list" ? "list-view" : "board-view"
+                  viewMode === ViewModes.LIST ? "list-view" : "board-view"
                 }`}
               >
                 {sectionOrder.map((sectionId, idx) => (
@@ -233,9 +267,8 @@ const SectionList = () => {
                     title={sections[sectionId].title}
                     onItemClick={handleItemClick}
                     className={`section ${
-                      viewMode === "list" ? "list-view" : "board-view"
+                      viewMode === ViewModes.LIST ? "list-view" : "board-view"
                     }`}
-                    style={{}}
                   />
                 ))}
                 {activeId == SectionActions.ADD && (
