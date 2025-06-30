@@ -29,7 +29,13 @@ const emptySectionOverStyle = {
   background: "var(--pink3)",
 };
 
-const DroppableSection = ({ id, items, title, onItemClick, className="", style={} }) => {
+const DroppableSection = ({
+  id,
+  items,
+  title,
+  onItemClick,
+  className = "",
+}) => {
   const { setNodeRef: setSectionDroppableRef, isSectionOver } = useDroppable({
     id,
     data: { sectionId: id, type: DraggableComponentTypes.SECTION },
@@ -53,11 +59,14 @@ const DroppableSection = ({ id, items, title, onItemClick, className="", style={
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    ...style,
   };
 
   return (
-    <div className={`droppable-section ${className}`} ref={combinedRef} style={containerStyle}>
+    <div
+      className={`droppable-section ${className}`}
+      ref={combinedRef}
+      style={containerStyle}
+    >
       <div className="section-header">
         <h3>{title}</h3>
         <OverlayTrigger
@@ -83,27 +92,21 @@ const DroppableSection = ({ id, items, title, onItemClick, className="", style={
         strategy={verticalListSortingStrategy}
       >
         <div className="section-items">
-          {items.length === 0 ? (
-            <div style={isSectionOver ? emptySectionOverStyle : emptySectionStyle}>
-              Drop item here
-            </div>
-          ) : (
-            items.map((item) => (
-              <div
-                key={item.id}
-                className="item"
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className={DraggableComponentTypes.ITEM}
+              onClick={() => onItemClick(item, id)}
+              style={{ cursor: "pointer" }}
+            >
+              <SortableItem
+                id={item.id}
+                content={item.content}
+                sectionId={id}
                 onClick={() => onItemClick(item, id)}
-                style={{ cursor: "pointer" }}
-              >
-                <SortableItem
-                  id={item.id}
-                  content={item.content}
-                  sectionId={id}
-                  onClick={() => onItemClick(item, id)}
-                />
-              </div>
-            ))
-          )}
+              />
+            </div>
+          ))}
         </div>
       </SortableContext>
     </div>
