@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Section = require('../models/Section');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -22,13 +23,28 @@ exports.getUserByUsername = async (req, res) => {
   }
 };
 
+exports.getSectionsByUsername = async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.params.username });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const sections = await Section.find({ userId: user.auth0Id }).populate('items');
+    res.json(sections);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 exports.createUser = async (req, res) => {
   try {
+    let user = await User.findOne({ auth0Id: req.auth.sub });
+    if (user) {
+      return res.status(200).json(user);
+    }
     const userData = {
       ...req.body,
       auth0Id: req.auth.sub
     };
-    const user = await User.create(userData);
+    user = await User.create(userData);
     res.status(201).json(user);
   } catch (err) {
     console.error(err);

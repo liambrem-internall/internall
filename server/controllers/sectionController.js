@@ -1,15 +1,7 @@
 const Section = require("../models/Section");
+const User = require("../models/User");
 
-exports.getSections = async (req, res) => {
-  try {
-    const user = await User.findOne({ username: req.params.username });
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    const sections = await Section.find({ userId: user.auth0Id });
-    res.json(sections);
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
-};
+
 
 exports.createSection = async (req, res) => {
   try {
