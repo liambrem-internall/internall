@@ -1,0 +1,57 @@
+const User = require('../models/User');
+
+exports.getCurrentUser = async (req, res) => {
+  try {
+    let user = await User.findOne({ auth0Id: req.auth.sub });
+    console.log('User:', user);
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.getUserByUsername = async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.params.username });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.createUser = async (req, res) => {
+  try {
+    const userData = {
+      ...req.body,
+      auth0Id: req.auth.sub
+    };
+    const user = await User.create(userData);
+    res.status(201).json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'Invalid data or duplicate user' });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ error: 'Invalid data' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.status(204).send();
+  } catch (err) {
+    res.status(400).json({ error: 'Invalid data' });
+  }
+};

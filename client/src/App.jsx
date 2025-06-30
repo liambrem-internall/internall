@@ -25,19 +25,19 @@ const DataFetchTest = () => {
     if (!isAuthenticated) return;
     const fetchProtectedData = async () => {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:3000/api/protected", {
+      const response = await fetch("http://localhost:3000/api/sections", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       const data = await response.json();
-      console.log(data);
-    };
+        };
     fetchProtectedData();
   }, [getAccessTokenSilently, isAuthenticated]);
 
   return null;
 };
+
 
 const App = () => {
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
@@ -64,7 +64,7 @@ const App = () => {
         redirect_uri: window.location.origin,
         audience: "https://internall-api",
         scope:
-          "read:sections write:sections read:items write:items manage:profile collaborate:realtime",
+          "openid profile email read:sections write:sections read:items write:items manage:profile collaborate:realtime",
       }}
     >
       <ViewContext.Provider value={{ viewMode, setViewMode }}>
