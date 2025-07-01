@@ -107,11 +107,13 @@ const SectionList = () => {
     });
     const newSection = await response.json();
 
+    const sectionId = newSection._id;
+
     setSections((prev) => ({
       ...prev,
-      [newSection.id]: { ...newSection, items: [] },
+      [sectionId]: { ...newSection, id: sectionId, items: [] },
     }));
-    setSectionOrder((prev) => [...prev, newSection.id]);
+    setSectionOrder((prev) => [...prev, sectionId]);
     setShowModal(false);
     setPendingSectionTitle("");
   };
