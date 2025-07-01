@@ -56,14 +56,16 @@ const SectionList = () => {
       const sectionsObj = {};
       const order = [];
       data.forEach((section) => {
-        sectionsObj[section._id] = {
-          ...section,
-          items: (section.items || []).map((item) => ({
-            ...item,
-            id: item.id || item._id,
+        const { _id, items = [], ...rest } = section;
+        sectionsObj[_id] = {
+          ...rest,
+          id: _id,
+          items: items.map(({ _id: itemId, ...itemRest }) => ({
+            ...itemRest,
+            id: itemId,
           })),
         };
-        order.push(section._id);
+        order.push(_id);
       });
       setSections(sectionsObj);
       setSectionOrder(order);
@@ -105,9 +107,9 @@ const SectionList = () => {
 
     setSections((prev) => ({
       ...prev,
-      [newSection._id]: { ...newSection, items: [] },
+      [newSection.id]: { ...newSection, items: [] },
     }));
-    setSectionOrder((prev) => [...prev, newSection._id]);
+    setSectionOrder((prev) => [...prev, newSection.id]);
     setShowModal(false);
     setPendingSectionTitle("");
   };
