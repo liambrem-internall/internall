@@ -27,10 +27,9 @@ const handleDragEndSection = (
       const newIndex = prev.indexOf(over.id);
       const newOrder = arrayMove(prev, oldIndex, newIndex);
 
-      // update backend:
       (async () => {
         const token = await getAccessTokenSilently();
-        await fetch(`${URL}/api/users/${username}/sections/order`, {
+        await fetch(`${URL}/api/sections/user/${username}/order`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
