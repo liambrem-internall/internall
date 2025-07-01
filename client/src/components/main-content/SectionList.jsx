@@ -1,32 +1,35 @@
-import { useState, useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+
 import { useParams } from "react-router-dom";
+
+import { useAuth0 } from "@auth0/auth0-react";
+import Container from "react-bootstrap/Container";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import {
-  SortableContext,
   horizontalListSortingStrategy,
+  SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import GhostComponent from "./Add/GhostComponent";
+
 import AddButton from "./Add/AddButton";
-import DeleteButton from "./Delete/DeleteButton";
-import NewSectionDropZone from "./Sections/NewSectionDropZone";
-import Container from "react-bootstrap/Container";
-import DroppableSection from "./Sections/DroppableSection";
 import ItemModal from "./Items/ItemModal";
+import ViewContext from "../../ViewContext";
+import { apiFetch } from "../../utils/apiFetch";
+import DeleteButton from "./Delete/DeleteButton";
+import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
-import "./SectionList.css";
+import DroppableSection from "./Sections/DroppableSection";
+import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import { SectionActions, ViewModes } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
-import ViewContext from "../../ViewContext";
-import { useAuth0 } from "@auth0/auth0-react";
+import {
+  findItemBySection,
+  handleDragEnd as handleDragEndUtil,
+} from "../../utils/sectionListUtils";
 
+import "./SectionList.css";
 
 const URL = import.meta.env.VITE_API_URL;
-
-import {
-  handleDragEnd as handleDragEndUtil,
-  findItemBySection,
-} from "../../utils/sectionListUtils";
 
 const SectionList = () => {
   const { viewMode } = useContext(ViewContext);
@@ -45,28 +48,25 @@ const SectionList = () => {
   useEffect(() => {
     if (!isAuthenticated || !username) return;
     const fetchSections = async () => {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(
-        `${URL}/api/users/${username}/sections`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
+      const data = await apiFetch({
+        endpoint: `${URL}/api/sections/user/${username}`,
+        getAccessTokenSilently,
+      });
+
       // convert to object
       const sectionsObj = {};
       const order = [];
       data.forEach((section) => {
-        sectionsObj[section._id] = {
-          ...section,
-          items: (section.items || []).map((item) => ({
-            ...item,
-            id: item.id || item._id,
+        const { _id, items = [], ...rest } = section;
+        sectionsObj[_id] = {
+          ...rest,
+          id: _id,
+          items: items.map(({ _id: itemId, ...itemRest }) => ({
+            ...itemRest,
+            id: itemId,
           })),
         };
-        order.push(section._id);
+        order.push(_id);
       });
       setSections(sectionsObj);
       setSectionOrder(order);
@@ -94,23 +94,20 @@ const SectionList = () => {
   };
 
   const handleSaveSection = async () => {
-    const newKey = `S${Date.now()}`;
-    const token = await getAccessTokenSilently();
-    const response = await fetch(`${URL}/api/sections`, {
+    const newSection = await apiFetch({
+      endpoint: `${URL}/api/sections`,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ title: pendingSectionTitle }),
+      body: { title: pendingSectionTitle },
+      getAccessTokenSilently,
     });
-    const newSection = await response.json();
+
+    const sectionId = newSection._id;
 
     setSections((prev) => ({
       ...prev,
-      [newSection._id]: { ...newSection, items: [] },
+      [sectionId]: { ...newSection, id: sectionId, items: [] },
     }));
-    setSectionOrder((prev) => [...prev, newSection._id]);
+    setSectionOrder((prev) => [...prev, sectionId]);
     setShowModal(false);
     setPendingSectionTitle("");
   };
@@ -123,35 +120,21 @@ const SectionList = () => {
       return;
     }
 
-    const token = await getAccessTokenSilently();
-
     if (editingItem) {
-      // Edit existing item
-      await fetch(
-        `${URL}/api/items/${targetSectionId}/items/${editingItem.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content, link, notes }),
-        }
-      );
+      await apiFetch({
+        endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}`,
+        method: "PUT",
+        body: { content, link, notes, sectionId: targetSectionId },
+        getAccessTokenSilently,
+      });
     } else {
-      // Add new item
-      const response = await fetch(
-        `${URL}/api/items/${targetSectionId}/items`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content, link, notes }),
-        }
-      );
-      const newItem = await response.json();
+      const newItem = await apiFetch({
+        endpoint: `${URL}/api/items/${targetSectionId}/items`,
+        method: "POST",
+        body: { content, link, notes, sectionId: targetSectionId },
+        getAccessTokenSilently,
+      });
+
       setSections((prev) => ({
         ...prev,
         [targetSectionId]: {
@@ -259,7 +242,7 @@ const SectionList = () => {
                   viewMode === ViewModes.LIST ? "list-view" : "board-view"
                 }`}
               >
-                {sectionOrder.map((sectionId, idx) => (
+                {sectionOrder.map((sectionId) => (
                   <DroppableSection
                     key={sectionId}
                     id={sectionId}

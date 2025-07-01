@@ -1,24 +1,28 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import {
+  Navigate,
+  Route,
   BrowserRouter as Router,
   Routes,
-  Route,
-  useNavigate,
-  useLocation,
-  Navigate,
 } from "react-router-dom";
-import Navigation from "./components/outer-components/Navigation";
-import SectionList from "./components/main-content/SectionList";
-import { ViewModes } from "./utils/constants";
-import ViewContext from "./ViewContext";
-import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
-import LoggedOut from "./components/logged-out-page/LoggedOut";
 
+import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
+
+import ViewContext from "./ViewContext";
+import { apiFetch } from "./utils/apiFetch";
+import { ViewModes } from "./utils/constants";
+import LoggedOut from "./components/logged-out-page/LoggedOut";
+import SectionList from "./components/main-content/SectionList";
+import Navigation from "./components/outer-components/Navigation";
 import LightBallsOverlay from "./components/visuals/LightBallsOverlay";
+
 import "./App.css";
 
 const URL = import.meta.env.VITE_API_URL;
 const AUDIENCE = import.meta.env.VITE_API_AUDIENCE;
+const DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN;
+const CLIENTID = import.meta.env.VITE_AUTH0_CLIENT_ID;
 
 const EnsureUserInDB = ({ onReady }) => {
   const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
@@ -30,18 +34,15 @@ const EnsureUserInDB = ({ onReady }) => {
       return;
     }
     const createUserIfNeeded = async () => {
-      const token = await getAccessTokenSilently();
-      await fetch(`${URL}/api/users`, {
+      await apiFetch({
+        endpoint: `${URL}/api/users`,
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+        body: {
           email: user.email,
           name: user.name,
           username: user.email.split("@")[0],
-        }),
+        },
+        getAccessTokenSilently,
       });
       setLoading(false);
       onReady && onReady();
@@ -56,8 +57,6 @@ const EnsureUserInDB = ({ onReady }) => {
 const App = () => {
   const [userReady, setUserReady] = useState(false);
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
-  const domain = import.meta.env.VITE_AUTH0_DOMAIN;
-  const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
 
   const HomeRedirect = () => {
     const { isAuthenticated, user, isLoading } = useAuth0();
@@ -72,8 +71,8 @@ const App = () => {
 
   return (
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
+      domain={DOMAIN}
+      clientId={CLIENTID}
       authorizationParams={{
         redirect_uri: window.location.origin,
         audience: AUDIENCE,

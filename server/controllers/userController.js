@@ -1,3 +1,7 @@
+/*
+* This file handles the user-related operations (CRUD)
+*/
+
 const User = require('../models/User');
 const Section = require('../models/Section');
 
@@ -22,49 +26,49 @@ exports.getUserByUsername = async (req, res) => {
   }
 };
 
-exports.getSectionsByUsername = async (req, res) => {
-  try {
-    const user = await User.findOne({ username: req.params.username });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+// exports.getSectionsByUsername = async (req, res) => {
+//   try {
+//     const user = await User.findOne({ username: req.params.username });
+//     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const sections = await Section.find({ userId: user.auth0Id }).populate('items');
+//     const sections = await Section.find({ userId: user.auth0Id }).populate('items');
 
-    let orderedSections = sections;
-    if (user.sectionOrder && user.sectionOrder.length) {
-      const sectionMap = {};
-      sections.forEach(section => {
-        sectionMap[section._id.toString()] = section;
-      });
-      orderedSections = [
-        ...user.sectionOrder
-          .map(id => sectionMap[id.toString()])
-          .filter(Boolean),
-        ...sections.filter(
-          s => !user.sectionOrder.map(id => id.toString()).includes(s._id.toString())
-        ),
-      ];
-    }
+//     let orderedSections = sections;
+//     if (user.sectionOrder && user.sectionOrder.length) {
+//       const sectionMap = {};
+//       sections.forEach(section => {
+//         sectionMap[section._id.toString()] = section;
+//       });
+//       orderedSections = [
+//         ...user.sectionOrder
+//           .map(id => sectionMap[id.toString()])
+//           .filter(Boolean),
+//         ...sections.filter(
+//           s => !user.sectionOrder.map(id => id.toString()).includes(s._id.toString())
+//         ),
+//       ];
+//     }
 
-    res.json(orderedSections);
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
-};
+//     res.json(orderedSections);
+//   } catch (err) {
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// };
 
-exports.updateSectionOrder = async (req, res) => {
-  try {
-    const { order } = req.body; // order should be an array of section IDs
-    const user = await User.findOneAndUpdate(
-      { username: req.params.username },
-      { sectionOrder: order },
-      { new: true }
-    );
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
-};
+// exports.updateSectionOrder = async (req, res) => {
+//   try {
+//     const { order } = req.body; // order should be an array of section IDs
+//     const user = await User.findOneAndUpdate(
+//       { username: req.params.username },
+//       { sectionOrder: order },
+//       { new: true }
+//     );
+//     if (!user) return res.status(404).json({ error: 'User not found' });
+//     res.json({ success: true });
+//   } catch (err) {
+//     res.status(500).json({ error: 'Server error' });
+//   }
+// };
 
 exports.createUser = async (req, res) => {
   try {
