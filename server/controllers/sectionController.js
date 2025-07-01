@@ -1,7 +1,9 @@
+/*
+ * This file handles the section-related operations (CRUD)
+ */
+
 const Section = require("../models/Section");
 const User = require("../models/User");
-
-
 
 exports.createSection = async (req, res) => {
   try {

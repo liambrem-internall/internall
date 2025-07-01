@@ -19,6 +19,8 @@ import "./App.css";
 
 const URL = import.meta.env.VITE_API_URL;
 const AUDIENCE = import.meta.env.VITE_API_AUDIENCE;
+const DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN;
+const CLIENTID = import.meta.env.VITE_AUTH0_CLIENT_ID;
 
 const EnsureUserInDB = ({ onReady }) => {
   const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
@@ -56,8 +58,6 @@ const EnsureUserInDB = ({ onReady }) => {
 const App = () => {
   const [userReady, setUserReady] = useState(false);
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
-  const domain = import.meta.env.VITE_AUTH0_DOMAIN;
-  const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
 
   const HomeRedirect = () => {
     const { isAuthenticated, user, isLoading } = useAuth0();
@@ -72,8 +72,8 @@ const App = () => {
 
   return (
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
+      domain={DOMAIN}
+      clientId={CLIENTID}
       authorizationParams={{
         redirect_uri: window.location.origin,
         audience: AUDIENCE,

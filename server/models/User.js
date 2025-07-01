@@ -1,3 +1,8 @@
+/*
+* This file defines the User model for MongoDB
+*/
+
+
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({

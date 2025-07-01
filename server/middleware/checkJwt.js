@@ -1,3 +1,7 @@
+/*
+* This file handles the JWT authentication passed from the client
+*/
+
 const { expressjwt: jwt } = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 

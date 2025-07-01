@@ -1,3 +1,8 @@
+/*
+* This file defines the Section model for MongoDB
+*/
+
+
 const mongoose = require('mongoose');
 
 const SectionSchema = new mongoose.Schema({

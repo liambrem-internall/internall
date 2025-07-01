@@ -1,3 +1,7 @@
+/*
+* This file handles the user-related operations (CRUD)
+*/
+
 const User = require('../models/User');
 const Section = require('../models/Section');
 

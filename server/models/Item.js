@@ -1,3 +1,7 @@
+/*
+* This file defines the Item model for MongoDB
+*/
+
 const mongoose = require('mongoose');
 
 const ItemSchema = new mongoose.Schema({
