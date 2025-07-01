@@ -48,13 +48,11 @@ const SectionList = () => {
   useEffect(() => {
     if (!isAuthenticated || !username) return;
     const fetchSections = async () => {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${URL}/api/sections/user/${username}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const data = await apiFetch({
+        endpoint: `${URL}/api/sections/user/${username}`,
+        getAccessTokenSilently,
       });
-      const data = await response.json();
+
       // convert to object
       const sectionsObj = {};
       const order = [];
@@ -96,16 +94,12 @@ const SectionList = () => {
   };
 
   const handleSaveSection = async () => {
-    const token = await getAccessTokenSilently();
-    const response = await fetch(`${URL}/api/sections`, {
+    const newSection = await apiFetch({
+      endpoint: `${URL}/api/sections`,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ title: pendingSectionTitle }),
+      body: { title: pendingSectionTitle },
+      getAccessTokenSilently,
     });
-    const newSection = await response.json();
 
     const sectionId = newSection._id;
 
@@ -134,14 +128,13 @@ const SectionList = () => {
         getAccessTokenSilently,
       });
     } else {
-      const response = await apiFetch({
+      const newItem = await apiFetch({
         endpoint: `${URL}/api/items/${targetSectionId}/items`,
         method: "POST",
         body: { content, link, notes, sectionId: targetSectionId },
         getAccessTokenSilently,
       });
 
-      const newItem = await response;
       setSections((prev) => ({
         ...prev,
         [targetSectionId]: {
