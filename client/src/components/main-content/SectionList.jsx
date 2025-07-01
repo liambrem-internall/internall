@@ -47,7 +47,7 @@ const SectionList = () => {
     const fetchSections = async () => {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `${URL}/api/users/${username}/sections`,
+        `${URL}/api/sections/user/${username}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

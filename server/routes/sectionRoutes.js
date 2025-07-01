@@ -1,14 +1,15 @@
 /*
-* This file handles the section endpoints
-*/
+ * This file handles the section endpoints
+ */
 
-
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const sectionController = require('../controllers/sectionController');
+const sectionController = require("../controllers/sectionController");
 
-router.post('/', sectionController.createSection); // POST api/sections
-router.put('/:id', sectionController.updateSection); // PUT api/sections/:id
-router.delete('/:id', sectionController.deleteSection); // DELETE api/sections/:id
+router.get("/user/:username", sectionController.getSectionsByUsername); // GET /api/sections/user/:username
+router.put("/user/:username/order", sectionController.updateSectionOrder); // PUT /api/sections/user/:username/order
+router.post("/", sectionController.createSection); // POST api/sections
+router.put("/:id", sectionController.updateSection); // PUT api/sections/:id
+router.delete("/:id", sectionController.deleteSection); // DELETE api/sections/:id
 
 module.exports = router;
