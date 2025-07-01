@@ -4,6 +4,7 @@ import {
   DraggableComponentTypes,
 } from "./constants";
 import { arrayMove } from "@dnd-kit/sortable";
+import { apiFetch } from "./apiFetch";
 
 export const findItemBySection = (section, { activeId }) => {
   for (const i of section.items) {
@@ -27,16 +28,12 @@ const handleDragEndSection = (
       const newIndex = prev.indexOf(over.id);
       const newOrder = arrayMove(prev, oldIndex, newIndex);
 
-      // update backend:
       (async () => {
-        const token = await getAccessTokenSilently();
-        await fetch(`${URL}/api/users/${username}/sections/order`, {
+        await apiFetch({
+          endpoint: `${URL}/api/sections/user/${username}/order`,
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ order: newOrder }),
+          body: { order: newOrder },
+          getAccessTokenSilently,
         });
       })();
 
@@ -53,6 +50,7 @@ const handleDragEndItem = (
 ) => {
   const fromSectionId = active.data.current.sectionId;
   const toSectionId = over.data.current?.sectionId || over.id;
+
   if (!toSectionId) {
     setActiveId(null);
     return;
@@ -66,7 +64,6 @@ const handleDragEndItem = (
   const item = findItemBySection(sections[fromSectionId], { activeId });
 
   setSections((prev) => {
-    // remove from old section
     const newFromItems = prev[fromSectionId].items.filter(
       (i) => i.id !== active.id
     );
@@ -93,21 +90,13 @@ const handleDragEndItem = (
       [toSectionId]: { ...prev[toSectionId], items: newToItems },
     };
   });
+
   (async () => {
-    const token = await getAccessTokenSilently();
-    // Remove from old section
-    await fetch(`${URL}/api/items/${fromSectionId}/items/${active.id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    // Add to new section
-    await fetch(`${URL}/api/items/${toSectionId}/items`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(item),
+    await apiFetch({
+      endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}`,
+      method: "PUT",
+      body: { sectionId: toSectionId },
+      getAccessTokenSilently,
     });
   })();
 
@@ -117,7 +106,7 @@ const handleDragEndItem = (
 const handleDragEndAdd = (
   active,
   over,
-  { setShowModal, setActiveId, getAccessTokenSilently }
+  { setShowModal, setActiveId }
 ) => {
   setShowModal(true);
   setActiveId(null);
@@ -139,10 +128,10 @@ const handleDragEndDelete = (
       },
     }));
     (async () => {
-      const token = await getAccessTokenSilently();
-      await fetch(`${URL}/api/items/${fromSectionId}/items/${active.id}`, {
+      await apiFetch({
+        endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}`,
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        getAccessTokenSilently,
       });
     })();
   }
@@ -154,12 +143,10 @@ const handleDragEndDelete = (
 
       // delete in backend:
       (async () => {
-        const token = await getAccessTokenSilently();
-        await fetch(`${URL}/api/sections/${active.id}`, {
+        await apiFetch({
+          endpoint: `${URL}/api/sections/${active.id}`,
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          getAccessTokenSilently,
         });
       })();
       return newSections;
@@ -231,7 +218,6 @@ export const handleDragEnd = (
       handleDragEndAdd(active, over, {
         setShowModal,
         setActiveId,
-        getAccessTokenSilently,
       });
       break;
     case DragEndActions.ADD_ITEM:

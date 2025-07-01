@@ -1,3 +1,7 @@
+/*
+* This file defines the Item model for MongoDB
+*/
+
 const mongoose = require('mongoose');
 
 const ItemSchema = new mongoose.Schema({
@@ -14,6 +18,11 @@ const ItemSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  sectionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Section",
+    required: true
   }
 });
 

@@ -1,3 +1,8 @@
+/*
+* This file handles the item endpoints
+*/
+
+
 const express = require("express");
 const router = express.Router();
 const itemController = require("../controllers/itemController");
