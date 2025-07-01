@@ -1,13 +1,15 @@
-import Container from "react-bootstrap/Container";
+import { useContext } from "react";
+
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
-import { ViewModes } from "../../utils/constants";
-import { useContext } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import ViewContext from "../../ViewContext";
-import "./Navbar.css";
+import Container from "react-bootstrap/Container";
 
+import ViewContext from "../../ViewContext";
+import { ViewModes } from "../../utils/constants";
+
+import "./Navbar.css";
 
 const Navigation = () => {
   const { viewMode, setViewMode } = useContext(ViewContext);
@@ -25,19 +27,34 @@ const Navigation = () => {
             <div className="d-flex ms-auto align-items-center">
               <Nav className="mx-auto">
                 <Nav.Link
-                  className={`nav-link-custom${viewMode === ViewModes.BOARD ? " selected" : ""}`}
+                  className={`nav-link-custom${
+                    viewMode === ViewModes.BOARD ? " selected" : ""
+                  }`}
                   onClick={() => setViewMode(ViewModes.BOARD)}
                 >
                   Board
                 </Nav.Link>
                 <Nav.Link
-                  className={`nav-link-custom${viewMode === ViewModes.LIST ? " selected" : ""}`}
-                  onClick={() => setViewMode(ViewModes.LIST)} 
+                  className={`nav-link-custom${
+                    viewMode === ViewModes.LIST ? " selected" : ""
+                  }`}
+                  onClick={() => setViewMode(ViewModes.LIST)}
                 >
                   List
                 </Nav.Link>
               </Nav>
-              <Button className="get-started-btn" onClick={() => logout({ logoutParams: { returnTo: `${window.location.origin}/loggedOut` } })}>Log Out</Button>
+              <Button
+                className="get-started-btn"
+                onClick={() =>
+                  logout({
+                    logoutParams: {
+                      returnTo: `${window.location.origin}/loggedOut`,
+                    },
+                  })
+                }
+              >
+                Log Out
+              </Button>
             </div>
           </Navbar.Collapse>
         </Container>
