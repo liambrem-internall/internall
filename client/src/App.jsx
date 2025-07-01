@@ -10,6 +10,7 @@ import {
 import Navigation from "./components/outer-components/Navigation";
 import SectionList from "./components/main-content/SectionList";
 import { ViewModes } from "./utils/constants";
+import { apiFetch } from "./utils/apiFetch";
 import ViewContext from "./ViewContext";
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import LoggedOut from "./components/logged-out-page/LoggedOut";
@@ -32,18 +33,15 @@ const EnsureUserInDB = ({ onReady }) => {
       return;
     }
     const createUserIfNeeded = async () => {
-      const token = await getAccessTokenSilently();
-      await fetch(`${URL}/api/users`, {
+      await apiFetch({
+        endpoint: `${URL}/api/users`,
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+        body: {
           email: user.email,
           name: user.name,
           username: user.email.split("@")[0],
-        }),
+        },
+        getAccessTokenSilently,
       });
       setLoading(false);
       onReady && onReady();
