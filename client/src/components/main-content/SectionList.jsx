@@ -19,7 +19,7 @@ import { SectionActions, ViewModes } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import ViewContext from "../../ViewContext";
 import { useAuth0 } from "@auth0/auth0-react";
-
+import { apiFetch } from "../../utils/apiFetch";
 
 const URL = import.meta.env.VITE_API_URL;
 
@@ -46,14 +46,11 @@ const SectionList = () => {
     if (!isAuthenticated || !username) return;
     const fetchSections = async () => {
       const token = await getAccessTokenSilently();
-      const response = await fetch(
-        `${URL}/api/sections/user/${username}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${URL}/api/sections/user/${username}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       // convert to object
       const sectionsObj = {};
@@ -126,32 +123,21 @@ const SectionList = () => {
     const token = await getAccessTokenSilently();
 
     if (editingItem) {
-      // Edit existing item
-      await fetch(
-        `${URL}/api/items/${targetSectionId}/items/${editingItem.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content, link, notes }),
-        }
-      );
+      const response = await apiFetch({
+        endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}`,
+        method: "PUT",
+        body: { content, link, notes, sectionId: targetSectionId },
+        getAccessTokenSilently,
+      });
     } else {
-      // Add new item
-      const response = await fetch(
-        `${URL}/api/items/${targetSectionId}/items`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ content, link, notes }),
-        }
-      );
-      const newItem = await response.json();
+      const response = await apiFetch({
+        endpoint: `${URL}/api/items/${targetSectionId}/items`,
+        method: "POST",
+        body: { content, link, notes, sectionId: targetSectionId },
+        getAccessTokenSilently,
+      });
+
+      const newItem = await response;
       setSections((prev) => ({
         ...prev,
         [targetSectionId]: {
