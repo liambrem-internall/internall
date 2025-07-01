@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const checkJwt = require("./middleware/checkJwt");
 
@@ -22,6 +24,17 @@ app.use("/api/users", checkJwt, userRoutes);
 app.use("/api/sections", checkJwt, sectionRoutes);
 app.use("/api/items", checkJwt, itemRoutes);
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+require("./socket/socket")(io);
+
+server.listen(PORT, () => {
   console.log(`Server is running on ${BASE_URL}`);
 });

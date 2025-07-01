@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { io } from "socket.io-client";
 import {
   Navigate,
   Route,
@@ -8,6 +9,7 @@ import {
 } from "react-router-dom";
 
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
+import { useParams } from "react-router-dom";
 
 import ViewContext from "./ViewContext";
 import { apiFetch } from "./utils/apiFetch";
@@ -54,6 +56,33 @@ const EnsureUserInDB = ({ onReady }) => {
   return null;
 };
 
+const UserPage = ({setUserReady, userReady, viewMode, setViewMode }) => {
+  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { username } = useParams();
+  const isOwnPage = user && (username === user.nickname || username === user.name);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!isAuthenticated || !user) return <LoggedOut />;
+
+  return (
+    <>
+      {isOwnPage && (
+        <EnsureUserInDB onReady={() => setUserReady(true)} />
+      )}
+      {(isOwnPage ? userReady : true) ? (
+        <div className="App">
+          <LightBallsOverlay />
+          <Navigation />
+          <SectionList />
+        </div>
+      ) : (
+        <div>Loading...</div>
+      )}
+    </>
+  );
+}
+
+
 const App = () => {
   const [userReady, setUserReady] = useState(false);
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
@@ -69,6 +98,7 @@ const App = () => {
     return <LoggedOut />;
   };
 
+  
   return (
     <Auth0Provider
       domain={DOMAIN}
@@ -79,24 +109,21 @@ const App = () => {
         scope:
           "openid profile email read:sections write:sections read:items write:items manage:profile collaborate:realtime",
       }}
+      cacheLocation="localstorage"
     >
       <ViewContext value={{ viewMode, setViewMode }}>
         <Router>
-          <EnsureUserInDB onReady={() => setUserReady(true)} />
+          
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
             <Route
               path="/:username"
               element={
-                userReady ? (
-                  <div className="App">
-                    <LightBallsOverlay />
-                    <Navigation />
-                    <SectionList />
-                  </div>
-                ) : (
-                  <div>Loading...</div>
-                )
+                <UserPage 
+                setUserReady={setUserReady} 
+                userReady={userReady}
+                viewMode={viewMode}
+                setViewMode={setViewMode}/>
               }
             />
             <Route path="/loggedOut" element={<LoggedOut />} />
