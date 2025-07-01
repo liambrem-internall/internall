@@ -1,3 +1,7 @@
+/*
+* This file handles the item-related operations (CRUD)
+*/
+
 const Section = require('../models/Section');
 const Item = require('../models/Item');
 
