@@ -1,5 +1,4 @@
 import { Modal, Form, Button } from "react-bootstrap";
-import { useEffect } from "react";
 import "./SectionModal.css";
 
 const SectionModal = ({

@@ -1,32 +1,35 @@
-import { useState, useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
+
 import { useParams } from "react-router-dom";
+
+import { useAuth0 } from "@auth0/auth0-react";
+import Container from "react-bootstrap/Container";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import {
-  SortableContext,
   horizontalListSortingStrategy,
+  SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import GhostComponent from "./Add/GhostComponent";
+
 import AddButton from "./Add/AddButton";
-import DeleteButton from "./Delete/DeleteButton";
-import NewSectionDropZone from "./Sections/NewSectionDropZone";
-import Container from "react-bootstrap/Container";
-import DroppableSection from "./Sections/DroppableSection";
 import ItemModal from "./Items/ItemModal";
+import ViewContext from "../../ViewContext";
+import { apiFetch } from "../../utils/apiFetch";
+import DeleteButton from "./Delete/DeleteButton";
+import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
-import "./SectionList.css";
+import DroppableSection from "./Sections/DroppableSection";
+import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import { SectionActions, ViewModes } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
-import ViewContext from "../../ViewContext";
-import { useAuth0 } from "@auth0/auth0-react";
-import { apiFetch } from "../../utils/apiFetch";
+import {
+  findItemBySection,
+  handleDragEnd as handleDragEndUtil,
+} from "../../utils/sectionListUtils";
+
+import "./SectionList.css";
 
 const URL = import.meta.env.VITE_API_URL;
-
-import {
-  handleDragEnd as handleDragEndUtil,
-  findItemBySection,
-} from "../../utils/sectionListUtils";
 
 const SectionList = () => {
   const { viewMode } = useContext(ViewContext);
@@ -93,7 +96,6 @@ const SectionList = () => {
   };
 
   const handleSaveSection = async () => {
-    const newKey = `S${Date.now()}`;
     const token = await getAccessTokenSilently();
     const response = await fetch(`${URL}/api/sections`, {
       method: "POST",
@@ -122,10 +124,8 @@ const SectionList = () => {
       return;
     }
 
-    const token = await getAccessTokenSilently();
-
     if (editingItem) {
-      const response = await apiFetch({
+      await apiFetch({
         endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}`,
         method: "PUT",
         body: { content, link, notes, sectionId: targetSectionId },
@@ -247,7 +247,7 @@ const SectionList = () => {
                   viewMode === ViewModes.LIST ? "list-view" : "board-view"
                 }`}
               >
-                {sectionOrder.map((sectionId, idx) => (
+                {sectionOrder.map((sectionId) => (
                   <DroppableSection
                     key={sectionId}
                     id={sectionId}

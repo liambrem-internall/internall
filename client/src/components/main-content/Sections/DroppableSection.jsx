@@ -1,33 +1,18 @@
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+
+import { CSS } from "@dnd-kit/utilities";
+import { useDroppable } from "@dnd-kit/core";
+import { BsGripVertical } from "react-icons/bs";
 import {
-  useSortable,
   SortableContext,
+  useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import { BsGripVertical } from "react-icons/bs";
-import { OverlayTrigger, Tooltip } from "react-bootstrap";
+
 import SortableItem from "../Items/SortableItem";
 import { DraggableComponentTypes } from "../../../utils/constants";
+
 import "./DroppableSection.css";
-
-const emptySectionStyle = {
-  minHeight: 40,
-  border: "2px dashed #ccc",
-  borderRadius: 4,
-  background: "#fafbfc",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "#888",
-  fontStyle: "italic",
-};
-
-const emptySectionOverStyle = {
-  ...emptySectionStyle,
-  border: "2px dashed var(--pink1)",
-  background: "var(--pink3)",
-};
 
 const DroppableSection = ({
   id,
@@ -36,7 +21,7 @@ const DroppableSection = ({
   onItemClick,
   className = "",
 }) => {
-  const { setNodeRef: setSectionDroppableRef, isSectionOver } = useDroppable({
+  const { setNodeRef: setSectionDroppableRef } = useDroppable({
     id,
     data: { sectionId: id, type: DraggableComponentTypes.SECTION },
   });

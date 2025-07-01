@@ -1,21 +1,22 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import {
+  Navigate,
+  Route,
   BrowserRouter as Router,
   Routes,
-  Route,
-  useNavigate,
-  useLocation,
-  Navigate,
 } from "react-router-dom";
-import Navigation from "./components/outer-components/Navigation";
-import SectionList from "./components/main-content/SectionList";
-import { ViewModes } from "./utils/constants";
-import { apiFetch } from "./utils/apiFetch";
-import ViewContext from "./ViewContext";
-import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
-import LoggedOut from "./components/logged-out-page/LoggedOut";
 
+import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
+
+import ViewContext from "./ViewContext";
+import { apiFetch } from "./utils/apiFetch";
+import { ViewModes } from "./utils/constants";
+import LoggedOut from "./components/logged-out-page/LoggedOut";
+import SectionList from "./components/main-content/SectionList";
+import Navigation from "./components/outer-components/Navigation";
 import LightBallsOverlay from "./components/visuals/LightBallsOverlay";
+
 import "./App.css";
 
 const URL = import.meta.env.VITE_API_URL;

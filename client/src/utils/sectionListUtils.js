@@ -106,7 +106,7 @@ const handleDragEndItem = (
 const handleDragEndAdd = (
   active,
   over,
-  { setShowModal, setActiveId, getAccessTokenSilently }
+  { setShowModal, setActiveId }
 ) => {
   setShowModal(true);
   setActiveId(null);
@@ -218,7 +218,6 @@ export const handleDragEnd = (
       handleDragEndAdd(active, over, {
         setShowModal,
         setActiveId,
-        getAccessTokenSilently,
       });
       break;
     case DragEndActions.ADD_ITEM:
