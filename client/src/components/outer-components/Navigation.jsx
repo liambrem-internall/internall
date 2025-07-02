@@ -9,6 +9,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
+import { FaUser } from "react-icons/fa";
+
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
@@ -34,14 +36,12 @@ const Navigation = () => {
       </Tooltip>
     }
   >
-    <span
+    <FaUser
       style={{
         display: "inline-block",
-        width: 16,
-        height: 16,
-        borderRadius: "50%",
+        size: 20,
         margin: "0 2px",
-        background: user.color,
+        color: user.color,
         cursor: "pointer",
       }}
     />

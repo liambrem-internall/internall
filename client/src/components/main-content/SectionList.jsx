@@ -64,6 +64,7 @@ const SectionList = () => {
           items: items.map(({ _id: itemId, ...itemRest }) => ({
             ...itemRest,
             id: itemId,
+            _id: itemId,
           })),
         };
         order.push(_id);
@@ -89,13 +90,13 @@ const SectionList = () => {
       setSectionOrder,
       sections,
       getAccessTokenSilently,
-      username: user?.nickname || user?.name || user?.email.split("@")[0],
+      username,
     });
   };
 
   const handleSaveSection = async () => {
     const newSection = await apiFetch({
-      endpoint: `${URL}/api/sections`,
+      endpoint: `${URL}/api/sections/${username}`,
       method: "POST",
       body: { title: pendingSectionTitle },
       getAccessTokenSilently,
