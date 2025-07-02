@@ -41,7 +41,7 @@ exports.getSectionsByUsername = async (req, res) => {
 
 exports.updateSectionOrder = async (req, res) => {
   try {
-    const { order } = req.body; // order should be an array of section IDs
+    const { order } = req.body; // order is an array of section IDs
     const user = await User.findOneAndUpdate(
       { username: req.params.username },
       { sectionOrder: order },
@@ -56,10 +56,15 @@ exports.updateSectionOrder = async (req, res) => {
 
 exports.createSection = async (req, res) => {
   try {
-    const newSection = new Section({ ...req.body, userId: req.auth.sub });
+    // find page owner
+    const pageOwner = await User.findOne({ username: req.params.username });
+    if (!pageOwner) return res.status(404).json({ error: "User not found" });
+
+    // attach the page owner's auth0Id
+    const newSection = new Section({ ...req.body, userId: pageOwner.auth0Id });
     await newSection.save();
     await User.findOneAndUpdate(
-      { auth0Id: req.auth.sub },
+      { auth0Id: pageOwner.auth0Id },
       { $push: { sections: newSection._id } }
     );
     res.status(201).json(newSection);
