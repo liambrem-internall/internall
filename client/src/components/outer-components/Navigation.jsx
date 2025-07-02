@@ -20,29 +20,29 @@ const Navigation = () => {
   const roomId = window.location.pathname;
   const userId = user?.sub;
 
-  const users = useRoomUsers(roomId, userId, user.nickname);
+  const otherUsers = useRoomUsers(roomId, userId, user.nickname);
 
-  console.log(users);
+  const userColors = otherUsers.map((user, i) => (
+    <span
+      key={user.socketId}
+      style={{
+        display: "inline-block",
+        width: 16,
+        height: 16,
+        borderRadius: "50%",
+        margin: "0 2px",
+        background: user.color,
+      }}
+      title={user.name}
+    />
+  ));
 
   return (
     <div className="navbar-float-wrapper">
       <Navbar expand="lg" className="custom-navbar px-4 py-2">
         <Container fluid>
           <Navbar.Brand className="fw-bold d-flex align-items-center text-white">
-            {users.map((user, i) => (
-              <span
-                key={user.socketId}
-                style={{
-                  display: "inline-block",
-                  width: 16,
-                  height: 16,
-                  borderRadius: "50%",
-                  margin: "0 2px",
-                  background: user.color,
-                }}
-                title={user.name}
-              />
-            ))}
+            {userColors}
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">

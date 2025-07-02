@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import { socket } from "../utils/socket";
+import { roomActions } from "../utils/constants";
 
 const useRoomUsers = (roomId, userId, nickname) => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
     if (!roomId || !userId) return;
-    socket.emit("join-room", { roomId, userId, nickname });
-    socket.on("room-users", setUsers);
+    socket.emit(roomActions.JOIN, { roomId, userId, nickname });
+    socket.on(roomActions.USERS, setUsers);
     return () => {
-      socket.emit("leave-room", { roomId });
-      socket.off("room-users", setUsers);
+      socket.emit(roomActions.LEAVE, { roomId });
+      socket.off(roomActions.USERS, setUsers);
     };
   }, [roomId, userId, nickname]);
 
-  // Exclude self
+  // exclude self
   return users.filter((user) => user.id !== userId);
 };
 
