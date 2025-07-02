@@ -46,7 +46,7 @@ const handleDragEndSection = (
 const handleDragEndItem = (
   active,
   over,
-  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username }
+  { setSections, setActiveId, sections, activeId, getAccessTokenSilently }
 ) => {
   const fromSectionId = active.data.current.sectionId;
   const toSectionId = over.data.current?.sectionId || over.id;
@@ -56,6 +56,35 @@ const handleDragEndItem = (
     return;
   }
 
+  // reordering within same section
+  if (fromSectionId === toSectionId) {
+    const items = sections[fromSectionId].items;
+    const oldIndex = items.findIndex((i) => i.id === active.id);
+    const newIndex = items.findIndex((i) => i.id === over.id);
+
+    const newItems = arrayMove(items, oldIndex, newIndex);
+
+    setSections((prev) => ({
+      ...prev,
+      [fromSectionId]: { ...prev[fromSectionId], items: newItems },
+    }));
+
+    const newOrder = newItems.map((i) => i.id);
+
+    (async () => {
+      await apiFetch({
+        endpoint: `${URL}/api/items/${fromSectionId}/items/order`,
+        method: "PUT",
+        body: { order: newOrder },
+        getAccessTokenSilently,
+      });
+    })();
+
+    setActiveId(null);
+    return;
+  }
+
+  // moving to different section
   if (fromSectionId === toSectionId && active.id === over.id) {
     setActiveId(null);
     return;
@@ -103,11 +132,7 @@ const handleDragEndItem = (
   setActiveId(null);
 };
 
-const handleDragEndAdd = (
-  active,
-  over,
-  { setShowModal, setActiveId }
-) => {
+const handleDragEndAdd = (active, over, { setShowModal, setActiveId }) => {
   setShowModal(true);
   setActiveId(null);
 };
@@ -141,7 +166,6 @@ const handleDragEndDelete = (
       const newSections = { ...prev };
       delete newSections[active.id];
 
-      // delete in backend:
       (async () => {
         await apiFetch({
           endpoint: `${URL}/api/sections/${active.id}`,

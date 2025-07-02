@@ -1,30 +1,29 @@
 /*
-* This file defines the Section model for MongoDB
-*/
+ * This file defines the Section model for MongoDB
+ */
 
-
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const SectionSchema = new mongoose.Schema({
   userId: {
     type: String,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   items: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Item'
-    }
+      ref: "Item",
+    },
   ],
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('Section', SectionSchema);
+module.exports = mongoose.model("Section", SectionSchema);
