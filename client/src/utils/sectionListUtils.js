@@ -46,7 +46,7 @@ const handleDragEndSection = (
 const handleDragEndItem = (
   active,
   over,
-  { setSections, setActiveId, sections, activeId, getAccessTokenSilently }
+  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username }
 ) => {
   const fromSectionId = active.data.current.sectionId;
   const toSectionId = over.data.current?.sectionId || over.id;
@@ -246,6 +246,7 @@ export const handleDragEnd = (
         sections,
         activeId,
         getAccessTokenSilently,
+        username,
       });
       break;
     default:

@@ -15,10 +15,6 @@ const SectionSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  layout: {
-    type: Object,
-    default: {}
-  },
   items: [
     {
       type: mongoose.Schema.Types.ObjectId,
