@@ -14,13 +14,13 @@ module.exports = (io) => {
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
-    socket.on(roomActions.JOIN, ({ roomId, userId, name }) => {
+    socket.on(roomActions.JOIN, ({ roomId, userId, nickname }) => {
       console.log(`User ${userId} joined room ${roomId}`);
       socket.join(roomId);
       if (!usersInRoom[roomId]) usersInRoom[roomId] = {};
       usersInRoom[roomId][socket.id] = {
         id: userId,
-        name,
+        nickname,
         color: getNextColor(roomId),
         socketId: socket.id, // unique id for each connection (could be multiple per user)
       };
