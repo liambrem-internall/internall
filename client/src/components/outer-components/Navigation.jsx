@@ -16,29 +16,31 @@ import "./Navbar.css";
 
 const Navigation = () => {
   const { viewMode, setViewMode } = useContext(ViewContext);
-  const { logout, user, isLoading } = useAuth0();
+  const { logout, user } = useAuth0();
   const roomId = window.location.pathname;
   const userId = user?.sub;
 
-  const users = useRoomUsers(roomId, userId);
+  const users = useRoomUsers(roomId, userId, user.nickname);
+
+  console.log(users);
 
   return (
     <div className="navbar-float-wrapper">
       <Navbar expand="lg" className="custom-navbar px-4 py-2">
         <Container fluid>
           <Navbar.Brand className="fw-bold d-flex align-items-center text-white">
-            {users.map((id, i) => (
+            {users.map((user, i) => (
               <span
-                key={id}
+                key={user.socketId}
                 style={{
                   display: "inline-block",
                   width: 16,
                   height: 16,
                   borderRadius: "50%",
                   margin: "0 2px",
-                  background: `hsl(${(i * 137.5) % 360}, 70%, 60%)`, // unique color per user
+                  background: user.color,
                 }}
-                title={id}
+                title={user.name}
               />
             ))}
           </Navbar.Brand>
