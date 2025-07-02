@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { io } from "socket.io-client";
 import {
   Navigate,
   Route,
@@ -9,16 +8,10 @@ import {
 } from "react-router-dom";
 
 import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
-import { useParams } from "react-router-dom";
 
 import ViewContext from "./ViewContext";
-import { apiFetch } from "./utils/apiFetch";
 import { ViewModes } from "./utils/constants";
 import LoggedOut from "./components/logged-out-page/LoggedOut";
-import SectionList from "./components/main-content/SectionList";
-import Navigation from "./components/outer-components/Navigation";
-import LightBallsOverlay from "./components/visuals/LightBallsOverlay";
-import EnsureUserInDB from "./components/app-components/EnsureUserInDB";
 import UserPage from "./components/app-components/UserPage";
 
 import "./App.css";

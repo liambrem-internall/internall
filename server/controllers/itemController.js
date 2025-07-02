@@ -62,6 +62,21 @@ exports.updateItem = async (req, res) => {
   }
 };
 
+exports.updateItemOrder = async (req, res) => {
+  try {
+    const { order } = req.body; // array of item IDs
+    const section = await Section.findByIdAndUpdate(
+      req.params.sectionId,
+      { items: order },
+      { new: true }
+    );
+    if (!section) return res.status(404).json({ error: "Section not found" });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 exports.deleteItem = async (req, res) => {
   try {
     const section = await Section.findById(req.params.sectionId);
