@@ -23,3 +23,9 @@ export const ViewModes = Object.freeze({
   BOARD: "board",
   LIST: "list",
 });
+
+export const roomActions = Object.freeze({
+  LEAVE: "leave-room",
+  JOIN: "join-room",
+  USERS: "room-users",
+});
