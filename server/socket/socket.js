@@ -1,28 +1,20 @@
+const { roomActions, COLORS } = require("../utils/constants");
+
 module.exports = (io) => {
   const usersInRoom = {};
 
-  const COLORS = [
-    "#FF6B6B",
-    "#FFD93D",
-    "#6BCB77",
-    "#4D96FF",
-    "#A66CFF",
-    "#FF6F91",
-    "#FF9671",
-  ];
-
-const getNextColor = (roomId) => {
-  const users = usersInRoom[roomId] ? Object.values(usersInRoom[roomId]) : [];
-  for (const color of COLORS) {
-    if (!users.some(u => u.color === color)) return color;
-  }
-  return COLORS[users.length % COLORS.length];
-};
+  const getNextColor = (roomId) => {
+    const users = usersInRoom[roomId] ? Object.values(usersInRoom[roomId]) : [];
+    for (const color of COLORS) {
+      if (!users.some((user) => user.color === color)) return color; // if no user currently has this color, return it
+    }
+    return COLORS[users.length % COLORS.length];
+  };
 
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
-    socket.on("join-room", ({ roomId, userId, name }) => {
+    socket.on(roomActions.JOIN, ({ roomId, userId, name }) => {
       console.log(`User ${userId} joined room ${roomId}`);
       socket.join(roomId);
       if (!usersInRoom[roomId]) usersInRoom[roomId] = {};
@@ -30,19 +22,22 @@ const getNextColor = (roomId) => {
         id: userId,
         name,
         color: getNextColor(roomId),
-        socketId: socket.id, // unique id for if user opens 2 tabs
+        socketId: socket.id, // unique id for each connection (could be multiple per user)
       };
-      io.to(roomId).emit("room-users", Object.values(usersInRoom[roomId]));
+      io.to(roomId).emit(roomActions.USERS, Object.values(usersInRoom[roomId]));
     });
 
-    socket.on("leave-room", ({ roomId }) => {
+    socket.on(roomActions.LEAVE, ({ roomId }) => {
       socket.leave(roomId);
       if (usersInRoom[roomId]) {
         delete usersInRoom[roomId][socket.id];
         if (Object.keys(usersInRoom[roomId]).length === 0) {
           delete usersInRoom[roomId];
         } else {
-          io.to(roomId).emit("room-users", Object.values(usersInRoom[roomId]));
+          io.to(roomId).emit(
+            roomActions.USERS,
+            Object.values(usersInRoom[roomId])
+          );
         }
       }
     });
@@ -55,7 +50,7 @@ const getNextColor = (roomId) => {
             delete usersInRoom[roomId];
           } else {
             io.to(roomId).emit(
-              "room-users",
+              roomActions.USERS,
               Object.values(usersInRoom[roomId])
             );
           }

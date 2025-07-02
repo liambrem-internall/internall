@@ -16,7 +16,8 @@
 }
 
 * {
-  font-family: 'Atlassian Sans Ext'
+  /* font-family: 'Atlassian Sans Ext' */
+  font-family: 'Inter', sans-serif;
 }
 
 html, body, #root, .App {
