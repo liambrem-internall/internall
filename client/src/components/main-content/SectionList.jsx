@@ -64,6 +64,7 @@ const SectionList = () => {
           items: items.map(({ _id: itemId, ...itemRest }) => ({
             ...itemRest,
             id: itemId,
+            _id: itemId,
           })),
         };
         order.push(_id);

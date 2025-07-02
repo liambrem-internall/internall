@@ -17,13 +17,12 @@ const userRoutes = require("./routes/userRoutes");
 const sectionRoutes = require("./routes/sectionRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
 app.use("/api/users", checkJwt, userRoutes);
 app.use("/api/sections", checkJwt, sectionRoutes);
 app.use("/api/items", checkJwt, itemRoutes);
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
