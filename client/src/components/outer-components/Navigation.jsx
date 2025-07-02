@@ -7,6 +7,8 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
@@ -23,8 +25,16 @@ const Navigation = () => {
   const otherUsers = useRoomUsers(roomId, userId, user.nickname);
 
   const userColors = otherUsers.map((user, i) => (
+  <OverlayTrigger
+    key={user.socketId}
+    placement="bottom"
+    overlay={
+      <Tooltip id={`tooltip-${user.socketId}`}>
+        {user.nickname}
+      </Tooltip>
+    }
+  >
     <span
-      key={user.socketId}
       style={{
         display: "inline-block",
         width: 16,
@@ -32,10 +42,11 @@ const Navigation = () => {
         borderRadius: "50%",
         margin: "0 2px",
         background: user.color,
+        cursor: "pointer",
       }}
-      title={user.name}
     />
-  ));
+  </OverlayTrigger>
+));
 
   return (
     <div className="navbar-float-wrapper">
