@@ -5,7 +5,6 @@
 const Section = require("../models/Section");
 const User = require("../models/User");
 const sectionEvents = require("../events/sectionEvents");
-const section = require("../socket/section");
 
 exports.getSectionsByUsername = async (req, res) => {
   try {

@@ -29,3 +29,10 @@ export const roomActions = Object.freeze({
   JOIN: "join-room",
   USERS: "room-users",
 });
+
+export const sectionEvents = Object.freeze({
+  SECTION_CREATED: "section:created",
+  SECTION_UPDATED: "section:updated",
+  SECTION_DELETED: "section:deleted",
+  SECTION_ORDER_UPDATED: "section:orderUpdated",
+})
