@@ -32,7 +32,12 @@ const io = new Server(server, {
   },
 });
 
+require("./events/sectionEvents").init(io);
+app.set("io", io);
+
 require("./socket/socket")(io);
+
+
 
 server.listen(PORT, () => {
   console.log(`Server is running on ${BASE_URL}`);
