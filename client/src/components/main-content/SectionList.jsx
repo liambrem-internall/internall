@@ -20,12 +20,17 @@ import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
 import DroppableSection from "./Sections/DroppableSection";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
-import { SectionActions, ViewModes } from "../../utils/constants";
+import {
+  SectionActions,
+  ViewModes,
+  sectionEvents,
+} from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
 } from "../../utils/sectionListUtils";
+import { socket } from "../../utils/socket";
 
 import "./SectionList.css";
 
@@ -44,6 +49,51 @@ const SectionList = () => {
   const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+
+  useEffect(() => {
+    const handleSectionCreated = (section) => {
+      setSections((prev) => ({
+        ...prev,
+        [section._id]: { ...section, id: section._id, items: [] },
+      }));
+      setSectionOrder((prev) => [...prev, section._id]);
+    }
+
+    const handleSectionUpdated = (section) => {
+      setSections((prev) => ({
+        ...prev,
+        [section._id]: { ...prev[section._id], ...section },
+      }));
+    }
+
+    const handleSectionDeleted = ({ sectionId }) => {
+      setSections((prev) => {
+        const copy = { ...prev };
+        delete copy[sectionId];
+        return copy;
+      });
+      setSectionOrder((prev) => prev.filter((id) => id !== sectionId));
+    }
+
+    const handleSectionOrderUpdated = (order) => {
+      setSectionOrder(order);
+    }
+
+    socket.on(sectionEvents.SECTION_CREATED, handleSectionCreated);
+    socket.on(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
+    socket.on(sectionEvents.SECTION_DELETED, handleSectionDeleted);
+    socket.on(sectionEvents.SECTION_ORDER_UPDATED, handleSectionOrderUpdated);
+
+    return () => {
+      socket.off(sectionEvents.SECTION_CREATED, handleSectionCreated);
+      socket.off(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
+      socket.off(sectionEvents.SECTION_DELETED, handleSectionDeleted);
+      socket.off(
+        sectionEvents.SECTION_ORDER_UPDATED,
+        handleSectionOrderUpdated
+      );
+    };
+  }, [username]);
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;

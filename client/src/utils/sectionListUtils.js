@@ -140,7 +140,7 @@ const handleDragEndAdd = (active, over, { setShowModal, setActiveId }) => {
 const handleDragEndDelete = (
   active,
   over,
-  { setSections, setSectionOrder, setActiveId, getAccessTokenSilently }
+  { setSections, setSectionOrder, setActiveId, getAccessTokenSilently, username }
 ) => {
   // Delete item
   if (active.data.current?.type === DraggableComponentTypes.ITEM) {
@@ -168,7 +168,7 @@ const handleDragEndDelete = (
 
       (async () => {
         await apiFetch({
-          endpoint: `${URL}/api/sections/${active.id}`,
+          endpoint: `${URL}/api/sections/${active.id}/${username}`,
           method: "DELETE",
           getAccessTokenSilently,
         });
@@ -236,6 +236,7 @@ export const handleDragEnd = (
         setSectionOrder,
         setActiveId,
         getAccessTokenSilently,
+        username
       });
       break;
     case DragEndActions.ADD_SECTION:

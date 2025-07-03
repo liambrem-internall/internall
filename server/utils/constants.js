@@ -14,4 +14,11 @@ const COLORS = [
   "#ff9671",
 ];
 
-module.exports = { roomActions, COLORS };
+const sectionEvents = Object.freeze({
+  SECTION_CREATED: "section:created",
+  SECTION_UPDATED: "section:updated",
+  SECTION_DELETED: "section:deleted",
+  SECTION_ORDER_UPDATED: "section:orderUpdated",
+})
+
+module.exports = { roomActions, COLORS, sectionEvents };
