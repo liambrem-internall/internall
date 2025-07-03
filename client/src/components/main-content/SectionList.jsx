@@ -26,6 +26,7 @@ import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
 } from "../../utils/sectionListUtils";
+import { socket } from "../../utils/socket";
 
 import "./SectionList.css";
 
@@ -44,6 +45,60 @@ const SectionList = () => {
   const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+
+  useEffect(() => {
+    socket.onAny((event, ...args) => {
+      console.log("Socket event received:", event, args);
+    });
+    return () => socket.offAny();
+  }, []);
+
+  useEffect(() => {
+    // Section created
+    function handleSectionCreated(section) {
+      setSections((prev) => ({
+        ...prev,
+        [section._id]: { ...section, id: section._id, items: [] },
+      }));
+      setSectionOrder((prev) => [...prev, section._id]);
+    }
+
+    // Section updated
+    function handleSectionUpdated(section) {
+      setSections((prev) => ({
+        ...prev,
+        [section._id]: { ...prev[section._id], ...section },
+      }));
+    }
+
+    // Section deleted
+    function handleSectionDeleted({ sectionId }) {
+      setSections((prev) => {
+        const copy = { ...prev };
+        delete copy[sectionId];
+        return copy;
+      });
+      setSectionOrder((prev) => prev.filter((id) => id !== sectionId));
+    }
+
+    // Section order updated
+    function handleSectionOrderUpdated(order) {
+      console.log("Section order updated:", order);
+      setSectionOrder(order);
+    }
+
+    socket.on("section:created", handleSectionCreated);
+    socket.on("section:updated", handleSectionUpdated);
+    socket.on("section:deleted", handleSectionDeleted);
+    socket.on("section:orderUpdated", handleSectionOrderUpdated);
+
+    return () => {
+      socket.off("section:created", handleSectionCreated);
+      socket.off("section:updated", handleSectionUpdated);
+      socket.off("section:deleted", handleSectionDeleted);
+      socket.off("section:orderUpdated", handleSectionOrderUpdated);
+    };
+  }, [username]);
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;

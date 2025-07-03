@@ -4,6 +4,8 @@
 
 const Section = require("../models/Section");
 const User = require("../models/User");
+const sectionEvents = require("../events/sectionEvents");
+const section = require("../socket/section");
 
 exports.getSectionsByUsername = async (req, res) => {
   try {
@@ -48,6 +50,7 @@ exports.updateSectionOrder = async (req, res) => {
       { new: true }
     );
     if (!user) return res.status(404).json({ error: "User not found" });
+    sectionEvents.emitSectionOrderUpdated(req.params.username, order);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
@@ -67,6 +70,10 @@ exports.createSection = async (req, res) => {
       { auth0Id: pageOwner.auth0Id },
       { $push: { sections: newSection._id } }
     );
+
+    // push to other users
+    sectionEvents.emitSectionCreated(req.params.username, newSection);
+
     res.status(201).json(newSection);
   } catch (err) {
     res.status(400).json({ error: "Invalid data" });
@@ -79,6 +86,9 @@ exports.updateSection = async (req, res) => {
       new: true,
     });
     if (!section) return res.status(404).json({ error: "Section not found" });
+
+    sectionEvents.emitSectionUpdated(req.params.username, section);
+
     res.json(section);
   } catch (err) {
     res.status(404).json({ error: "Section not found" });
@@ -89,6 +99,9 @@ exports.deleteSection = async (req, res) => {
   try {
     const section = await Section.findByIdAndDelete(req.params.id);
     if (!section) return res.status(404).json({ error: "Section not found" });
+
+    sectionEvents.emitSectionDeleted(req.params.username, section._id);
+
     res.status(204).send();
   } catch (err) {
     res.status(404).json({ error: "Section not found" });

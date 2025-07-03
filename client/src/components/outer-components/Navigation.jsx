@@ -21,7 +21,8 @@ import "./Navbar.css";
 const Navigation = () => {
   const { viewMode, setViewMode } = useContext(ViewContext);
   const { logout, user } = useAuth0();
-  const roomId = window.location.pathname;
+  const { username } = useParams();
+  const roomId = username;
   const userId = user?.sub;
 
   const otherUsers = useRoomUsers(roomId, userId, user.nickname);
