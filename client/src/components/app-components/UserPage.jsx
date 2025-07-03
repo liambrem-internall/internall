@@ -24,11 +24,10 @@ const UserPage = ({ setUserReady, userReady, viewMode, setViewMode }) => {
   const userId = user?.sub;
   const nickname = getDisplayName(user);
 
-  useEffect(() => {
+  useEffect(() => { // handles connecting for entire client lifecycle
   if (!roomId || !userId || !nickname) return;
 
   const handleConnect = () => {
-    console.log(`Joining room: ${roomId} as user: ${userId} with nickname: ${nickname}`);
     socket.emit(roomActions.JOIN, { roomId, userId, nickname });
   };
 

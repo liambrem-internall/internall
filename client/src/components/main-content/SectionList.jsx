@@ -20,7 +20,11 @@ import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
 import DroppableSection from "./Sections/DroppableSection";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
-import { SectionActions, ViewModes } from "../../utils/constants";
+import {
+  SectionActions,
+  ViewModes,
+  sectionEvents,
+} from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import {
   findItemBySection,
@@ -47,15 +51,7 @@ const SectionList = () => {
   const [editingItem, setEditingItem] = useState(null);
 
   useEffect(() => {
-    socket.onAny((event, ...args) => {
-      console.log("Socket event received:", event, args);
-    });
-    return () => socket.offAny();
-  }, []);
-
-  useEffect(() => {
-    // Section created
-    function handleSectionCreated(section) {
+    const handleSectionCreated = (section) => {
       setSections((prev) => ({
         ...prev,
         [section._id]: { ...section, id: section._id, items: [] },
@@ -63,16 +59,14 @@ const SectionList = () => {
       setSectionOrder((prev) => [...prev, section._id]);
     }
 
-    // Section updated
-    function handleSectionUpdated(section) {
+    const handleSectionUpdated = (section) => {
       setSections((prev) => ({
         ...prev,
         [section._id]: { ...prev[section._id], ...section },
       }));
     }
 
-    // Section deleted
-    function handleSectionDeleted({ sectionId }) {
+    const handleSectionDeleted = ({ sectionId }) => {
       setSections((prev) => {
         const copy = { ...prev };
         delete copy[sectionId];
@@ -81,22 +75,23 @@ const SectionList = () => {
       setSectionOrder((prev) => prev.filter((id) => id !== sectionId));
     }
 
-    // Section order updated
-    function handleSectionOrderUpdated(order) {
-      console.log("Section order updated:", order);
+    const handleSectionOrderUpdated = (order) => {
       setSectionOrder(order);
     }
 
-    socket.on("section:created", handleSectionCreated);
-    socket.on("section:updated", handleSectionUpdated);
-    socket.on("section:deleted", handleSectionDeleted);
-    socket.on("section:orderUpdated", handleSectionOrderUpdated);
+    socket.on(sectionEvents.SECTION_CREATED, handleSectionCreated);
+    socket.on(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
+    socket.on(sectionEvents.SECTION_DELETED, handleSectionDeleted);
+    socket.on(sectionEvents.SECTION_ORDER_UPDATED, handleSectionOrderUpdated);
 
     return () => {
-      socket.off("section:created", handleSectionCreated);
-      socket.off("section:updated", handleSectionUpdated);
-      socket.off("section:deleted", handleSectionDeleted);
-      socket.off("section:orderUpdated", handleSectionOrderUpdated);
+      socket.off(sectionEvents.SECTION_CREATED, handleSectionCreated);
+      socket.off(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
+      socket.off(sectionEvents.SECTION_DELETED, handleSectionDeleted);
+      socket.off(
+        sectionEvents.SECTION_ORDER_UPDATED,
+        handleSectionOrderUpdated
+      );
     };
   }, [username]);
 
