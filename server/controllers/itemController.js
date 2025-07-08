@@ -29,7 +29,7 @@ exports.createItem = async (req, res) => {
     section.items.push(newItem._id);
     await section.save();
 
-    itemEvents.emitItemCreated(section.roomId, newItem);
+    itemEvents.emitItemCreated(req.params.username, newItem);
 
     res.status(201).json(newItem);
   } catch (err) {
@@ -59,7 +59,7 @@ exports.updateItem = async (req, res) => {
       });
     }
 
-    itemEvents.emitItemUpdated(item.roomId, item);
+    itemEvents.emitItemUpdated(req.params.username, item);
 
     res.json(item);
   } catch (err) {
@@ -84,6 +84,46 @@ exports.updateItemOrder = async (req, res) => {
   }
 };
 
+exports.moveItem = async (req, res) => {
+  try {
+    const { toSectionId, toIndex } = req.body;
+    const { sectionId, itemId } = req.params;
+
+    if (!toSectionId) {
+      return res.status(400).json({ error: "Missing toSectionId" });
+    }
+
+    const item = await Item.findById(itemId);
+    if (!item) return res.status(404).json({ error: "Item not found" });
+
+    const fromSection = await Section.findById(sectionId);
+    if (!fromSection) return res.status(404).json({ error: "Source section not found" });
+    fromSection.items.pull(item._id);
+    await fromSection.save();
+
+    const toSection = await Section.findById(toSectionId);
+    if (!toSection) return res.status(404).json({ error: "Destination section not found" });
+
+    if (typeof toIndex === "number" && toIndex >= 0 && toIndex <= toSection.items.length) {
+      toSection.items.splice(toIndex, 0, item._id);
+    } else {
+      toSection.items.push(item._id);
+    }
+    await toSection.save();
+
+    item.sectionId = toSectionId;
+    await item.save();
+
+    itemEvents.emitItemUpdated(req.params.username, item);
+
+    res.json({ success: true, item });
+  } catch (err) {
+    console.error("moveItem error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+    
+
 exports.deleteItem = async (req, res) => {
   try {
     const section = await Section.findById(req.params.sectionId);
@@ -93,7 +133,7 @@ exports.deleteItem = async (req, res) => {
     section.items.pull(req.params.itemId);
     await section.save();
 
-    itemEvents.emitItemDeleted(section.roomId, req.params.itemId);
+    itemEvents.emitItemDeleted(req.params.username, req.params.itemId);
 
     res.status(204).send();
   } catch (err) {
