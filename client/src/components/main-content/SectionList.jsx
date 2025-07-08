@@ -20,17 +20,14 @@ import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
 import DroppableSection from "./Sections/DroppableSection";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
-import {
-  SectionActions,
-  ViewModes,
-  sectionEvents,
-} from "../../utils/constants";
+import useItemSocketHandlers from "../../hooks/useItemSocketHandlers";
+import useSectionSocketHandlers from "../../hooks/useSectionSocketHandlers";
 import customCollisionDetection from "../../utils/customCollisionDetection";
+import { SectionActions, ViewModes } from "../../utils/constants";
 import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
 } from "../../utils/sectionListUtils";
-import { socket } from "../../utils/socket";
 
 import "./SectionList.css";
 
@@ -39,7 +36,7 @@ const URL = import.meta.env.VITE_API_URL;
 const SectionList = () => {
   const { viewMode } = useContext(ViewContext);
   const { username } = useParams();
-  const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
   const [sections, setSections] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -50,50 +47,8 @@ const SectionList = () => {
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
 
-  useEffect(() => {
-    const handleSectionCreated = (section) => {
-      setSections((prev) => ({
-        ...prev,
-        [section._id]: { ...section, id: section._id, items: [] },
-      }));
-      setSectionOrder((prev) => [...prev, section._id]);
-    }
-
-    const handleSectionUpdated = (section) => {
-      setSections((prev) => ({
-        ...prev,
-        [section._id]: { ...prev[section._id], ...section },
-      }));
-    }
-
-    const handleSectionDeleted = ({ sectionId }) => {
-      setSections((prev) => {
-        const copy = { ...prev };
-        delete copy[sectionId];
-        return copy;
-      });
-      setSectionOrder((prev) => prev.filter((id) => id !== sectionId));
-    }
-
-    const handleSectionOrderUpdated = (order) => {
-      setSectionOrder(order);
-    }
-
-    socket.on(sectionEvents.SECTION_CREATED, handleSectionCreated);
-    socket.on(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
-    socket.on(sectionEvents.SECTION_DELETED, handleSectionDeleted);
-    socket.on(sectionEvents.SECTION_ORDER_UPDATED, handleSectionOrderUpdated);
-
-    return () => {
-      socket.off(sectionEvents.SECTION_CREATED, handleSectionCreated);
-      socket.off(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
-      socket.off(sectionEvents.SECTION_DELETED, handleSectionDeleted);
-      socket.off(
-        sectionEvents.SECTION_ORDER_UPDATED,
-        handleSectionOrderUpdated
-      );
-    };
-  }, [username]);
+  useSectionSocketHandlers({ setSections, setSectionOrder, username });
+  useItemSocketHandlers({ setSections, setSectionOrder, username });
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;
@@ -108,16 +63,16 @@ const SectionList = () => {
       const order = [];
       data.forEach((section) => {
         const { _id, items = [], ...rest } = section;
-        sectionsObj[_id] = {
+        const id = _id;
+        sectionsObj[id] = {
           ...rest,
-          id: _id,
+          id,
           items: items.map(({ _id: itemId, ...itemRest }) => ({
             ...itemRest,
             id: itemId,
-            _id: itemId,
           })),
         };
-        order.push(_id);
+        order.push(id);
       });
       setSections(sectionsObj);
       setSectionOrder(order);
@@ -152,7 +107,7 @@ const SectionList = () => {
       getAccessTokenSilently,
     });
 
-    const sectionId = newSection._id;
+    const sectionId = newSection.id;
 
     setSections((prev) => ({
       ...prev,
@@ -173,29 +128,18 @@ const SectionList = () => {
 
     if (editingItem) {
       await apiFetch({
-        endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}`,
+        endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}/${username}`,
         method: "PUT",
         body: { content, link, notes, sectionId: targetSectionId },
         getAccessTokenSilently,
       });
     } else {
-      const newItem = await apiFetch({
-        endpoint: `${URL}/api/items/${targetSectionId}/items`,
+      await apiFetch({
+        endpoint: `${URL}/api/items/${targetSectionId}/items/${username}`,
         method: "POST",
         body: { content, link, notes, sectionId: targetSectionId },
         getAccessTokenSilently,
       });
-
-      setSections((prev) => ({
-        ...prev,
-        [targetSectionId]: {
-          ...prev[targetSectionId],
-          items: [
-            ...prev[targetSectionId].items,
-            { ...newItem, id: newItem._id }, // ensure id is set
-          ],
-        },
-      }));
     }
 
     setShowItemModal(false);
