@@ -101,6 +101,13 @@ const SectionList = () => {
       setSections((prev) => {
         const sectionId = item.sectionId;
         if (!prev[sectionId]) return prev;
+        if (
+          prev[sectionId].items.some(
+            (it) => it.id === item._id || it._id === item._id
+          )
+        ) {
+          return prev;
+        }
         return {
           ...prev,
           [sectionId]: {
@@ -113,30 +120,43 @@ const SectionList = () => {
 
     const handleItemUpdated = (item) => {
       setSections((prev) => {
-        const sectionId = item.sectionId;
-        if (!prev[sectionId]) return prev;
-        return {
-          ...prev,
-          [sectionId]: {
-            ...prev[sectionId],
-            items: prev[sectionId].items.map((it) =>
-              it.id === item._id ? { ...item, id: item._id } : it
+        const newSections = { ...prev };
+        // remove from all sections
+        for (const sectionId in newSections) {
+          newSections[sectionId] = {
+            ...newSections[sectionId],
+            items: newSections[sectionId].items.filter(
+              (it) => it.id !== item._id
             ),
-          },
-        };
+          };
+        }
+        // add/update in new section
+        const destSectionId = item.sectionId;
+        if (newSections[destSectionId]) {
+          newSections[destSectionId] = {
+            ...newSections[destSectionId],
+            items: [
+              ...newSections[destSectionId].items,
+              { ...item, id: item._id },
+            ],
+          };
+        }
+        return newSections;
       });
     };
 
-    const handleItemDeleted = ({ itemId, sectionId }) => {
+    const handleItemDeleted = ({ itemId }) => {
       setSections((prev) => {
-        if (!prev[sectionId]) return prev;
-        return {
-          ...prev,
-          [sectionId]: {
-            ...prev[sectionId],
-            items: prev[sectionId].items.filter((it) => it.id !== itemId),
-          },
-        };
+        const newSections = { ...prev };
+        for (const sectionId in newSections) {
+          newSections[sectionId] = {
+            ...newSections[sectionId],
+            items: newSections[sectionId].items.filter(
+              (it) => it.id !== itemId
+            ),
+          };
+        }
+        return newSections;
       });
     };
 
@@ -168,7 +188,7 @@ const SectionList = () => {
       socket.off(itemEvents.ITEM_DELETED, handleItemDeleted);
       socket.off(itemEvents.ITEM_ORDER_UPDATED, handleItemOrderUpdated);
     };
-  }, [username, socket, setSections]);
+  }, [username]);
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;
@@ -254,23 +274,12 @@ const SectionList = () => {
         getAccessTokenSilently,
       });
     } else {
-      const newItem = await apiFetch({
-        endpoint: `${URL}/api/items/${targetSectionId}/items`,
+      await apiFetch({
+        endpoint: `${URL}/api/items/${targetSectionId}/items/${username}`,
         method: "POST",
         body: { content, link, notes, sectionId: targetSectionId },
         getAccessTokenSilently,
       });
-
-      setSections((prev) => ({
-        ...prev,
-        [targetSectionId]: {
-          ...prev[targetSectionId],
-          items: [
-            ...prev[targetSectionId].items,
-            { ...newItem, id: newItem._id }, // ensure id is set
-          ],
-        },
-      }));
     }
 
     setShowItemModal(false);

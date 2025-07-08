@@ -122,9 +122,9 @@ const handleDragEndItem = (
 
   (async () => {
     await apiFetch({
-      endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}`,
+      endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}/${username}/move`,
       method: "PUT",
-      body: { sectionId: toSectionId },
+      body: { toSectionId },
       getAccessTokenSilently,
     });
   })();
@@ -154,7 +154,7 @@ const handleDragEndDelete = (
     }));
     (async () => {
       await apiFetch({
-        endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}`,
+        endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}/${username}`,
         method: "DELETE",
         getAccessTokenSilently,
       });
