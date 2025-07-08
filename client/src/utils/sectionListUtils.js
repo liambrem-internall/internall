@@ -46,7 +46,7 @@ const handleDragEndSection = (
 const handleDragEndItem = (
   active,
   over,
-  { setSections, setActiveId, sections, activeId, getAccessTokenSilently }
+  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username }
 ) => {
   const fromSectionId = active.data.current.sectionId;
   const toSectionId = over.data.current?.sectionId || over.id;
@@ -73,7 +73,7 @@ const handleDragEndItem = (
 
     (async () => {
       await apiFetch({
-        endpoint: `${URL}/api/items/${fromSectionId}/items/order`,
+        endpoint: `${URL}/api/items/${fromSectionId}/items/${username}/order`,
         method: "PUT",
         body: { order: newOrder },
         getAccessTokenSilently,

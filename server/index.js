@@ -33,9 +33,11 @@ const io = new Server(server, {
 });
 
 require("./events/sectionEvents").init(io);
+require("./events/itemEvents").init(io);
 app.set("io", io);
 
 require("./socket/socket")(io);
+
 
 
 server.listen(PORT, () => {
