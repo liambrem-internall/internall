@@ -29,4 +29,6 @@ const itemEvents = Object.freeze({
   ITEM_ORDER_UPDATED: "item:orderUpdated",
 });
 
-module.exports = { roomActions, COLORS, sectionEvents, itemEvents };
+const ITEMS_FIELD = "items";
+
+module.exports = { roomActions, COLORS, sectionEvents, itemEvents, ITEMS_FIELD };

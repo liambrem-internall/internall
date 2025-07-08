@@ -5,11 +5,12 @@
 const Section = require("../models/Section");
 const Item = require("../models/Item");
 const itemEvents = require("../events/itemEvents");
+const { ITEMS_FIELD } = require("../utils/constants");
 
 exports.getItems = async (req, res) => {
   try {
     const section = await Section.findById(req.params.sectionId).populate(
-      "items"
+      ITEMS_FIELD
     );
     if (!section) return res.status(404).json({ error: "Section not found" });
     res.json(section.items);
