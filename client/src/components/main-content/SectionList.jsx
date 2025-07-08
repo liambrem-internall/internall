@@ -20,13 +20,10 @@ import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
 import DroppableSection from "./Sections/DroppableSection";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
-import useItemSectionHandlers from "../../hooks/useItemSocketHandlers";
+import useItemSocketHandlers from "../../hooks/useItemSocketHandlers";
 import useSectionSocketHandlers from "../../hooks/useSectionSocketHandlers";
 import customCollisionDetection from "../../utils/customCollisionDetection";
-import {
-  SectionActions,
-  ViewModes,
-} from "../../utils/constants";
+import { SectionActions, ViewModes } from "../../utils/constants";
 import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
@@ -51,7 +48,7 @@ const SectionList = () => {
   const [editingItem, setEditingItem] = useState(null);
 
   useSectionSocketHandlers({ setSections, setSectionOrder, username });
-  useItemSectionHandlers({ setSections, setSectionOrder, username });
+  useItemSocketHandlers({ setSections, setSectionOrder, username });
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;
@@ -66,15 +63,16 @@ const SectionList = () => {
       const order = [];
       data.forEach((section) => {
         const { _id, items = [], ...rest } = section;
-        sectionsObj[_id] = {
+        const id = _id;
+        sectionsObj[id] = {
           ...rest,
-          id: _id,
+          id,
           items: items.map(({ _id: itemId, ...itemRest }) => ({
             ...itemRest,
             id: itemId,
           })),
         };
-        order.push(_id);
+        order.push(id);
       });
       setSections(sectionsObj);
       setSectionOrder(order);
@@ -109,7 +107,7 @@ const SectionList = () => {
       getAccessTokenSilently,
     });
 
-    const sectionId = newSection._id;
+    const sectionId = newSection.id;
 
     setSections((prev) => ({
       ...prev,
@@ -130,7 +128,7 @@ const SectionList = () => {
 
     if (editingItem) {
       await apiFetch({
-        endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}`,
+        endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}/${username}`,
         method: "PUT",
         body: { content, link, notes, sectionId: targetSectionId },
         getAccessTokenSilently,

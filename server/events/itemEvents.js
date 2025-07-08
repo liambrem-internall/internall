@@ -13,7 +13,7 @@ module.exports = {
   },
 
   emitItemUpdated: (roomId, item) => {
-    if (io) io.to(roomId).emit(itemEvents.ITEM_UPDATED, item);
+   if (io) io.to(roomId).emit(itemEvents.ITEM_UPDATED, item);
   },
 
   emitItemDeleted: (roomId, itemId) => {
