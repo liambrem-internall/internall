@@ -5,6 +5,7 @@
 const Section = require("../models/Section");
 const User = require("../models/User");
 const sectionEvents = require("../events/sectionEvents");
+const { ITEMS_FIELD } = require("../utils/constants");
 
 exports.getSectionsByUsername = async (req, res) => {
   try {
@@ -12,7 +13,7 @@ exports.getSectionsByUsername = async (req, res) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const sections = await Section.find({ userId: user.auth0Id }).populate(
-      "items"
+      ITEMS_FIELD
     );
 
     let orderedSections = sections;
