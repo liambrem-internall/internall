@@ -20,18 +20,17 @@ import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
 import DroppableSection from "./Sections/DroppableSection";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
+import useItemSectionHandlers from "../../hooks/useItemSocketHandlers";
+import useSectionSocketHandlers from "../../hooks/useSectionSocketHandlers";
+import customCollisionDetection from "../../utils/customCollisionDetection";
 import {
   SectionActions,
   ViewModes,
-  sectionEvents,
-  itemEvents,
 } from "../../utils/constants";
-import customCollisionDetection from "../../utils/customCollisionDetection";
 import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
 } from "../../utils/sectionListUtils";
-import { socket } from "../../utils/socket";
 
 import "./SectionList.css";
 
@@ -40,7 +39,7 @@ const URL = import.meta.env.VITE_API_URL;
 const SectionList = () => {
   const { viewMode } = useContext(ViewContext);
   const { username } = useParams();
-  const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
   const [sections, setSections] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -51,144 +50,8 @@ const SectionList = () => {
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
 
-  useEffect(() => {
-    const handleSectionCreated = (section) => {
-      setSections((prev) => ({
-        ...prev,
-        [section._id]: { ...section, id: section._id, items: [] },
-      }));
-      setSectionOrder((prev) => [...prev, section._id]);
-    };
-
-    const handleSectionUpdated = (section) => {
-      setSections((prev) => ({
-        ...prev,
-        [section._id]: { ...prev[section._id], ...section },
-      }));
-    };
-
-    const handleSectionDeleted = ({ sectionId }) => {
-      setSections((prev) => {
-        const copy = { ...prev };
-        delete copy[sectionId];
-        return copy;
-      });
-      setSectionOrder((prev) => prev.filter((id) => id !== sectionId));
-    };
-
-    const handleSectionOrderUpdated = (order) => {
-      setSectionOrder(order);
-    };
-
-    socket.on(sectionEvents.SECTION_CREATED, handleSectionCreated);
-    socket.on(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
-    socket.on(sectionEvents.SECTION_DELETED, handleSectionDeleted);
-    socket.on(sectionEvents.SECTION_ORDER_UPDATED, handleSectionOrderUpdated);
-
-    return () => {
-      socket.off(sectionEvents.SECTION_CREATED, handleSectionCreated);
-      socket.off(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
-      socket.off(sectionEvents.SECTION_DELETED, handleSectionDeleted);
-      socket.off(
-        sectionEvents.SECTION_ORDER_UPDATED,
-        handleSectionOrderUpdated
-      );
-    };
-  }, [username]);
-
-  useEffect(() => {
-    const handleItemCreated = (item) => {
-      setSections((prev) => {
-        const sectionId = item.sectionId;
-        if (!prev[sectionId]) return prev;
-        if (
-          prev[sectionId].items.some(
-            (it) => it.id === item._id || it._id === item._id
-          )
-        ) {
-          return prev;
-        }
-        return {
-          ...prev,
-          [sectionId]: {
-            ...prev[sectionId],
-            items: [...prev[sectionId].items, { ...item, id: item._id }],
-          },
-        };
-      });
-    };
-
-    const handleItemUpdated = (item) => {
-      setSections((prev) => {
-        const newSections = { ...prev };
-        // remove from all sections
-        for (const sectionId in newSections) {
-          newSections[sectionId] = {
-            ...newSections[sectionId],
-            items: newSections[sectionId].items.filter(
-              (it) => it.id !== item._id
-            ),
-          };
-        }
-        // add/update in new section
-        const destSectionId = item.sectionId;
-        if (newSections[destSectionId]) {
-          newSections[destSectionId] = {
-            ...newSections[destSectionId],
-            items: [
-              ...newSections[destSectionId].items,
-              { ...item, id: item._id },
-            ],
-          };
-        }
-        return newSections;
-      });
-    };
-
-    const handleItemDeleted = ({ itemId }) => {
-      setSections((prev) => {
-        const newSections = { ...prev };
-        for (const sectionId in newSections) {
-          newSections[sectionId] = {
-            ...newSections[sectionId],
-            items: newSections[sectionId].items.filter(
-              (it) => it.id !== itemId
-            ),
-          };
-        }
-        return newSections;
-      });
-    };
-
-    const handleItemOrderUpdated = ({ sectionId, order }) => {
-      setSections((prev) => {
-        if (!prev[sectionId]) return prev;
-        const itemsById = {};
-        prev[sectionId].items.forEach((item) => {
-          itemsById[item.id] = item;
-        });
-        return {
-          ...prev,
-          [sectionId]: {
-            ...prev[sectionId],
-            items: order.map((id) => itemsById[id]).filter(Boolean),
-          },
-        };
-      });
-    };
-
-    socket.on(itemEvents.ITEM_CREATED, handleItemCreated);
-    socket.on(itemEvents.ITEM_UPDATED, handleItemUpdated);
-    socket.on(itemEvents.ITEM_DELETED, handleItemDeleted);
-    socket.on(itemEvents.ITEM_ORDER_UPDATED, handleItemOrderUpdated);
-
-    return () => {
-      socket.off(itemEvents.ITEM_CREATED, handleItemCreated);
-      socket.off(itemEvents.ITEM_UPDATED, handleItemUpdated);
-      socket.off(itemEvents.ITEM_DELETED, handleItemDeleted);
-      socket.off(itemEvents.ITEM_ORDER_UPDATED, handleItemOrderUpdated);
-    };
-  }, [username]);
+  useSectionSocketHandlers({ setSections, setSectionOrder, username });
+  useItemSectionHandlers({ setSections, setSectionOrder, username });
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;
@@ -209,7 +72,6 @@ const SectionList = () => {
           items: items.map(({ _id: itemId, ...itemRest }) => ({
             ...itemRest,
             id: itemId,
-            _id: itemId,
           })),
         };
         order.push(_id);
