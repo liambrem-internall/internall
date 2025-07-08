@@ -28,5 +28,10 @@ export const apiFetch = async ({
   const res = await fetch(endpoint, fetchOptions);
   if (!res.ok) throw new Error(await res.text());
   const text = await res.text();
-  return text ? JSON.parse(text) : {};
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    return {};
+  }
 };

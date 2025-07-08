@@ -36,3 +36,10 @@ export const sectionEvents = Object.freeze({
   SECTION_DELETED: "section:deleted",
   SECTION_ORDER_UPDATED: "section:orderUpdated",
 })
+
+export const itemEvents = Object.freeze({
+  ITEM_CREATED: "item:created",
+  ITEM_UPDATED: "item:updated",
+  ITEM_DELETED: "item:deleted",
+  ITEM_ORDER_UPDATED: "item:orderUpdated",
+});

@@ -24,6 +24,7 @@ import {
   SectionActions,
   ViewModes,
   sectionEvents,
+  itemEvents,
 } from "../../utils/constants";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import {
@@ -57,14 +58,14 @@ const SectionList = () => {
         [section._id]: { ...section, id: section._id, items: [] },
       }));
       setSectionOrder((prev) => [...prev, section._id]);
-    }
+    };
 
     const handleSectionUpdated = (section) => {
       setSections((prev) => ({
         ...prev,
         [section._id]: { ...prev[section._id], ...section },
       }));
-    }
+    };
 
     const handleSectionDeleted = ({ sectionId }) => {
       setSections((prev) => {
@@ -73,11 +74,11 @@ const SectionList = () => {
         return copy;
       });
       setSectionOrder((prev) => prev.filter((id) => id !== sectionId));
-    }
+    };
 
     const handleSectionOrderUpdated = (order) => {
       setSectionOrder(order);
-    }
+    };
 
     socket.on(sectionEvents.SECTION_CREATED, handleSectionCreated);
     socket.on(sectionEvents.SECTION_UPDATED, handleSectionUpdated);
@@ -94,6 +95,80 @@ const SectionList = () => {
       );
     };
   }, [username]);
+
+  useEffect(() => {
+    const handleItemCreated = (item) => {
+      setSections((prev) => {
+        const sectionId = item.sectionId;
+        if (!prev[sectionId]) return prev;
+        return {
+          ...prev,
+          [sectionId]: {
+            ...prev[sectionId],
+            items: [...prev[sectionId].items, { ...item, id: item._id }],
+          },
+        };
+      });
+    };
+
+    const handleItemUpdated = (item) => {
+      setSections((prev) => {
+        const sectionId = item.sectionId;
+        if (!prev[sectionId]) return prev;
+        return {
+          ...prev,
+          [sectionId]: {
+            ...prev[sectionId],
+            items: prev[sectionId].items.map((it) =>
+              it.id === item._id ? { ...item, id: item._id } : it
+            ),
+          },
+        };
+      });
+    };
+
+    const handleItemDeleted = ({ itemId, sectionId }) => {
+      setSections((prev) => {
+        if (!prev[sectionId]) return prev;
+        return {
+          ...prev,
+          [sectionId]: {
+            ...prev[sectionId],
+            items: prev[sectionId].items.filter((it) => it.id !== itemId),
+          },
+        };
+      });
+    };
+
+    const handleItemOrderUpdated = ({ sectionId, order }) => {
+      setSections((prev) => {
+        if (!prev[sectionId]) return prev;
+        const itemsById = {};
+        prev[sectionId].items.forEach((item) => {
+          itemsById[item.id] = item;
+        });
+        return {
+          ...prev,
+          [sectionId]: {
+            ...prev[sectionId],
+            items: order.map((id) => itemsById[id]).filter(Boolean),
+          },
+        };
+      });
+    };
+
+    socket.on(itemEvents.ITEM_CREATED, handleItemCreated);
+    socket.on(itemEvents.ITEM_UPDATED, handleItemUpdated);
+    socket.on(itemEvents.ITEM_DELETED, handleItemDeleted);
+    socket.on(itemEvents.ITEM_ORDER_UPDATED, handleItemOrderUpdated);
+
+    return () => {
+      socket.off(itemEvents.ITEM_CREATED, handleItemCreated);
+      socket.off(itemEvents.ITEM_UPDATED, handleItemUpdated);
+      socket.off(itemEvents.ITEM_DELETED, handleItemDeleted);
+      socket.off(itemEvents.ITEM_ORDER_UPDATED, handleItemOrderUpdated);
+    };
+  }, [username, socket, setSections]);
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;

@@ -4,6 +4,7 @@
 
 const Section = require("../models/Section");
 const Item = require("../models/Item");
+const itemEvents = require("../events/itemEvents");
 
 exports.getItems = async (req, res) => {
   try {
@@ -27,6 +28,8 @@ exports.createItem = async (req, res) => {
 
     section.items.push(newItem._id);
     await section.save();
+
+    itemEvents.emitItemCreated(section.roomId, newItem);
 
     res.status(201).json(newItem);
   } catch (err) {
@@ -56,6 +59,8 @@ exports.updateItem = async (req, res) => {
       });
     }
 
+    itemEvents.emitItemUpdated(item.roomId, item);
+
     res.json(item);
   } catch (err) {
     res.status(400).json({ error: "Invalid data" });
@@ -71,8 +76,10 @@ exports.updateItemOrder = async (req, res) => {
       { new: true }
     );
     if (!section) return res.status(404).json({ error: "Section not found" });
+    itemEvents.emitItemOrderUpdated(req.params.username, section._id.toString(), order);
     res.json({ success: true });
   } catch (err) {
+    console.error("updateItemOrder error:", err);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -85,6 +92,8 @@ exports.deleteItem = async (req, res) => {
     await Item.findByIdAndDelete(req.params.itemId);
     section.items.pull(req.params.itemId);
     await section.save();
+
+    itemEvents.emitItemDeleted(section.roomId, req.params.itemId);
 
     res.status(204).send();
   } catch (err) {
