@@ -14,9 +14,7 @@ module.exports = (io, socket, usersInRoom) => {
   };
 
   socket.on(roomActions.JOIN, ({ roomId, userId, nickname }) => {
-    console.log(`User ${userId} joined room ${roomId}`);
     socket.join(roomId);
-    console.log("Sockets in room", roomId, ":", Array.from(io.sockets.adapter.rooms.get(roomId) || []));
     if (!usersInRoom[roomId]) usersInRoom[roomId] = {};
     usersInRoom[roomId][socket.id] = {
       id: userId,
@@ -42,7 +40,7 @@ module.exports = (io, socket, usersInRoom) => {
     }
   });
 
-  socket.on("disconnecting", () => {
+  socket.on(roomActions.DISCONNECTING, () => {
     for (const roomId of socket.rooms) {
       if (usersInRoom[roomId]) {
         delete usersInRoom[roomId][socket.id];

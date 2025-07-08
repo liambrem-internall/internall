@@ -1,7 +1,6 @@
 /*
-* This file handles the MongoDB connection
-*/
-
+ * This file handles the MongoDB connection
+ */
 
 const mongoose = require("mongoose");
 
