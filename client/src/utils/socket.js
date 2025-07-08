@@ -3,7 +3,6 @@ const URL = import.meta.env.VITE_API_URL;
 export const socket = io(URL, { transports: ["websocket"] });
 
 socket.on("connect", () => {
-  console.log("Socket connected:", socket.id);
 
 });
 
