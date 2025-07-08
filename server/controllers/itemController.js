@@ -45,23 +45,26 @@ exports.updateItem = async (req, res) => {
     const oldSectionId = item.sectionId.toString();
     const newSectionId = req.body.sectionId;
 
-    item.sectionId = newSectionId;
+    console.log("update item", req.body.content, item.content);
+
+    // item fields are updated only if in body
+    item.content = req.body.content ?? item.content;
+    item.link = req.body.link ?? item.link;
+    item.notes = req.body.notes ?? item.notes;
+    item.sectionId = newSectionId ?? item.sectionId;
+
     await item.save();
 
-    // remove from old section's items array
     if (oldSectionId !== newSectionId) {
-      await Section.findByIdAndUpdate(oldSectionId, {
-        $pull: { items: item._id },
-      });
-      // add to new section's items array
-      await Section.findByIdAndUpdate(newSectionId, {
-        $addToSet: { items: item._id },
-      });
+      await Section.findByIdAndUpdate(oldSectionId, { $pull: { items: item._id } });
+      await Section.findByIdAndUpdate(newSectionId, { $addToSet: { items: item._id } });
     }
 
-    itemEvents.emitItemUpdated(req.params.username, item);
+    const updatedItem = await Item.findById(item._id);
 
-    res.json(item);
+    itemEvents.emitItemUpdated(req.params.username, updatedItem);
+
+    res.json(updatedItem);
   } catch (err) {
     res.status(400).json({ error: "Invalid data" });
   }
