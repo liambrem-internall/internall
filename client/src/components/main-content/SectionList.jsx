@@ -22,6 +22,9 @@ import DroppableSection from "./Sections/DroppableSection";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import useItemSocketHandlers from "../../hooks/useItemSocketHandlers";
 import useSectionSocketHandlers from "../../hooks/useSectionSocketHandlers";
+import useRoomUserrs from "../../hooks/useRoomUsers";
+import useEditingSocket from "../../hooks/useEditingSocket";
+import useRoomEditing from "../../hooks/useRoomEditing";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import { SectionActions, ViewModes } from "../../utils/constants";
 import {
@@ -49,6 +52,10 @@ const SectionList = () => {
 
   useSectionSocketHandlers({ setSections, setSectionOrder, username });
   useItemSocketHandlers({ setSections, setSectionOrder, username });
+
+  const roomId = username;
+  const editingUsers = useRoomEditing(roomId); 
+  const allUsers = useRoomUserrs(roomId, null)
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;
@@ -247,6 +254,8 @@ const SectionList = () => {
                     className={`section ${
                       viewMode === ViewModes.LIST ? "list-view" : "board-view"
                     }`}
+                    editingUsers={editingUsers}
+                    users={allUsers}
                   />
                 ))}
                 {activeId == SectionActions.ADD && (
@@ -279,6 +288,7 @@ const SectionList = () => {
         initialContent={editingItem?.content || ""}
         initialLink={editingItem?.link || ""}
         initialNotes={editingItem?.notes || ""}
+        itemId={editingItem?.id}
       />
     </>
   );

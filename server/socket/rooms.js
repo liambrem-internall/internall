@@ -2,7 +2,8 @@
  * Handles room join/leave logic & user tracking
  */
 
-const { roomActions, COLORS } = require("../utils/constants");
+const { roomActions, COLORS, itemEvents } = require("../utils/constants");
+const editingUsers = {};
 
 module.exports = (io, socket, usersInRoom) => {
   const getNextColor = (roomId) => {
@@ -53,6 +54,19 @@ module.exports = (io, socket, usersInRoom) => {
           );
         }
       }
+    }
+  });
+
+  socket.on(itemEvents.ITEM_EDITING_START, ({ roomId, userId, itemId }) => {
+    if (!editingUsers[roomId]) editingUsers[roomId] = {};
+    editingUsers[roomId][userId] = { itemId };
+    io.to(roomId).emit(itemEvents.ITEM_EDITING_UPDATE, editingUsers[roomId]);
+  });
+
+  socket.on(itemEvents.ITEM_EDITING_STOP, ({ roomId, userId }) => {
+    if (editingUsers[roomId]) {
+      delete editingUsers[roomId][userId];
+      io.to(roomId).emit(itemEvents.ITEM_EDITING_UPDATE, editingUsers[roomId]);
     }
   });
 };

@@ -27,6 +27,9 @@ const itemEvents = Object.freeze({
   ITEM_UPDATED: "item:updated",
   ITEM_DELETED: "item:deleted",
   ITEM_ORDER_UPDATED: "item:orderUpdated",
+  ITEM_EDITING_START: "item:editing:start",
+  ITEM_EDITING_STOP: "item:editing:stop",
+  ITEM_EDITING_UPDATE: "item:editing:update",
 });
 
 const ITEMS_FIELD = "items";
