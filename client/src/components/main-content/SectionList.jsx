@@ -23,7 +23,8 @@ import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import useItemSocketHandlers from "../../hooks/useItemSocketHandlers";
 import useSectionSocketHandlers from "../../hooks/useSectionSocketHandlers";
 import useRoomUserrs from "../../hooks/useRoomUsers";
-import useEditingSocket from "../../hooks/useEditingSocket";
+import useRoomCursors from "../../hooks/useRoomCursors";
+import useBroadcastCursor from "../../hooks/useBroadcastCursor";
 import useRoomEditing from "../../hooks/useRoomEditing";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import { SectionActions, ViewModes } from "../../utils/constants";
@@ -31,6 +32,7 @@ import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
 } from "../../utils/sectionListUtils";
+import { BsCursorFill } from "react-icons/bs";
 
 import "./SectionList.css";
 
@@ -39,7 +41,7 @@ const URL = import.meta.env.VITE_API_URL;
 const SectionList = () => {
   const { viewMode } = useContext(ViewContext);
   const { username } = useParams();
-  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
   const [sections, setSections] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -56,6 +58,12 @@ const SectionList = () => {
   const roomId = username;
   const editingUsers = useRoomEditing(roomId); 
   const allUsers = useRoomUserrs(roomId, null)
+
+  const userId = user?.sub;
+  const currentUser = allUsers?.find((u) => u.id === userId);
+  const color = currentUser?.color || "#000"; // fallback color if not found
+  useBroadcastCursor(roomId, userId, color);
+  const cursors = useRoomCursors(roomId, userId);
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;
@@ -290,6 +298,25 @@ const SectionList = () => {
         initialNotes={editingItem?.notes || ""}
         itemId={editingItem?.id}
       />
+      {Object.entries(cursors).map(([uid, { color, x, y }]) => (
+        <div
+          key={uid}
+          style={{
+            position: "fixed",
+            left: x,
+            top: y,
+            pointerEvents: "none",
+            zIndex: 9999,
+            color,
+            fontWeight: "bold",
+            transition: "left 0.05s, top 0.05s",
+          }}
+        >
+          <svg width="24" height="24">
+            <BsCursorFill />
+          </svg>
+        </div>
+      ))}
     </>
   );
 };
