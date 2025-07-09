@@ -46,8 +46,6 @@ exports.updateItem = async (req, res) => {
     const oldSectionId = item.sectionId.toString();
     const newSectionId = req.body.sectionId;
 
-    console.log("update item", req.body.content, item.content);
-
     // item fields are updated only if in body
     item.content = req.body.content ?? item.content;
     item.link = req.body.link ?? item.link;

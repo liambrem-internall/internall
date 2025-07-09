@@ -1,6 +1,10 @@
 import { Modal, Form, Button } from "react-bootstrap";
 import { useEffect, useRef } from "react";
 import "./ItemModal.css";
+import useEditingSocket from "../../../hooks/useEditingSocket";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useParams } from "react-router-dom";
+import useRoomUsers from "../../../hooks/useRoomUsers";
 
 const ItemModal = ({
   show,
@@ -9,10 +13,24 @@ const ItemModal = ({
   initialContent = "",
   initialLink = "",
   initialNotes = "",
+  itemId,
 }) => {
   const contentRef = useRef();
   const linkRef = useRef();
   const notesRef = useRef();
+  const { user } = useAuth0();
+  const { username: roomId } = useParams();
+  const allUsers = useRoomUsers(roomId, null); // null so it doesn't filter out self
+  const currentUser = allUsers.find((u) => u.id === user?.sub);
+  const color = currentUser?.color;
+
+  useEditingSocket({
+    roomId,
+    userId: user?.sub,
+    itemId,
+    editing: show,
+    color,
+  });
 
   useEffect(() => {
     if (show) {

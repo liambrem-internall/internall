@@ -5,7 +5,8 @@ const roomActions = Object.freeze({
   DISCONNECTING: "disconnecting",
 });
 
-const COLORS = [ // array of colors for users
+const COLORS = [
+  // array of colors for users
   "#ff6b6b",
   "#ffd93d",
   "#6bcb77",
@@ -20,15 +21,30 @@ const sectionEvents = Object.freeze({
   SECTION_UPDATED: "section:updated",
   SECTION_DELETED: "section:deleted",
   SECTION_ORDER_UPDATED: "section:orderUpdated",
-})
+});
 
 const itemEvents = Object.freeze({
   ITEM_CREATED: "item:created",
   ITEM_UPDATED: "item:updated",
   ITEM_DELETED: "item:deleted",
   ITEM_ORDER_UPDATED: "item:orderUpdated",
+  ITEM_EDITING_START: "item:editing:start",
+  ITEM_EDITING_STOP: "item:editing:stop",
+  ITEM_EDITING_UPDATE: "item:editing:update",
+});
+
+const cursorEvents = Object.freeze({
+  CURSOR_MOVE: "cursor-move",
+  CURSOR_UPDATE: "cursor-update",
 });
 
 const ITEMS_FIELD = "items";
 
-module.exports = { roomActions, COLORS, sectionEvents, itemEvents, ITEMS_FIELD };
+module.exports = {
+  roomActions,
+  COLORS,
+  sectionEvents,
+  itemEvents,
+  cursorEvents,
+  ITEMS_FIELD,
+};
