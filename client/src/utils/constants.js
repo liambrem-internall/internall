@@ -46,3 +46,8 @@ export const itemEvents = Object.freeze({
   ITEM_EDITING_STOP: "item:editing:stop",
   ITEM_EDITING_UPDATE: "item:editing:update",
 });
+
+export const cursorEvents = Object.freeze({
+  CURSOR_MOVE: "cursor-move",
+  CURSOR_UPDATE: "cursor-update",
+});
