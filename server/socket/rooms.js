@@ -2,7 +2,10 @@
  * Handles room join/leave logic & user tracking
  */
 
-const { roomActions, COLORS } = require("../utils/constants");
+const {
+  roomActions,
+  COLORS,
+} = require("../utils/constants");
 
 module.exports = (io, socket, usersInRoom) => {
   const getNextColor = (roomId) => {

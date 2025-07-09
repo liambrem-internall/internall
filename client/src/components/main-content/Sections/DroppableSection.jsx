@@ -20,6 +20,8 @@ const DroppableSection = ({
   title,
   onItemClick,
   className = "",
+  editingUsers = {},
+  users = {},
 }) => {
   const { setNodeRef: setSectionDroppableRef } = useDroppable({
     id,
@@ -89,6 +91,8 @@ const DroppableSection = ({
                 content={item.content}
                 sectionId={id}
                 onClick={() => onItemClick(item, id)}
+                editingUsers={editingUsers}
+                users={users}
               />
             </div>
           ))}
