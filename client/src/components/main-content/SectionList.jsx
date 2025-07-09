@@ -32,7 +32,7 @@ import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
 } from "../../utils/sectionListUtils";
-import { BsCursorFill } from "react-icons/bs";
+import { CursorArrowMoveOutline24 } from "metau-meta-icons";
 
 import "./SectionList.css";
 
@@ -313,7 +313,7 @@ const SectionList = () => {
           }}
         >
           <svg width="24" height="24">
-            <BsCursorFill />
+            <CursorArrowMoveOutline24 />
           </svg>
         </div>
       ))}
