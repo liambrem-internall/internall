@@ -5,7 +5,14 @@ import { DraggableComponentTypes } from "../../../utils/constants";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import "./SortableItem.css";
 
-const SortableItem = ({ id, content, sectionId, onClick }) => {
+const SortableItem = ({
+  id,
+  content,
+  sectionId,
+  onClick,
+  editingUsers = {},
+  users = [],
+}) => {
   const {
     setNodeRef,
     attributes,
@@ -18,25 +25,39 @@ const SortableItem = ({ id, content, sectionId, onClick }) => {
     data: { type: DraggableComponentTypes.ITEM, sectionId },
   });
 
+
+  const editingUserEntry = Object.entries(editingUsers).find(
+    ([, value]) => value.itemId === id
+  );
+  let borderColor = "transparent";
+  if (editingUserEntry && users) {
+    const editingUserId = editingUserEntry[0];
+    const editingUser = users.find((user) => user.id === editingUserId);
+    borderColor = editingUser?.color || "transparent";
+  }
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging || editingUserEntry ? 0.5 : 1,
+    borderRadius: 8,
+    boxSizing: "border-box",
+    "--border-color": borderColor,
   };
 
   return (
     <div
-      className="sortable-item"
+      className={`sortable-item${editingUserEntry ? " editing" : ""}`}
       ref={setNodeRef}
       style={style}
-      onClick={onClick} 
+      onClick={onClick}
     >
       {content}
       <span
         className="drag-handle"
         {...attributes}
         {...listeners}
-        onClick={e => e.stopPropagation()} 
+        onClick={(e) => e.stopPropagation()}
         style={{ cursor: "grab", marginLeft: 8 }}
       >
         <OverlayTrigger
