@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
-import { BsPlus } from "react-icons/bs";
+import { PlusOutline24 } from "metau-meta-icons";
 import { SectionActions, DraggableComponentTypes } from "../../../utils/constants";
 import "./AddButton.css";
 
@@ -23,7 +23,7 @@ const AddButton = () => {
         {...attributes}
         style={{ opacity: isDragging ? 0.5 : 1 }}
       >
-        <BsPlus className="add-plus-icon" />
+        <PlusOutline24 className="add-plus-icon" />
       </button>
     </OverlayTrigger>
   );

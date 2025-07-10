@@ -1,7 +1,4 @@
-const {
-  itemEvents,
-  cursorEvents,
-} = require("../utils/constants");
+const { itemEvents, cursorEvents } = require("../utils/constants");
 const editingUsers = {};
 
 module.exports = (io, socket, usersInRoom) => {
@@ -22,5 +19,15 @@ module.exports = (io, socket, usersInRoom) => {
   // cursor movement
   socket.on(cursorEvents.CURSOR_MOVE, ({ roomId, userId, color, x, y }) => {
     socket.to(roomId).emit(cursorEvents.CURSOR_UPDATE, { userId, color, x, y });
+  });
+
+  socket.on(cursorEvents.COMPONENT_DRAG_START, (data) => {
+    socket.to(data.roomId).emit(cursorEvents.COMPONENT_DRAG_START, data);
+  });
+  socket.on(cursorEvents.COMPONENT_DRAG_MOVE, (data) => {
+    socket.to(data.roomId).emit(cursorEvents.COMPONENT_DRAG_MOVE, data);
+  });
+  socket.on(cursorEvents.COMPONENT_DRAG_END, (data) => {
+    socket.to(data.roomId).emit(cursorEvents.COMPONENT_DRAG_END, data);
   });
 };

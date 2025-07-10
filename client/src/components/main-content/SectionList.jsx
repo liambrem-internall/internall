@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 
 import { useParams } from "react-router-dom";
 
@@ -26,13 +26,15 @@ import useRoomUserrs from "../../hooks/useRoomUsers";
 import useRoomCursors from "../../hooks/useRoomCursors";
 import useBroadcastCursor from "../../hooks/useBroadcastCursor";
 import useRoomEditing from "../../hooks/useRoomEditing";
+import useRemoteDrags from "../../hooks/useRemoteDrags";
 import customCollisionDetection from "../../utils/customCollisionDetection";
-import { SectionActions, ViewModes } from "../../utils/constants";
+import { cursorEvents, DraggableComponentTypes, SectionActions, ViewModes } from "../../utils/constants";
 import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
 } from "../../utils/sectionListUtils";
-import { BsCursorFill } from "react-icons/bs";
+import { CursorArrowMoveOutline24 } from "metau-meta-icons";
+import { socket } from "../../utils/socket";
 
 import "./SectionList.css";
 
@@ -51,19 +53,24 @@ const SectionList = () => {
   const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
+
+  const activeIdRef = useRef(null);
 
   useSectionSocketHandlers({ setSections, setSectionOrder, username });
   useItemSocketHandlers({ setSections, setSectionOrder, username });
 
   const roomId = username;
-  const editingUsers = useRoomEditing(roomId); 
-  const allUsers = useRoomUserrs(roomId, null)
+  const editingUsers = useRoomEditing(roomId);
+  const allUsers = useRoomUserrs(roomId, null);
 
   const userId = user?.sub;
   const currentUser = allUsers?.find((u) => u.id === userId);
   const color = currentUser?.color || "#000"; // fallback color if not found
   useBroadcastCursor(roomId, userId, color);
   const cursors = useRoomCursors(roomId, userId);
+
+  const remoteDrags = useRemoteDrags(roomId, userId);
 
   useEffect(() => {
     if (!isAuthenticated || !username) return;
@@ -97,9 +104,43 @@ const SectionList = () => {
 
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
+    activeIdRef.current = event.active.id;
+    // initial position
+    setDragPosition({
+      x: event.activatorEvent?.clientX ?? 0,
+      y: event.activatorEvent?.clientY ?? 0,
+    });
+    socket.emit(cursorEvents.COMPONENT_DRAG_START, {
+      roomId,
+      userId,
+      color,
+      id: event.active.id,
+      type: event.active.data.current?.type,
+    });
+    window.addEventListener("mousemove", handleMouseMoveWhileDragging);
+  };
+
+  const handleMouseMoveWhileDragging = (e) => {
+    setDragPosition({ x: e.clientX, y: e.clientY });
+    socket.emit(cursorEvents.COMPONENT_DRAG_MOVE, {
+      roomId,
+      userId,
+      color,
+      id: activeIdRef.current,
+      x: e.clientX,
+      y: e.clientY,
+    });
   };
 
   const handleDragEnd = (event) => {
+    window.removeEventListener("mousemove", handleMouseMoveWhileDragging);
+    socket.emit(cursorEvents.COMPONENT_DRAG_END, {
+      roomId,
+      userId,
+      color,
+      id: event.active.id,
+    });
+    setActiveId(null);
     handleDragEndUtil(event, {
       setActiveId,
       activeId,
@@ -236,6 +277,63 @@ const SectionList = () => {
     return null;
   })();
 
+  const remoteDragContent = Object.values(remoteDrags).map((drag) => {
+    let content = null;
+    let isSection = false;
+    if (drag.type === DraggableComponentTypes.SECTION && sections[drag.id]) {
+      content = sections[drag.id].title;
+      isSection = true;
+    } else if (drag.type === DraggableComponentTypes.ITEM) {
+      for (const section of Object.values(sections)) {
+        const item = section.items.find((i) => i.id === drag.id); // find item in section
+        if (item) {
+          content = item.content;
+          break;
+        }
+      }
+    }
+    if (!content) return null;
+
+    return (
+      <div
+        key={drag.userId}
+        style={{
+          position: "fixed",
+          left: drag.x,
+          top: drag.y,
+          pointerEvents: "none",
+          zIndex: 9999,
+          opacity: 0.7,
+          color: drag.color,
+          fontWeight: "bold",
+          transform: "translate(-50%, -50%)",
+          transition: "left 0.05s, top 0.05s",
+        }}
+      >
+        <div
+          style={{
+            minWidth: 150,
+            padding: isSection ? "24px 32px" : "12px 24px",
+            background: isSection ? "var(--dark2)" : "#25242d",
+            borderRadius: isSection ? 12 : 8,
+            boxShadow: isSection
+              ? "0 2px 12px rgba(0,0,0,0.14)"
+              : "0 2px 8px rgba(0,0,0,0.12)",
+            opacity: 0.7,
+            fontWeight: isSection ? 600 : 500,
+            color: "white",
+            fontSize: isSection ? 20 : undefined,
+            border: `4px solid ${drag.color}`,
+            transform: "scale(1)",
+            transition: "transform 0.1s, opacity 0.1s",
+          }}
+        >
+          {content}
+        </div>
+      </div>
+    );
+  });
+
   return (
     <>
       <Container className="section-list-container">
@@ -276,6 +374,7 @@ const SectionList = () => {
               <AddButton />
             </div>
             <DragOverlay dropAnimation={null}>{dragOverlayContent}</DragOverlay>
+            <div>{remoteDragContent}</div>
           </DndContext>
         </div>
       </Container>
@@ -313,7 +412,7 @@ const SectionList = () => {
           }}
         >
           <svg width="24" height="24">
-            <BsCursorFill />
+            <CursorArrowMoveOutline24 />
           </svg>
         </div>
       ))}
