@@ -362,6 +362,7 @@ const SectionList = () => {
                     }`}
                     editingUsers={editingUsers}
                     users={allUsers}
+                    currentUserId={userId}
                   />
                 ))}
                 {activeId == SectionActions.ADD && (
