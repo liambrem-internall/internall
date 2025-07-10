@@ -22,6 +22,7 @@ const DroppableSection = ({
   className = "",
   editingUsers = {},
   users = {},
+  currentUserId,
 }) => {
   const { setNodeRef: setSectionDroppableRef } = useDroppable({
     id,
@@ -79,23 +80,36 @@ const DroppableSection = ({
         strategy={verticalListSortingStrategy}
       >
         <div className="section-items">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className={DraggableComponentTypes.ITEM}
-              onClick={() => onItemClick(item, id)}
-              style={{ cursor: "pointer" }}
-            >
-              <SortableItem
-                id={item.id}
-                content={item.content}
-                sectionId={id}
-                onClick={() => onItemClick(item, id)}
-                editingUsers={editingUsers}
-                users={users}
-              />
-            </div>
-          ))}
+          {items.map((item) => {
+            const editingUserEntry = Object.entries(editingUsers).find(
+              ([, value]) => value.itemId === item.id
+            );
+            const isBeingEditedByOther =
+              editingUserEntry && editingUserEntry[0] !== currentUserId;
+            return (
+              <div
+                key={item.id}
+                className={DraggableComponentTypes.ITEM}
+                onClick={
+                  isBeingEditedByOther ? undefined : () => onItemClick(item, id)
+                }
+                style={{
+                  cursor: isBeingEditedByOther ? "not-allowed" : "pointer",
+                  pointerEvents: isBeingEditedByOther ? "none" : "auto",
+                }}
+              >
+                <SortableItem
+                  id={item.id}
+                  content={item.content}
+                  sectionId={id}
+                  onClick={() => onItemClick(item, id)}
+                  editingUsers={editingUsers}
+                  users={users}
+                  currentUserId={currentUserId}
+                />
+              </div>
+            );
+          })}
         </div>
       </SortableContext>
     </div>
