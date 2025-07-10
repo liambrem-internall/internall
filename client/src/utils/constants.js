@@ -50,4 +50,7 @@ export const itemEvents = Object.freeze({
 export const cursorEvents = Object.freeze({
   CURSOR_MOVE: "cursor-move",
   CURSOR_UPDATE: "cursor-update",
+  COMPONENT_DRAG_START: "component:drag:start",
+  COMPONENT_DRAG_END: "component:drag:end",
+  COMPONENT_DRAG_MOVE: "component:drag:move",
 });
