@@ -12,9 +12,8 @@ const DeleteButton = () => {
   return (
     <div className="delete-btn" ref={setNodeRef}>
       <ContainerWithLidOutline24
-        className="trash-icon"
         style={{ color: isOver ? "red" : "var(--gray2)" }}
-        font-size={100}
+        fontSize={100}
       />
     </div>
   );
