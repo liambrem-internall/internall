@@ -38,7 +38,7 @@ const Navigation = () => {
     }
   >
     <PersonOutline24
-      font-size={25}
+      fontSize={25}
       style={{
         display: "inline-block",
         margin: "0 2px",

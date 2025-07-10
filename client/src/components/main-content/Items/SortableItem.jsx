@@ -9,7 +9,6 @@ const SortableItem = ({
   id,
   content,
   sectionId,
-  onClick,
   editingUsers = {},
   users = [],
 }) => {
@@ -50,7 +49,6 @@ const SortableItem = ({
       className={`sortable-item${editingUserEntry ? " editing" : ""}`}
       ref={setNodeRef}
       style={style}
-      onClick={onClick}
     >
       {content}
       <span
