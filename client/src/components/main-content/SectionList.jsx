@@ -124,16 +124,29 @@ const SectionList = () => {
     fetchSections();
   }, [getAccessTokenSilently, isAuthenticated, username]);
 
+  const lastCursorPositionRef = useRef({ x: null, y: null });
+  let lastEmitTimeRef = useRef(0);
+
   const handleMouseMoveWhileDragging = (e) => {
-    setDragPosition({ x: e.clientX, y: e.clientY });
-    socket.emit(cursorEvents.COMPONENT_DRAG_MOVE, {
-      roomId,
-      userId,
-      color,
-      id: activeIdRef.current,
-      x: e.clientX,
-      y: e.clientY,
-    });
+    const { clientX: x, clientY: y } = e;
+    const now = Date.now();
+    // only emit if pixel changed
+    if (
+      (lastCursorPositionRef.current.x !== x ||
+        lastCursorPositionRef.current.y !== y) &&
+      now - lastEmitTimeRef.current > 33
+    ) {
+      socket.emit(cursorEvents.COMPONENT_DRAG_MOVE, {
+        roomId,
+        userId,
+        color,
+        id: activeIdRef.current,
+        x,
+        y,
+      });
+      lastCursorPositionRef.current = { x, y };
+      lastEmitTimeRef.current = now;
+    }
   };
 
   const dragHandlers = useDragHandlers({
