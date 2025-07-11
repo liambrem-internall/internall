@@ -26,6 +26,7 @@ import useSaveHandlers from "../../hooks/useSaveHandlers";
 import DroppableSection from "./Sections/DroppableSection";
 import CursorOverlay from "./SectionListComponents/CursorOverlay";
 import RemoteDragContent from "./SectionListComponents/RemoteDragContent";
+import DragOverlayContent from "./SectionListComponents/DragOverlayContent";
 import useRoomCursors from "../../hooks/rooms/useRoomCursors";
 import useRoomEditing from "../../hooks/rooms/useRoomEditing";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
@@ -33,10 +34,7 @@ import customCollisionDetection from "../../utils/customCollisionDetection";
 import useThrottledCursorBroadcast from "../../hooks/useThrottledCursorBroadcast";
 import useItemSocketHandlers from "../../hooks/socketHandlers/useItemSocketHandlers";
 import useSectionSocketHandlers from "../../hooks/socketHandlers/useSectionSocketHandlers";
-import {
-  findItemBySection,
-  handleDragEnd as handleDragEndUtil,
-} from "../../utils/sectionListUtils";
+import { handleDragEnd as handleDragEndUtil } from "../../utils/sectionListUtils";
 import {
   cursorEvents,
   DraggableComponentTypes,
@@ -172,7 +170,7 @@ const SectionList = () => {
     cursorEvents,
     handleDragEndUtil,
     setIsDeleteZoneOver,
-    setIsDragging,
+    setIsDragging
   );
 
   const saveHandlers = useSaveHandlers(
@@ -190,7 +188,7 @@ const SectionList = () => {
     editingItem,
     setEditingItem,
     targetSectionId,
-    apiFetch,
+    apiFetch
   );
 
   const handleDragOver = (event) => {
@@ -210,62 +208,6 @@ const SectionList = () => {
     viewMode === ViewModes.LIST
       ? verticalListSortingStrategy
       : horizontalListSortingStrategy;
-
-  const dragOverlayContent = (() => {
-    if (activeId === SectionActions.ADD) {
-      return <GhostComponent id="new-component-preview" text="New Component" />;
-    }
-    // for items
-    for (const section of Object.values(sections)) {
-      let item = findItemBySection(section, { activeId });
-
-      if (item) {
-        return (
-          <div
-            style={{
-              padding: "12px 24px",
-              background: "#25242d",
-              borderRadius: 8,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-              opacity: isDeleteZoneOver ? 0.5 : 1,
-              fontWeight: 500,
-              color: "white",
-              border: "4px solid #1f1f1f",
-              transform: isDeleteZoneOver ? "scale(0.75)" : "scale(1)",
-              transition: "transform 0.1s, opacity 0.1s",
-            }}
-          >
-            {item.content}
-          </div>
-        );
-      }
-    }
-
-    // for sections
-    const section = sections[activeId];
-    if (section) {
-      return (
-        <div
-          style={{
-            minWidth: 200,
-            padding: "24px 32px",
-            background: "var(--dark2)",
-            borderRadius: 12,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.14)",
-            opacity: isDeleteZoneOver ? 0.5 : 1,
-            fontWeight: 600,
-            color: "white",
-            fontSize: 20,
-            transform: isDeleteZoneOver ? "scale(0.85)" : "scale(1)",
-            transition: "transform 0.1s, opacity 0.1s",
-          }}
-        >
-          {section.title}
-        </div>
-      );
-    }
-    return null;
-  })();
 
   return (
     <>
@@ -308,8 +250,18 @@ const SectionList = () => {
               <Logs logs={logs} />
               <AddButton />
             </div>
-            <DragOverlay dropAnimation={null}>{dragOverlayContent}</DragOverlay>
-            <RemoteDragContent roomId={roomId} userId={userId} sections={sections} />
+            <DragOverlay dropAnimation={null}>
+              <DragOverlayContent
+                sections={sections}
+                activeId={activeId}
+                isDeleteZoneOver={isDeleteZoneOver}
+              />
+            </DragOverlay>
+            <RemoteDragContent
+              roomId={roomId}
+              userId={userId}
+              sections={sections}
+            />
           </DndContext>
         </div>
       </Container>
