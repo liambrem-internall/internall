@@ -1,6 +1,7 @@
-import { useContext, useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
 import { useParams } from "react-router-dom";
+import { CursorArrowMoveOutline24 } from "metau-meta-icons";
 
 import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
@@ -11,41 +12,38 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-import AddButton from "./Add/AddButton";
 import Logs from "./Logs/logs";
+import AddButton from "./Add/AddButton";
 import ItemModal from "./Items/ItemModal";
 import ViewContext from "../../ViewContext";
+import { socket } from "../../utils/socket";
 import { apiFetch } from "../../utils/apiFetch";
 import DeleteButton from "./Delete/DeleteButton";
 import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
-import DroppableSection from "./Sections/DroppableSection";
-import NewSectionDropZone from "./Sections/NewSectionDropZone";
-import useItemSocketHandlers from "../../hooks/socketHandlers/useItemSocketHandlers";
-import useSectionSocketHandlers from "../../hooks/socketHandlers/useSectionSocketHandlers";
-import useRoomUsers from "../../hooks/rooms/useRoomUsers";
-import useRoomCursors from "../../hooks/rooms/useRoomCursors";
-import useBroadcastCursor from "../../hooks/useBroadcastCursor";
-import useRoomEditing from "../../hooks/rooms/useRoomEditing";
 import useRemoteDrags from "../../hooks/useRemoteDrags";
+import useRoomUsers from "../../hooks/rooms/useRoomUsers";
 import useDragHandlers from "../../hooks/useDragHandlers";
 import useSaveHandlers from "../../hooks/useSaveHandlers";
-import useThrottledCursorBroadcast from "../../hooks/useThrottledCursorBroadcast";
+import DroppableSection from "./Sections/DroppableSection";
+import useRoomCursors from "../../hooks/rooms/useRoomCursors";
+import useRoomEditing from "../../hooks/rooms/useRoomEditing";
+import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import customCollisionDetection from "../../utils/customCollisionDetection";
-import {
-  cursorEvents,
-  DraggableComponentTypes,
-  SectionActions,
-  ViewModes,
-  THROTTLE_MS,
-} from "../../utils/constants";
+import useThrottledCursorBroadcast from "../../hooks/useThrottledCursorBroadcast";
+import useItemSocketHandlers from "../../hooks/socketHandlers/useItemSocketHandlers";
+import useSectionSocketHandlers from "../../hooks/socketHandlers/useSectionSocketHandlers";
 import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
 } from "../../utils/sectionListUtils";
-import { CursorArrowMoveOutline24 } from "metau-meta-icons";
-import { socket } from "../../utils/socket";
-
+import {
+  cursorEvents,
+  DraggableComponentTypes,
+  SectionActions,
+  THROTTLE_MS,
+  ViewModes,
+} from "../../utils/constants";
 
 import "./SectionList.css";
 
@@ -94,7 +92,6 @@ const SectionList = () => {
     addLog,
   });
 
-  useBroadcastCursor(roomId, userId, color);
   const cursors = useRoomCursors(roomId, userId);
   const remoteDrags = useRemoteDrags(roomId, userId);
 
@@ -154,7 +151,7 @@ const SectionList = () => {
     active: isDragging,
   });
 
-  const dragHandlers = useDragHandlers({
+  const dragHandlers = useDragHandlers(
     setActiveId,
     activeId,
     activeIdRef,
@@ -177,9 +174,9 @@ const SectionList = () => {
     handleDragEndUtil,
     setIsDeleteZoneOver,
     setIsDragging,
-  });
+  );
 
-  const saveHandlers = useSaveHandlers({
+  const saveHandlers = useSaveHandlers(
     setShowModal,
     setShowItemModal,
     setTargetSectionId,
@@ -195,7 +192,7 @@ const SectionList = () => {
     setEditingItem,
     targetSectionId,
     apiFetch,
-  });
+  );
 
   const handleDragOver = (event) => {
     const { over } = event;

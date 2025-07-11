@@ -1,6 +1,6 @@
 const URL = import.meta.env.VITE_API_URL;
 
-const useSaveHandlers = ({
+const useSaveHandlers = (
   setShowModal,
   setShowItemModal,
   setTargetSectionId,
@@ -16,7 +16,7 @@ const useSaveHandlers = ({
   setEditingItem,
   targetSectionId,
   apiFetch,
-}) => {
+) => {
   const handleSaveSection = async () => {
     const newSection = await apiFetch({
       endpoint: `${URL}/api/sections/${username}`,
