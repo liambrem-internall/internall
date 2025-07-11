@@ -18,12 +18,12 @@ const useDragHandlers = ({
   userId,
   color,
   roomId,
-  handleMouseMoveWhileDragging,
   setDragPosition,
   socket,
   cursorEvents,
   handleDragEndUtil,
-  setIsDeleteZoneOver,
+  setIsDeleteZoneOver,   
+  setIsDragging,   
 }) => {
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
@@ -40,11 +40,10 @@ const useDragHandlers = ({
       id: event.active.id,
       type: event.active.data.current?.type,
     });
-    window.addEventListener("mousemove", handleMouseMoveWhileDragging);
+    setIsDragging(true);
   };
 
   const handleDragEnd = (event) => {
-    window.removeEventListener("mousemove", handleMouseMoveWhileDragging);
     socket.emit(cursorEvents.COMPONENT_DRAG_END, {
       roomId,
       userId,
@@ -58,6 +57,7 @@ const useDragHandlers = ({
       }
     }
     setActiveId(null);
+    setIsDragging(false);
     handleDragEndUtil(event, {
       setActiveId,
       activeId,
