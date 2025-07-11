@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { socket } from "../utils/socket";
-import { itemEvents } from "../utils/constants";
+import { socket } from "../../utils/socket";
+import { itemEvents } from "../../utils/constants";
 
 const useRoomEditing = (roomId) => {
   const [editingUsers, setEditingUsers] = useState({});

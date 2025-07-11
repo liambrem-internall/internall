@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { socket } from "../utils/socket";
-import { roomActions } from "../utils/constants";
+import { socket } from "../../utils/socket";
+import { roomActions } from "../../utils/constants";
 
 const useRoomUsers = (roomId, userId = undefined) => {
   const [users, setUsers] = useState([]);

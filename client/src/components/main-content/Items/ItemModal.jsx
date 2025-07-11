@@ -4,7 +4,7 @@ import "./ItemModal.css";
 import useEditingSocket from "../../../hooks/useEditingSocket";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useParams } from "react-router-dom";
-import useRoomUsers from "../../../hooks/useRoomUsers";
+import useRoomUsers from "../../../hooks/rooms/useRoomUsers";
 
 const ItemModal = ({
   show,

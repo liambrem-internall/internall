@@ -23,10 +23,10 @@ import DroppableSection from "./Sections/DroppableSection";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import useItemSocketHandlers from "../../hooks/useItemSocketHandlers";
 import useSectionSocketHandlers from "../../hooks/useSectionSocketHandlers";
-import useRoomUserrs from "../../hooks/useRoomUsers";
-import useRoomCursors from "../../hooks/useRoomCursors";
+import useRoomUsers from "../../hooks/rooms/useRoomUsers";
+import useRoomCursors from "../../hooks/rooms/useRoomCursors";
 import useBroadcastCursor from "../../hooks/useBroadcastCursor";
-import useRoomEditing from "../../hooks/useRoomEditing";
+import useRoomEditing from "../../hooks/rooms/useRoomEditing";
 import useRemoteDrags from "../../hooks/useRemoteDrags";
 import useDragHandlers from "../../hooks/useDragHandlers";
 import useSaveHandlers from "../../hooks/useSaveHandlers";
@@ -71,7 +71,7 @@ const SectionList = () => {
   const activeIdRef = useRef(null);
   const roomId = username;
   const editingUsers = useRoomEditing(roomId);
-  const allUsers = useRoomUserrs(roomId, null);
+  const allUsers = useRoomUsers(roomId, null);
 
   const userId = user?.sub;
   const currentUser = allUsers?.find((u) => u.id === userId);
