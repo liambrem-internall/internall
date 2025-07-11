@@ -28,6 +28,8 @@ import useRoomCursors from "../../hooks/useRoomCursors";
 import useBroadcastCursor from "../../hooks/useBroadcastCursor";
 import useRoomEditing from "../../hooks/useRoomEditing";
 import useRemoteDrags from "../../hooks/useRemoteDrags";
+import useDragHandlers from "../../hooks/useDragHandlers";
+import useSaveHandlers from "../../hooks/useSaveHandlers";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import {
   cursorEvents,
@@ -90,7 +92,6 @@ const SectionList = () => {
 
   useBroadcastCursor(roomId, userId, color);
   const cursors = useRoomCursors(roomId, userId);
-
   const remoteDrags = useRemoteDrags(roomId, userId);
 
   useEffect(() => {
@@ -123,24 +124,6 @@ const SectionList = () => {
     fetchSections();
   }, [getAccessTokenSilently, isAuthenticated, username]);
 
-  const handleDragStart = (event) => {
-    setActiveId(event.active.id);
-    activeIdRef.current = event.active.id;
-    // initial position
-    setDragPosition({
-      x: event.activatorEvent?.clientX ?? 0,
-      y: event.activatorEvent?.clientY ?? 0,
-    });
-    socket.emit(cursorEvents.COMPONENT_DRAG_START, {
-      roomId,
-      userId,
-      color,
-      id: event.active.id,
-      type: event.active.data.current?.type,
-    });
-    window.addEventListener("mousemove", handleMouseMoveWhileDragging);
-  };
-
   const handleMouseMoveWhileDragging = (e) => {
     setDragPosition({ x: e.clientX, y: e.clientY });
     socket.emit(cursorEvents.COMPONENT_DRAG_MOVE, {
@@ -153,105 +136,48 @@ const SectionList = () => {
     });
   };
 
-  const handleDragEnd = (event) => {
-    window.removeEventListener("mousemove", handleMouseMoveWhileDragging);
-    socket.emit(cursorEvents.COMPONENT_DRAG_END, {
-      roomId,
-      userId,
-      color,
-      id: event.active.id,
-    });
-    if (event.active && event.over && event.active.id !== event.over.id) {
-      const section = sections[event.active.id];
-      if (section) {
-        addLog(`You moved section "${section.title}"`);
-      }
-    }
-    setActiveId(null);
-    handleDragEndUtil(event, {
-      setActiveId,
-      activeId,
-      setShowModal,
-      setShowItemModal,
-      setTargetSectionId,
-      setSections,
-      setSectionOrder,
-      sections,
-      getAccessTokenSilently,
-      username,
-      currentUser,
-      addLog,
-    });
-  };
+  const dragHandlers = useDragHandlers({
+    setActiveId,
+    activeId,
+    activeIdRef,
+    setShowModal,
+    setShowItemModal,
+    setTargetSectionId,
+    setSections,
+    setSectionOrder,
+    sections,
+    getAccessTokenSilently,
+    username,
+    currentUser,
+    addLog,
+    userId,
+    color,
+    roomId,
+    handleMouseMoveWhileDragging,
+    setDragPosition,
+    socket,
+    cursorEvents,
+    handleDragEndUtil,
+    setIsDeleteZoneOver,
+  });
 
-  const handleSaveSection = async () => {
-    const newSection = await apiFetch({
-      endpoint: `${URL}/api/sections/${username}`,
-      method: "POST",
-      body: { title: pendingSectionTitle, username: currentUser?.nickname },
-      getAccessTokenSilently,
-    });
-
-    const sectionId = newSection.id || newSection._id;
-
-    setSections((prev) => ({
-      ...prev,
-      [sectionId]: { ...newSection, id: sectionId, items: [] },
-    }));
-    setSectionOrder((prev) => [...prev, sectionId]);
-    console.log("Updated sectionOrder:", sectionOrder);
-    console.log("Updated sections:", sections);
-    setShowModal(false);
-    setPendingSectionTitle("");
-  };
-
-  const handleSaveItem = async ({ content, link, notes }) => {
-    if (!content.trim() || !targetSectionId) {
-      if (editingItem) {
-        addLog(`You edited item "${editingItem.content}"`);
-      } else {
-        addLog(`${currentUser?.nickname || "Someone"} added item "${content}"`);
-      }
-      setShowItemModal(false);
-      setEditingItem(null);
-      setTargetSectionId(null);
-      return;
-    }
-
-    if (editingItem) {
-      await apiFetch({
-        endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}/${username}`,
-        method: "PUT",
-        body: {
-          content,
-          link,
-          notes,
-          sectionId: targetSectionId,
-          username: currentUser?.nickname,
-        },
-        getAccessTokenSilently,
-      });
-      addLog(`You edited item "${editingItem.content}"`); 
-    } else {
-      await apiFetch({
-        endpoint: `${URL}/api/items/${targetSectionId}/items/${username}`,
-        method: "POST",
-        body: {
-          content,
-          link,
-          notes,
-          sectionId: targetSectionId,
-          username: currentUser?.nickname,
-        },
-        getAccessTokenSilently,
-      });
-      addLog(`You added item "${content}"`); 
-    }
-
-    setShowItemModal(false);
-    setEditingItem(null);
-    setTargetSectionId(null);
-  };
+  const saveHandlers = useSaveHandlers({
+    setShowModal,
+    setShowItemModal,
+    setTargetSectionId,
+    setSections,
+    setSectionOrder,
+    getAccessTokenSilently,
+    username,
+    currentUser,
+    addLog,
+    setPendingSectionTitle,
+    pendingSectionTitle,
+    editingItem,
+    setEditingItem,
+    targetSectionId,
+    apiFetch,
+  });
 
   const handleDragOver = (event) => {
     const { over } = event;
@@ -389,8 +315,8 @@ const SectionList = () => {
       <Container className="section-list-container">
         <div className="sections-scroll-container">
           <DndContext
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+            onDragStart={dragHandlers.handleDragStart}
+            onDragEnd={dragHandlers.handleDragEnd}
             collisionDetection={customCollisionDetection}
             onDragOver={handleDragOver}
           >
@@ -416,7 +342,7 @@ const SectionList = () => {
                   />
                 ))}
                 {activeId == SectionActions.ADD && (
-                  <NewSectionDropZone onDrop={handleDragEnd} />
+                  <NewSectionDropZone onDrop={dragHandlers.handleDragEnd} />
                 )}
               </div>
             </SortableContext>
@@ -435,7 +361,7 @@ const SectionList = () => {
         onHide={handleCloseModal}
         pendingSectionTitle={pendingSectionTitle}
         setPendingSectionTitle={setPendingSectionTitle}
-        handleSaveSection={handleSaveSection}
+        handleSaveSection={saveHandlers.handleSaveSection}
       />
       <ItemModal
         show={showItemModal}
@@ -443,7 +369,7 @@ const SectionList = () => {
           setShowItemModal(false);
           setEditingItem(null);
         }}
-        handleSaveItem={handleSaveItem}
+        handleSaveItem={saveHandlers.handleSaveItem}
         initialContent={editingItem?.content || ""}
         initialLink={editingItem?.link || ""}
         initialNotes={editingItem?.notes || ""}

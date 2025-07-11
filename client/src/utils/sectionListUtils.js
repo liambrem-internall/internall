@@ -1,4 +1,3 @@
-// todo: consolodate function parameters into 1 object
 import {
   SectionActions,
   DragEndActions,
@@ -147,9 +146,6 @@ const handleDragEndItem = (
 const handleDragEndAdd = (active, over, { setShowModal, setActiveId, currentUser, addLog }) => {
   setShowModal(true);
   setActiveId(null);
-  if (addLog) {
-    addLog(`You created section "${active.id}"`);
-  }
 };
 
 const handleDragEndDelete = (
