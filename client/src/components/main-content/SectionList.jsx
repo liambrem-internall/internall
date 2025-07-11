@@ -30,6 +30,7 @@ import useRoomEditing from "../../hooks/useRoomEditing";
 import useRemoteDrags from "../../hooks/useRemoteDrags";
 import useDragHandlers from "../../hooks/useDragHandlers";
 import useSaveHandlers from "../../hooks/useSaveHandlers";
+import useThrottledCursorBroadcast from "../../hooks/useThrottledCursorBroadcast";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import {
   cursorEvents,
@@ -63,6 +64,7 @@ const SectionList = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [logs, setLogs] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const activeIdRef = useRef(null);
   const roomId = username;
@@ -124,30 +126,50 @@ const SectionList = () => {
     fetchSections();
   }, [getAccessTokenSilently, isAuthenticated, username]);
 
-  const lastCursorPositionRef = useRef({ x: null, y: null });
-  let lastEmitTimeRef = useRef(0);
+  // for regular cursor movement
+  useThrottledCursorBroadcast({
+    roomId,
+    userId,
+    color,
+    eventType: cursorEvents.CURSOR_MOVE,
+    getPosition: (e) => ({ x: e.clientX, y: e.clientY }),
+    throttleMs: 33,
+    active: true,
+  });
 
-  const handleMouseMoveWhileDragging = (e) => {
-    const { clientX: x, clientY: y } = e;
-    const now = Date.now();
-    // only emit if pixel changed
-    if (
-      (lastCursorPositionRef.current.x !== x ||
-        lastCursorPositionRef.current.y !== y) &&
-      now - lastEmitTimeRef.current > 33
-    ) {
-      socket.emit(cursorEvents.COMPONENT_DRAG_MOVE, {
-        roomId,
-        userId,
-        color,
-        id: activeIdRef.current,
-        x,
-        y,
-      });
-      lastCursorPositionRef.current = { x, y };
-      lastEmitTimeRef.current = now;
-    }
-  };
+  // for dragging
+  useThrottledCursorBroadcast({
+    roomId,
+    userId,
+    color,
+    eventType: cursorEvents.COMPONENT_DRAG_MOVE,
+    getPosition: (e) => ({
+      x: e.clientX,
+      y: e.clientY,
+      id: activeIdRef.current,
+    }),
+    throttleMs: 33,
+    active: isDragging,
+  });
+
+  // const lastCursorPositionRef = useRef({ x: null, y: null });
+  // let lastEmitTimeRef = useRef(0);
+
+  // const handleMouseMoveWhileDragging = (e) => {
+  //   useThrottledCursorBroadcast({
+  //     roomId,
+  //     userId,
+  //     color,
+  //     eventType: cursorEvents.COMPONENT_DRAG_MOVE,
+  //     getPosition: (e) => ({
+  //       x: e.clientX,
+  //       y: e.clientY,
+  //       id: activeIdRef.current,
+  //     }),
+  //     throttleMs: 33,
+  //     active: isDragging, // set this based on your drag state
+  //   });
+  // };
 
   const dragHandlers = useDragHandlers({
     setActiveId,
@@ -166,12 +188,12 @@ const SectionList = () => {
     userId,
     color,
     roomId,
-    handleMouseMoveWhileDragging,
     setDragPosition,
     socket,
     cursorEvents,
     handleDragEndUtil,
     setIsDeleteZoneOver,
+    setIsDragging,
   });
 
   const saveHandlers = useSaveHandlers({
