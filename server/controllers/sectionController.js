@@ -50,7 +50,7 @@ exports.updateSectionOrder = async (req, res) => {
       { new: true }
     );
     if (!user) return res.status(404).json({ error: "User not found" });
-    sectionEvents.emitSectionOrderUpdated(req.params.username, order);
+    sectionEvents.emitSectionOrderUpdated(req.params.username, order, req.body.username);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
@@ -72,7 +72,7 @@ exports.createSection = async (req, res) => {
     );
 
     // push to other users
-    sectionEvents.emitSectionCreated(req.params.username, newSection);
+    sectionEvents.emitSectionCreated(req.params.username, { ...newSection.toObject(), username: req.body.username });
 
     res.status(201).json(newSection);
   } catch (err) {
@@ -87,7 +87,7 @@ exports.updateSection = async (req, res) => {
     });
     if (!section) return res.status(404).json({ error: "Section not found" });
 
-    sectionEvents.emitSectionUpdated(req.params.username, section);
+    sectionEvents.emitSectionUpdated(req.params.username, { ...section.toObject(), username: req.body.username });
 
     res.json(section);
   } catch (err) {
@@ -100,7 +100,7 @@ exports.deleteSection = async (req, res) => {
     const section = await Section.findByIdAndDelete(req.params.id);
     if (!section) return res.status(404).json({ error: "Section not found" });
 
-    sectionEvents.emitSectionDeleted(req.params.username, section._id);
+    sectionEvents.emitSectionDeleted(req.params.username, req.params.id, req.body.username);
 
     res.status(204).send();
   } catch (err) {

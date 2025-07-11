@@ -12,6 +12,7 @@ import {
 } from "@dnd-kit/sortable";
 
 import AddButton from "./Add/AddButton";
+import Logs from "./Logs/logs";
 import ItemModal from "./Items/ItemModal";
 import ViewContext from "../../ViewContext";
 import { apiFetch } from "../../utils/apiFetch";
@@ -28,7 +29,12 @@ import useBroadcastCursor from "../../hooks/useBroadcastCursor";
 import useRoomEditing from "../../hooks/useRoomEditing";
 import useRemoteDrags from "../../hooks/useRemoteDrags";
 import customCollisionDetection from "../../utils/customCollisionDetection";
-import { cursorEvents, DraggableComponentTypes, SectionActions, ViewModes } from "../../utils/constants";
+import {
+  cursorEvents,
+  DraggableComponentTypes,
+  SectionActions,
+  ViewModes,
+} from "../../utils/constants";
 import {
   findItemBySection,
   handleDragEnd as handleDragEndUtil,
@@ -54,12 +60,9 @@ const SectionList = () => {
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
+  const [logs, setLogs] = useState([]);
 
   const activeIdRef = useRef(null);
-
-  useSectionSocketHandlers({ setSections, setSectionOrder, username });
-  useItemSocketHandlers({ setSections, setSectionOrder, username });
-
   const roomId = username;
   const editingUsers = useRoomEditing(roomId);
   const allUsers = useRoomUserrs(roomId, null);
@@ -67,6 +70,24 @@ const SectionList = () => {
   const userId = user?.sub;
   const currentUser = allUsers?.find((u) => u.id === userId);
   const color = currentUser?.color || "#000"; // fallback color if not found
+
+  const addLog = (msg) => {
+    setLogs((prev) => [...prev.slice(-49), msg]); // keep last 50 logs
+  };
+
+  useSectionSocketHandlers({
+    setSections,
+    setSectionOrder,
+    username: currentUser?.nickname,
+    addLog,
+  });
+  useItemSocketHandlers({
+    setSections,
+    setSectionOrder,
+    username: currentUser?.nickname,
+    addLog,
+  });
+
   useBroadcastCursor(roomId, userId, color);
   const cursors = useRoomCursors(roomId, userId);
 
@@ -140,6 +161,12 @@ const SectionList = () => {
       color,
       id: event.active.id,
     });
+    if (event.active && event.over && event.active.id !== event.over.id) {
+      const section = sections[event.active.id];
+      if (section) {
+        addLog(`You moved section "${section.title}"`);
+      }
+    }
     setActiveId(null);
     handleDragEndUtil(event, {
       setActiveId,
@@ -152,6 +179,8 @@ const SectionList = () => {
       sections,
       getAccessTokenSilently,
       username,
+      currentUser,
+      addLog,
     });
   };
 
@@ -159,23 +188,30 @@ const SectionList = () => {
     const newSection = await apiFetch({
       endpoint: `${URL}/api/sections/${username}`,
       method: "POST",
-      body: { title: pendingSectionTitle },
+      body: { title: pendingSectionTitle, username: currentUser?.nickname },
       getAccessTokenSilently,
     });
 
-    const sectionId = newSection.id;
+    const sectionId = newSection.id || newSection._id;
 
     setSections((prev) => ({
       ...prev,
       [sectionId]: { ...newSection, id: sectionId, items: [] },
     }));
     setSectionOrder((prev) => [...prev, sectionId]);
+    console.log("Updated sectionOrder:", sectionOrder);
+    console.log("Updated sections:", sections);
     setShowModal(false);
     setPendingSectionTitle("");
   };
 
   const handleSaveItem = async ({ content, link, notes }) => {
     if (!content.trim() || !targetSectionId) {
+      if (editingItem) {
+        addLog(`You edited item "${editingItem.content}"`);
+      } else {
+        addLog(`${currentUser?.nickname || "Someone"} added item "${content}"`);
+      }
       setShowItemModal(false);
       setEditingItem(null);
       setTargetSectionId(null);
@@ -186,16 +222,30 @@ const SectionList = () => {
       await apiFetch({
         endpoint: `${URL}/api/items/${targetSectionId}/items/${editingItem.id}/${username}`,
         method: "PUT",
-        body: { content, link, notes, sectionId: targetSectionId },
+        body: {
+          content,
+          link,
+          notes,
+          sectionId: targetSectionId,
+          username: currentUser?.nickname,
+        },
         getAccessTokenSilently,
       });
+      addLog(`You edited item "${editingItem.content}"`); 
     } else {
       await apiFetch({
         endpoint: `${URL}/api/items/${targetSectionId}/items/${username}`,
         method: "POST",
-        body: { content, link, notes, sectionId: targetSectionId },
+        body: {
+          content,
+          link,
+          notes,
+          sectionId: targetSectionId,
+          username: currentUser?.nickname,
+        },
         getAccessTokenSilently,
       });
+      addLog(`You added item "${content}"`); 
     }
 
     setShowItemModal(false);
@@ -372,6 +422,7 @@ const SectionList = () => {
             </SortableContext>
             <div className="bottom-row">
               <DeleteButton />
+              <Logs logs={logs} />
               <AddButton />
             </div>
             <DragOverlay dropAnimation={null}>{dragOverlayContent}</DragOverlay>

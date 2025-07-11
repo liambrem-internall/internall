@@ -6,14 +6,25 @@ const useSectionSocketHandlers = ({
   setSections,
   setSectionOrder,
   username,
+  addLog,
 }) => {
   useEffect(() => {
     const handleSectionCreated = (section) => {
+      // Skip if this event was triggered by the current user
+      if (section.username === username) return;
+
+      const sectionId = section.id || section._id;
+
       setSections((prev) => ({
         ...prev,
-        [section.id]: { ...section, id: section.id, items: [] },
+        [sectionId]: { ...section, id: sectionId, items: [] },
       }));
-      setSectionOrder((prev) => [...prev, section.id]);
+      setSectionOrder((prev) => [...prev, sectionId]);
+      if (addLog && section.username && section.username !== username) {
+        addLog(
+          `${section.username || "Someone"} created section "${section.title}"`
+        );
+      }
     };
 
     const handleSectionUpdated = (section) => {
@@ -21,19 +32,30 @@ const useSectionSocketHandlers = ({
         ...prev,
         [section.id]: { ...prev[section.id], ...section },
       }));
+      if (addLog && section.username && section.username !== username) {
+        addLog(
+          `${section.username || "Someone"} updated section "${section.title}"`
+        );
+      }
     };
 
-    const handleSectionDeleted = ({ sectionId }) => {
+    const handleSectionDeleted = ({ sectionId, username: eventUsername }) => {
       setSections((prev) => {
         const copy = { ...prev };
         delete copy[sectionId];
         return copy;
       });
       setSectionOrder((prev) => prev.filter((id) => id !== sectionId));
+      if (addLog && eventUsername && eventUsername !== username) {
+        addLog(`${eventUsername || "Someone"} deleted a section`);
+      }
     };
 
-    const handleSectionOrderUpdated = (order) => {
+    const handleSectionOrderUpdated = ({ order, username: eventUsername }) => {
       setSectionOrder(order);
+      if (addLog && eventUsername && eventUsername !== username) {
+        addLog(`${eventUsername || "Someone"} reordered sections`);
+      }
     };
 
     socket.on(sectionEvents.SECTION_CREATED, handleSectionCreated);
