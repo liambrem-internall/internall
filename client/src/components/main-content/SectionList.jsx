@@ -37,6 +37,7 @@ import {
   DraggableComponentTypes,
   SectionActions,
   ViewModes,
+  THROTTLE_MS,
 } from "../../utils/constants";
 import {
   findItemBySection,
@@ -44,6 +45,7 @@ import {
 } from "../../utils/sectionListUtils";
 import { CursorArrowMoveOutline24 } from "metau-meta-icons";
 import { socket } from "../../utils/socket";
+
 
 import "./SectionList.css";
 
@@ -133,7 +135,7 @@ const SectionList = () => {
     color,
     eventType: cursorEvents.CURSOR_MOVE,
     getPosition: (e) => ({ x: e.clientX, y: e.clientY }),
-    throttleMs: 33,
+    throttleMs: THROTTLE_MS,
     active: true,
   });
 
@@ -148,7 +150,7 @@ const SectionList = () => {
       y: e.clientY,
       id: activeIdRef.current,
     }),
-    throttleMs: 33,
+    throttleMs: THROTTLE_MS,
     active: isDragging,
   });
 
