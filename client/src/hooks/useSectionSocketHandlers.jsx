@@ -39,7 +39,7 @@ const useSectionSocketHandlers = ({
       }
     };
 
-    const handleSectionDeleted = ({ sectionId, username: eventUsername }) => {
+    const handleSectionDeleted = ({ sectionId, username: eventUsername, title }) => {
       setSections((prev) => {
         const copy = { ...prev };
         delete copy[sectionId];
@@ -47,14 +47,14 @@ const useSectionSocketHandlers = ({
       });
       setSectionOrder((prev) => prev.filter((id) => id !== sectionId));
       if (addLog && eventUsername && eventUsername !== username) {
-        addLog(`${eventUsername || "Someone"} deleted a section`);
+        addLog(`${eventUsername || "Someone"} deleted section "${title}"`);
       }
     };
 
-    const handleSectionOrderUpdated = ({ order, username: eventUsername }) => {
+    const handleSectionOrderUpdated = ({ order, username: eventUsername, title }) => {
       setSectionOrder(order);
       if (addLog && eventUsername && eventUsername !== username) {
-        addLog(`${eventUsername || "Someone"} reordered sections`);
+        addLog(`${eventUsername || "Someone"} reordered section ${title}`);
       }
     };
 

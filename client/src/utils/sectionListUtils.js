@@ -32,7 +32,7 @@ const handleDragEndSection = (
         await apiFetch({
           endpoint: `${URL}/api/sections/user/${username}/order`,
           method: "PUT",
-          body: { order: newOrder, username: currentUser?.nickname },
+          body: { order: newOrder, username: currentUser?.nickname, movedId: active.id },
           getAccessTokenSilently,
         });
       })();

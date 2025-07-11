@@ -43,14 +43,27 @@ exports.getSectionsByUsername = async (req, res) => {
 
 exports.updateSectionOrder = async (req, res) => {
   try {
-    const { order } = req.body; // order is an array of section IDs
+    const { order, movedId } = req.body; // order is an array of section IDs
     const user = await User.findOneAndUpdate(
       { username: req.params.username },
       { sectionOrder: order },
       { new: true }
     );
     if (!user) return res.status(404).json({ error: "User not found" });
-    sectionEvents.emitSectionOrderUpdated(req.params.username, order, req.body.username);
+
+    let movedTitle = "";
+    if (movedId) {
+      const movedSection = await Section.findById(movedId);
+      movedTitle = movedSection ? movedSection.title : "";
+    }
+
+
+    sectionEvents.emitSectionOrderUpdated(
+      req.params.username,
+      order,
+      req.body.username,
+      movedTitle
+    );
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
@@ -72,7 +85,10 @@ exports.createSection = async (req, res) => {
     );
 
     // push to other users
-    sectionEvents.emitSectionCreated(req.params.username, { ...newSection.toObject(), username: req.body.username });
+    sectionEvents.emitSectionCreated(req.params.username, {
+      ...newSection.toObject(),
+      username: req.body.username,
+    });
 
     res.status(201).json(newSection);
   } catch (err) {
@@ -87,7 +103,10 @@ exports.updateSection = async (req, res) => {
     });
     if (!section) return res.status(404).json({ error: "Section not found" });
 
-    sectionEvents.emitSectionUpdated(req.params.username, { ...section.toObject(), username: req.body.username });
+    sectionEvents.emitSectionUpdated(req.params.username, {
+      ...section.toObject(),
+      username: req.body.username,
+    });
 
     res.json(section);
   } catch (err) {
@@ -100,7 +119,12 @@ exports.deleteSection = async (req, res) => {
     const section = await Section.findByIdAndDelete(req.params.id);
     if (!section) return res.status(404).json({ error: "Section not found" });
 
-    sectionEvents.emitSectionDeleted(req.params.username, req.params.id, req.body.username);
+    sectionEvents.emitSectionDeleted(
+      req.params.username,
+      req.params.id,
+      req.body.username,
+      section.title
+    );
 
     res.status(204).send();
   } catch (err) {
