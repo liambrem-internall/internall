@@ -1,7 +1,7 @@
 const URL = import.meta.env.VITE_API_URL;
 import { SectionActions } from "../utils/constants";
 
-const useDragHandlers = ({
+const useDragHandlers = (
   setActiveId,
   activeId,
   activeIdRef,
@@ -22,9 +22,9 @@ const useDragHandlers = ({
   socket,
   cursorEvents,
   handleDragEndUtil,
-  setIsDeleteZoneOver,   
-  setIsDragging,   
-}) => {
+  setIsDeleteZoneOver,
+  setIsDragging
+) => {
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
     activeIdRef.current = event.active.id;
@@ -78,7 +78,6 @@ const useDragHandlers = ({
     const { over } = event;
     setIsDeleteZoneOver(over?.id === SectionActions.DELETE_ZONE);
   };
-
 
   return {
     handleDragStart,
