@@ -90,7 +90,7 @@ exports.updateItemOrder = async (req, res) => {
     if (!section) return res.status(404).json({ error: "Section not found" });
     let content = '';
     if (section.items.length > 0) {
-      const firstItem = section.items.find(i => i._id.toString() === order[0]); // Find the first item in the new order and get its content
+      const firstItem = section.items.find(i => i._id.toString() === order[0]);
       content = firstItem?.content || '';
     }
     itemEvents.emitItemOrderUpdated(
