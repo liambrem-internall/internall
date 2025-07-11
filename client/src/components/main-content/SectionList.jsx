@@ -1,7 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { useParams } from "react-router-dom";
-import { CursorArrowMoveOutline24 } from "metau-meta-icons";
 
 import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
@@ -26,6 +25,7 @@ import useRoomUsers from "../../hooks/rooms/useRoomUsers";
 import useDragHandlers from "../../hooks/useDragHandlers";
 import useSaveHandlers from "../../hooks/useSaveHandlers";
 import DroppableSection from "./Sections/DroppableSection";
+import CursorOverlay from "./SectionListComponents/CursorOverlay";
 import useRoomCursors from "../../hooks/rooms/useRoomCursors";
 import useRoomEditing from "../../hooks/rooms/useRoomEditing";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
@@ -390,25 +390,7 @@ const SectionList = () => {
         initialNotes={editingItem?.notes || ""}
         itemId={editingItem?.id}
       />
-      {Object.entries(cursors).map(([uid, { color, x, y }]) => (
-        <div
-          key={uid}
-          style={{
-            position: "fixed",
-            left: x,
-            top: y,
-            pointerEvents: "none",
-            zIndex: 9999,
-            color,
-            fontWeight: "bold",
-            transition: "left 0.05s, top 0.05s",
-          }}
-        >
-          <svg width="24" height="24">
-            <CursorArrowMoveOutline24 />
-          </svg>
-        </div>
-      ))}
+      <CursorOverlay cursors={cursors} />
     </>
   );
 };
