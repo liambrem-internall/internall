@@ -54,3 +54,5 @@ export const cursorEvents = Object.freeze({
   COMPONENT_DRAG_END: "component:drag:end",
   COMPONENT_DRAG_MOVE: "component:drag:move",
 });
+
+export const THROTTLE_MS = 33;
