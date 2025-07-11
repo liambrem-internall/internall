@@ -2,15 +2,21 @@ import { useEffect } from "react";
 import { itemEvents } from "../utils/constants";
 import { socket } from "../utils/socket";
 
-const useItemSocketHandlers = ({ setSections, username }) => {
+const useItemSocketHandlers = ({ setSections, username, addLog }) => {
   useEffect(() => {
     const handleItemCreated = (item) => {
+      const normalizedItem = {
+        // normalize item, mongo db passes _id
+        ...item,
+        id: (item.id || item._id)?.toString(),
+        sectionId: item.sectionId?.toString(),
+      };
       setSections((prev) => {
-        const sectionId = item.sectionId;
+        const sectionId = normalizedItem.sectionId;
         if (!prev[sectionId]) return prev;
         if (
           prev[sectionId].items.some(
-            (existingItem) => existingItem.id === item.id
+            (existingItem) => existingItem.id === normalizedItem.id
           )
         ) {
           return prev;
@@ -19,10 +25,13 @@ const useItemSocketHandlers = ({ setSections, username }) => {
           ...prev,
           [sectionId]: {
             ...prev[sectionId],
-            items: [...prev[sectionId].items, { item, id: item.id }],
+            items: [...prev[sectionId].items, normalizedItem],
           },
         };
       });
+      if (addLog && item.username !== username) {
+        addLog(`${item.username || "Someone"} added item "${item.content}"`);
+      }
     };
 
     const handleItemUpdated = (item) => {
@@ -68,8 +77,15 @@ const useItemSocketHandlers = ({ setSections, username }) => {
           };
         }
       });
+      if (addLog && item.username !== username) {
+        addLog(`${item.username || "Someone"} updated item "${item.content}"`);
+      }
     };
-    const handleItemDeleted = ({ itemId }) => {
+    const handleItemDeleted = ({
+      itemId,
+      username: eventUsername,
+      content,
+    }) => {
       setSections((prev) => {
         const newSections = { ...prev };
         for (const sectionId in newSections) {
@@ -82,9 +98,19 @@ const useItemSocketHandlers = ({ setSections, username }) => {
         }
         return newSections;
       });
+      if (addLog && eventUsername !== username) {
+        addLog(
+          `${eventUsername || "Someone"} deleted item "${content || itemId}"`
+        );
+      }
     };
 
-    const handleItemOrderUpdated = ({ sectionId, order }) => {
+    const handleItemOrderUpdated = ({
+      sectionId,
+      order,
+      content,
+      username: eventUsername,
+    }) => {
       setSections((prev) => {
         if (!prev[sectionId]) return prev;
         const itemsById = {};
@@ -99,6 +125,12 @@ const useItemSocketHandlers = ({ setSections, username }) => {
           },
         };
       });
+      console.log(eventUsername);
+      if (addLog && eventUsername && eventUsername !== username) {
+        addLog(
+          `${eventUsername || "Someone"} reordered item "${content}"`
+        );
+      }
     };
 
     socket.on(itemEvents.ITEM_CREATED, handleItemCreated);
