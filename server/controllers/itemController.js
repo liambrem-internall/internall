@@ -30,7 +30,10 @@ exports.createItem = async (req, res) => {
     section.items.push(newItem._id);
     await section.save();
 
-    itemEvents.emitItemCreated(req.params.username, newItem);
+    itemEvents.emitItemCreated(req.params.username, {
+      ...newItem.toObject(),
+      username: req.body.username,
+    });
 
     res.status(201).json(newItem);
   } catch (err) {
@@ -55,13 +58,20 @@ exports.updateItem = async (req, res) => {
     await item.save();
 
     if (oldSectionId !== newSectionId) {
-      await Section.findByIdAndUpdate(oldSectionId, { $pull: { items: item._id } });
-      await Section.findByIdAndUpdate(newSectionId, { $addToSet: { items: item._id } });
+      await Section.findByIdAndUpdate(oldSectionId, {
+        $pull: { items: item._id },
+      });
+      await Section.findByIdAndUpdate(newSectionId, {
+        $addToSet: { items: item._id },
+      });
     }
 
     const updatedItem = await Item.findById(item._id);
 
-    itemEvents.emitItemUpdated(req.params.username, updatedItem);
+    itemEvents.emitItemUpdated(req.params.username, {
+      ...item.toObject(),
+      username: req.body.username,
+    });
 
     res.json(updatedItem);
   } catch (err) {
@@ -76,9 +86,20 @@ exports.updateItemOrder = async (req, res) => {
       req.params.sectionId,
       { items: order },
       { new: true }
-    );
+    ).populate('items');
     if (!section) return res.status(404).json({ error: "Section not found" });
-    itemEvents.emitItemOrderUpdated(req.params.username, section._id.toString(), order);
+    let content = '';
+    if (section.items.length > 0) {
+      const firstItem = section.items.find(i => i._id.toString() === order[0]);
+      content = firstItem?.content || '';
+    }
+    itemEvents.emitItemOrderUpdated(
+      req.params.username,
+      section._id.toString(),
+      order,
+      req.body.username,
+      content
+    );
     res.json({ success: true });
   } catch (err) {
     console.error("updateItemOrder error:", err);
@@ -99,14 +120,20 @@ exports.moveItem = async (req, res) => {
     if (!item) return res.status(404).json({ error: "Item not found" });
 
     const fromSection = await Section.findById(sectionId);
-    if (!fromSection) return res.status(404).json({ error: "Source section not found" });
+    if (!fromSection)
+      return res.status(404).json({ error: "Source section not found" });
     fromSection.items.pull(item._id);
     await fromSection.save();
 
     const toSection = await Section.findById(toSectionId);
-    if (!toSection) return res.status(404).json({ error: "Destination section not found" });
+    if (!toSection)
+      return res.status(404).json({ error: "Destination section not found" });
 
-    if (typeof toIndex === "number" && toIndex >= 0 && toIndex <= toSection.items.length) {
+    if (
+      typeof toIndex === "number" &&
+      toIndex >= 0 &&
+      toIndex <= toSection.items.length
+    ) {
       toSection.items.splice(toIndex, 0, item._id);
     } else {
       toSection.items.push(item._id);
@@ -116,7 +143,10 @@ exports.moveItem = async (req, res) => {
     item.sectionId = toSectionId;
     await item.save();
 
-    itemEvents.emitItemUpdated(req.params.username, item);
+    itemEvents.emitItemUpdated(req.params.username, {
+      ...item.toObject(),
+      username: req.body.username,
+    });
 
     res.json({ success: true, item });
   } catch (err) {
@@ -124,18 +154,25 @@ exports.moveItem = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
-    
 
 exports.deleteItem = async (req, res) => {
   try {
     const section = await Section.findById(req.params.sectionId);
     if (!section) return res.status(404).json({ error: "Section not found" });
 
+    const item = await Item.findById(req.params.itemId);
+    if (!item) return res.status(404).json({ error: "Item not found" });
+
     await Item.findByIdAndDelete(req.params.itemId);
     section.items.pull(req.params.itemId);
     await section.save();
 
-    itemEvents.emitItemDeleted(req.params.username, req.params.itemId);
+    itemEvents.emitItemDeleted(
+      req.params.username,
+      req.params.itemId,
+      req.body.username,
+      item.content
+    );
 
     res.status(204).send();
   } catch (err) {
