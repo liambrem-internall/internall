@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { socket } from "../utils/socket";
-import { cursorEvents } from "../utils/constants";
+import { socket } from "../../utils/socket";
+import { cursorEvents } from "../../utils/constants";
 
 const useRoomCursors = (roomId, userId) => {
   const [cursors, setCursors] = useState({});
