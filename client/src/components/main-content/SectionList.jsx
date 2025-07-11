@@ -152,25 +152,6 @@ const SectionList = () => {
     active: isDragging,
   });
 
-  // const lastCursorPositionRef = useRef({ x: null, y: null });
-  // let lastEmitTimeRef = useRef(0);
-
-  // const handleMouseMoveWhileDragging = (e) => {
-  //   useThrottledCursorBroadcast({
-  //     roomId,
-  //     userId,
-  //     color,
-  //     eventType: cursorEvents.COMPONENT_DRAG_MOVE,
-  //     getPosition: (e) => ({
-  //       x: e.clientX,
-  //       y: e.clientY,
-  //       id: activeIdRef.current,
-  //     }),
-  //     throttleMs: 33,
-  //     active: isDragging, // set this based on your drag state
-  //   });
-  // };
-
   const dragHandlers = useDragHandlers({
     setActiveId,
     activeId,
