@@ -1,3 +1,4 @@
+// todo: consolodate function parameters into 1 object
 import {
   SectionActions,
   DragEndActions,
@@ -20,7 +21,7 @@ const URL = import.meta.env.VITE_API_URL;
 const handleDragEndSection = (
   active,
   over,
-  { setSectionOrder, setActiveId, getAccessTokenSilently, username }
+  { setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog }
 ) => {
   if (active.id !== over.id) {
     setSectionOrder((prev) => {
@@ -32,7 +33,7 @@ const handleDragEndSection = (
         await apiFetch({
           endpoint: `${URL}/api/sections/user/${username}/order`,
           method: "PUT",
-          body: { order: newOrder },
+          body: { order: newOrder, username: currentUser?.nickname },
           getAccessTokenSilently,
         });
       })();
@@ -46,7 +47,7 @@ const handleDragEndSection = (
 const handleDragEndItem = (
   active,
   over,
-  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username }
+  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username, currentUser, addLog }
 ) => {
   const fromSectionId = active.data.current.sectionId;
   const toSectionId = over.data.current?.sectionId || over.id;
@@ -75,10 +76,17 @@ const handleDragEndItem = (
       await apiFetch({
         endpoint: `${URL}/api/items/${fromSectionId}/items/${username}/order`,
         method: "PUT",
-        body: { order: newOrder },
+        body: { order: newOrder, username: currentUser?.nickname },
         getAccessTokenSilently,
       });
     })();
+
+    
+
+    if (addLog) {
+      const item = findItemBySection(sections[fromSectionId], { activeId });
+      addLog(`You reordered item "${item?.content}"`);
+    }
 
     setActiveId(null);
     return;
@@ -124,23 +132,30 @@ const handleDragEndItem = (
     await apiFetch({
       endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}/${username}/move`,
       method: "PUT",
-      body: { toSectionId },
+      body: { toSectionId, username: currentUser?.nickname },
       getAccessTokenSilently,
     });
   })();
 
+  if (addLog) {
+    addLog(`You moved item "${item?.content || active.id}"`);
+  }
+
   setActiveId(null);
 };
 
-const handleDragEndAdd = (active, over, { setShowModal, setActiveId }) => {
+const handleDragEndAdd = (active, over, { setShowModal, setActiveId, currentUser, addLog }) => {
   setShowModal(true);
   setActiveId(null);
+  if (addLog) {
+    addLog(`You created section "${active.id}"`);
+  }
 };
 
 const handleDragEndDelete = (
   active,
   over,
-  { setSections, setSectionOrder, setActiveId, getAccessTokenSilently, username }
+  { setSections, sections, activeId, setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog }
 ) => {
   // Delete item
   if (active.data.current?.type === DraggableComponentTypes.ITEM) {
@@ -156,9 +171,15 @@ const handleDragEndDelete = (
       await apiFetch({
         endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}/${username}`,
         method: "DELETE",
+        body: { username: currentUser?.nickname },
         getAccessTokenSilently,
       });
     })();
+
+    if (addLog) {
+      const item = findItemBySection(sections[fromSectionId], { activeId });
+      addLog(`You deleted item "${item?.content}"`);
+    }
   }
   // Delete section
   if (active.data.current?.type === DraggableComponentTypes.SECTION) {
@@ -170,6 +191,7 @@ const handleDragEndDelete = (
         await apiFetch({
           endpoint: `${URL}/api/sections/${active.id}/${username}`,
           method: "DELETE",
+          body: { username: currentUser?.nickname },
           getAccessTokenSilently,
         });
       })();
@@ -179,6 +201,10 @@ const handleDragEndDelete = (
       const updatedOrder = prevSectionOrder.filter((id) => id !== active.id); // remove deleted section ids
       return updatedOrder;
     });
+    if (addLog) {
+      const section = sections[active.id];
+  addLog(`You deleted section "${section?.title || active.id}"`);
+    }
   }
   setActiveId(null);
   return;
@@ -197,6 +223,8 @@ export const handleDragEnd = (
     sections,
     getAccessTokenSilently,
     username,
+    currentUser,
+    addLog,
   }
 ) => {
   const { active, over } = event;
@@ -233,16 +261,22 @@ export const handleDragEnd = (
     case DragEndActions.DELETE:
       handleDragEndDelete(active, over, {
         setSections,
+        sections,
         setSectionOrder,
         setActiveId,
         getAccessTokenSilently,
-        username
+        username,
+        currentUser,
+        addLog,
+        activeId,
       });
       break;
     case DragEndActions.ADD_SECTION:
       handleDragEndAdd(active, over, {
         setShowModal,
         setActiveId,
+        currentUser,
+        addLog,
       });
       break;
     case DragEndActions.ADD_ITEM:
@@ -262,6 +296,8 @@ export const handleDragEnd = (
         setActiveId,
         getAccessTokenSilently,
         username,
+        currentUser,
+        addLog,
       });
       break;
     case DragEndActions.MOVE_ITEM:
@@ -272,6 +308,8 @@ export const handleDragEnd = (
         activeId,
         getAccessTokenSilently,
         username,
+        currentUser,
+        addLog,
       });
       break;
     default:

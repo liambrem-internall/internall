@@ -1,0 +1,41 @@
+.logs-bar {
+  width: 100%;
+  position: absolute;
+  bottom: 25px;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 100;
+}
+
+.logs-scroll {
+  color: #f5f5eab8;
+  border-radius: 8px;
+  max-width: 60vw;
+  min-width: 300px;
+  max-height: 60px;
+  overflow-y: auto;
+  font-size: 0.75em;
+  box-shadow: 0 2px 8px #000a;
+  text-align: center;
+  position: relative;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  background: transparent;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 30%, black 80%, transparent);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  padding: 5px;
+}
+.logs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.log-entry {
+  margin-bottom: 2px;
+  white-space: pre-line;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+

@@ -16,11 +16,11 @@ module.exports = {
     if (io) io.to(roomId).emit(sectionEvents.SECTION_UPDATED, section);
   },
 
-  emitSectionDeleted: (roomId, sectionId) => {
-    if (io) io.to(roomId).emit(sectionEvents.SECTION_DELETED, { sectionId });
+  emitSectionDeleted: (roomId, sectionId, username) => {
+    if (io) io.to(roomId).emit(sectionEvents.SECTION_DELETED, { sectionId, username });
   },
 
-  emitSectionOrderUpdated: (roomId, order) => {
-    if (io) io.to(roomId).emit(sectionEvents.SECTION_ORDER_UPDATED, order);
+  emitSectionOrderUpdated: (roomId, order, username) => {
+    if (io) io.to(roomId).emit(sectionEvents.SECTION_ORDER_UPDATED, { order, username });
   }
 };
