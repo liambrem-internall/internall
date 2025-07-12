@@ -14,7 +14,7 @@ import { PersonOutline24 } from "metau-meta-icons";
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
-import useRoomUsers from "../../hooks/useRoomUsers";
+import useRoomUsers from "../../hooks/rooms/useRoomUsers";
 
 import "./Navbar.css";
 
