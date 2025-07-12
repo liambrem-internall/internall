@@ -18,7 +18,6 @@ import ViewContext from "../../ViewContext";
 import { socket } from "../../utils/socket";
 import { apiFetch } from "../../utils/apiFetch";
 import DeleteButton from "./Delete/DeleteButton";
-import GhostComponent from "./Add/GhostComponent";
 import SectionModal from "./Sections/SectionModal";
 import useRoomUsers from "../../hooks/rooms/useRoomUsers";
 import useDragHandlers from "../../hooks/useDragHandlers";
@@ -29,6 +28,7 @@ import RemoteDragContent from "./SectionListComponents/RemoteDragContent";
 import DragOverlayContent from "./SectionListComponents/DragOverlayContent";
 import useRoomCursors from "../../hooks/rooms/useRoomCursors";
 import useRoomEditing from "../../hooks/rooms/useRoomEditing";
+import useLogs from "../../hooks/useLogs";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import useThrottledCursorBroadcast from "../../hooks/useThrottledCursorBroadcast";
@@ -61,7 +61,6 @@ const SectionList = () => {
   const [targetSectionId, setTargetSectionId] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
-  const [logs, setLogs] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
 
   const activeIdRef = useRef(null);
@@ -72,10 +71,7 @@ const SectionList = () => {
   const userId = user?.sub;
   const currentUser = allUsers?.find((u) => u.id === userId);
   const color = currentUser?.color || "#000"; // fallback color if not found
-
-  const addLog = (msg) => {
-    setLogs((prev) => [...prev.slice(-49), msg]); // keep last 50 logs
-  };
+  const { logs, addLog } = useLogs();
 
   useSectionSocketHandlers({
     setSections,
