@@ -29,6 +29,7 @@ import DragOverlayContent from "./SectionListComponents/DragOverlayContent";
 import useRoomCursors from "../../hooks/rooms/useRoomCursors";
 import useRoomEditing from "../../hooks/rooms/useRoomEditing";
 import useLogs from "../../hooks/useLogs";
+import useSectionListState from "../../hooks/useSectionListState";
 import NewSectionDropZone from "./Sections/NewSectionDropZone";
 import customCollisionDetection from "../../utils/customCollisionDetection";
 import useThrottledCursorBroadcast from "../../hooks/useThrottledCursorBroadcast";
@@ -48,22 +49,18 @@ import "./SectionList.css";
 const URL = import.meta.env.VITE_API_URL;
 
 const SectionList = () => {
+
+  const {
+    sectionState: { sections, setSections, sectionOrder, setSectionOrder },
+    modalState: { showModal, setShowModal, showItemModal, setShowItemModal, pendingSectionTitle, setPendingSectionTitle },
+    editingState: { targetSectionId, setTargetSectionId, editingItem, setEditingItem },
+    dragState: { activeId, setActiveId, isDragging, setIsDragging, isDeleteZoneOver, setIsDeleteZoneOver, dragPosition, setDragPosition, activeIdRef },
+  } = useSectionListState();
+
   const { viewMode } = useContext(ViewContext);
   const { username } = useParams();
   const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
-  const [sections, setSections] = useState({});
-  const [activeId, setActiveId] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [pendingSectionTitle, setPendingSectionTitle] = useState("");
-  const [sectionOrder, setSectionOrder] = useState(Object.keys(sections));
-  const [showItemModal, setShowItemModal] = useState(false);
-  const [isDeleteZoneOver, setIsDeleteZoneOver] = useState(false);
-  const [targetSectionId, setTargetSectionId] = useState(null);
-  const [editingItem, setEditingItem] = useState(null);
-  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-
-  const activeIdRef = useRef(null);
+  
   const roomId = username;
   const editingUsers = useRoomEditing(roomId);
   const allUsers = useRoomUsers(roomId, null);

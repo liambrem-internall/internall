@@ -26,6 +26,15 @@ const RemoteDragContent = ({ roomId, userId, sections }) => {
         }
         if (!content) return null;
 
+        const sectionPadding = isSection ? "24px 32px" : "12px 24px";
+        const sectionBackground = isSection ? "var(--dark2)" : "#25242d";
+        const sectionBorderRadius = isSection ? 12 : 8;
+        const sectionBoxShadow = isSection
+          ? "0 2px 12px rgba(0,0,0,0.14)"
+          : "0 2px 8px rgba(0,0,0,0.12)";
+        const sectionFontWeight = isSection ? 600 : 500;
+        const sectionFontSize = isSection ? 20 : undefined;
+
         return (
           <div
             key={drag.userId}
@@ -45,16 +54,14 @@ const RemoteDragContent = ({ roomId, userId, sections }) => {
             <div
               style={{
                 minWidth: 150,
-                padding: isSection ? "24px 32px" : "12px 24px",
-                background: isSection ? "var(--dark2)" : "#25242d",
-                borderRadius: isSection ? 12 : 8,
-                boxShadow: isSection
-                  ? "0 2px 12px rgba(0,0,0,0.14)"
-                  : "0 2px 8px rgba(0,0,0,0.12)",
+                padding: sectionPadding,
+                background: sectionBackground,
+                borderRadius: sectionBorderRadius,
+                boxShadow: sectionBoxShadow,
                 opacity: 0.7,
-                fontWeight: isSection ? 600 : 500,
+                fontWeight: sectionFontWeight,
                 color: "white",
-                fontSize: isSection ? 20 : undefined,
+                fontSize: sectionFontSize,
                 border: `4px solid ${drag.color}`,
                 transform: "scale(1)",
                 transition: "transform 0.1s, opacity 0.1s",
