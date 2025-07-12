@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { sectionEvents } from "../utils/constants";
-import { socket } from "../utils/socket";
+import { sectionEvents } from "../../utils/constants";
+import { socket } from "../../utils/socket";
 
 const useSectionSocketHandlers = ({
   setSections,

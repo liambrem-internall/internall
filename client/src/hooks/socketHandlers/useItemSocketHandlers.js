@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { itemEvents } from "../utils/constants";
-import { socket } from "../utils/socket";
+import { itemEvents } from "../../utils/constants";
+import { socket } from "../../utils/socket";
 
 const useItemSocketHandlers = ({ setSections, username, addLog }) => {
   useEffect(() => {
