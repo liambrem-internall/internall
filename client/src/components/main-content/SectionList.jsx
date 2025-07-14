@@ -44,23 +44,46 @@ import {
   ViewModes,
 } from "../../utils/constants";
 
+import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
+
 import "./SectionList.css";
 
 const URL = import.meta.env.VITE_API_URL;
 
 const SectionList = () => {
-
   const {
     sectionState: { sections, setSections, sectionOrder, setSectionOrder },
-    modalState: { showModal, setShowModal, showItemModal, setShowItemModal, pendingSectionTitle, setPendingSectionTitle },
-    editingState: { targetSectionId, setTargetSectionId, editingItem, setEditingItem },
-    dragState: { activeId, setActiveId, isDragging, setIsDragging, isDeleteZoneOver, setIsDeleteZoneOver, dragPosition, setDragPosition, activeIdRef },
+    modalState: {
+      showModal,
+      setShowModal,
+      showItemModal,
+      setShowItemModal,
+      pendingSectionTitle,
+      setPendingSectionTitle,
+    },
+    editingState: {
+      targetSectionId,
+      setTargetSectionId,
+      editingItem,
+      setEditingItem,
+    },
+    dragState: {
+      activeId,
+      setActiveId,
+      isDragging,
+      setIsDragging,
+      isDeleteZoneOver,
+      setIsDeleteZoneOver,
+      dragPosition,
+      setDragPosition,
+      activeIdRef,
+    },
   } = useSectionListState();
 
   const { viewMode } = useContext(ViewContext);
   const { username } = useParams();
   const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
-  
+
   const roomId = username;
   const editingUsers = useRoomEditing(roomId);
   const allUsers = useRoomUsers(roomId, null);
@@ -205,6 +228,17 @@ const SectionList = () => {
   return (
     <>
       <Container className="section-list-container">
+        <button
+        style={{zIndex: 1000}}
+          onClick={() =>
+            prepopulateDemoData({
+              username,
+              getAccessTokenSilently,
+            })
+          }
+        >
+          Prepopulate Demo Data
+        </button>
         <div className="sections-scroll-container">
           <DndContext
             onDragStart={dragHandlers.handleDragStart}
