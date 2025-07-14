@@ -11,7 +11,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-import Logs from "./Logs/logs";
+import Logs from "./Logs/Logs";
 import AddButton from "./Add/AddButton";
 import ItemModal from "./Items/ItemModal";
 import ViewContext from "../../ViewContext";
