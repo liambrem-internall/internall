@@ -10,7 +10,7 @@ import Container from "react-bootstrap/Container";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { PersonOutline24 } from "metau-meta-icons";
-
+import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
@@ -20,7 +20,7 @@ import "./Navbar.css";
 
 const Navigation = () => {
   const { viewMode, setViewMode } = useContext(ViewContext);
-  const { logout, user } = useAuth0();
+  const { logout, user, getAccessTokenSilently } = useAuth0();
   const { username } = useParams();
   const roomId = username;
   const userId = user?.sub;
@@ -28,26 +28,24 @@ const Navigation = () => {
   const otherUsers = useRoomUsers(roomId, userId, user.nickname);
 
   const userColors = otherUsers.map((user, i) => (
-  <OverlayTrigger
-    key={user.socketId}
-    placement="bottom"
-    overlay={
-      <Tooltip id={`tooltip-${user.socketId}`}>
-        {user.nickname}
-      </Tooltip>
-    }
-  >
-    <PersonOutline24
-      fontSize={25}
-      style={{
-        display: "inline-block",
-        margin: "0 2px",
-        color: user.color,
-        cursor: "pointer",
-      }}
-    />
-  </OverlayTrigger>
-));
+    <OverlayTrigger
+      key={user.socketId}
+      placement="bottom"
+      overlay={
+        <Tooltip id={`tooltip-${user.socketId}`}>{user.nickname}</Tooltip>
+      }
+    >
+      <PersonOutline24
+        fontSize={25}
+        style={{
+          display: "inline-block",
+          margin: "0 2px",
+          color: user.color,
+          cursor: "pointer",
+        }}
+      />
+    </OverlayTrigger>
+  ));
 
   return (
     <div className="navbar-float-wrapper">
@@ -60,6 +58,17 @@ const Navigation = () => {
           <Navbar.Collapse id="basic-navbar-nav">
             <div className="d-flex ms-auto align-items-center">
               <Nav className="mx-auto">
+                <Nav.Link
+                  className="nav-link-custom"
+                  onClick={() =>
+                    prepopulateDemoData({
+                      username,
+                      getAccessTokenSilently,
+                    })
+                  }
+                >
+                  Demo-Data
+                </Nav.Link>
                 <Nav.Link
                   className={`nav-link-custom${
                     viewMode === ViewModes.BOARD ? " selected" : ""
