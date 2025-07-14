@@ -1,4 +1,4 @@
-import { ContainerWithLidOutline24 } from "metau-meta-icons";
+import { BsTrashFill } from "react-icons/bs";
 import { useDroppable } from "@dnd-kit/core";
 import { SectionActions } from "../../../utils/constants";
 import "./DeleteButton.css";
@@ -11,9 +11,9 @@ const DeleteButton = () => {
 
   return (
     <div className="delete-btn" ref={setNodeRef}>
-      <ContainerWithLidOutline24
+      <BsTrashFill
         style={{ color: isOver ? "red" : "var(--gray2)" }}
-        fontSize={100}
+        fontSize={75}
       />
     </div>
   );
