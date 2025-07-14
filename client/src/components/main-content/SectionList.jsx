@@ -44,8 +44,6 @@ import {
   ViewModes,
 } from "../../utils/constants";
 
-import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
-
 import "./SectionList.css";
 
 const URL = import.meta.env.VITE_API_URL;
@@ -228,17 +226,6 @@ const SectionList = () => {
   return (
     <>
       <Container className="section-list-container">
-        <button
-        style={{zIndex: 1000}}
-          onClick={() =>
-            prepopulateDemoData({
-              username,
-              getAccessTokenSilently,
-            })
-          }
-        >
-          Prepopulate Demo Data
-        </button>
         <div className="sections-scroll-container">
           <DndContext
             onDragStart={dragHandlers.handleDragStart}
