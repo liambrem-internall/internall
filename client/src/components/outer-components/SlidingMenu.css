@@ -28,6 +28,16 @@
   right: 0;
 }
 
+.search-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: var(--gray3);
+    margin-top: 25vh;
+}
+
+
 .close-btn {
   align-self: flex-end;
   background: none;
