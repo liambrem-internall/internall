@@ -1,0 +1,34 @@
+.search-results{
+    margin-top: 10px;
+}
+
+.search-result-item {
+  background: #222;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.search-result-link {
+  margin-top: 5px;
+  color: #4fc3f7;
+  text-decoration: underline;
+  font-size: 0.95em;
+}
+
+.search-result-item:hover {
+  background: #333;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+
+.search-results ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
