@@ -125,7 +125,6 @@ const useItemSocketHandlers = ({ setSections, username, addLog }) => {
           },
         };
       });
-      console.log(eventUsername);
       if (addLog && eventUsername && eventUsername !== username) {
         addLog(
           `${eventUsername || "Someone"} reordered item "${content}"`
