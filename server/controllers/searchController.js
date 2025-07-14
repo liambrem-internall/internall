@@ -1,15 +1,67 @@
-exports.webSearch = async (req, res) => {
-  const { q } = req.query;
+const Item = require("../models/Item");
+const Section = require("../models/Section");
+const User = require("../models/User");
+
+function escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+exports.search = async (req, res) => {
+  const { q, roomId } = req.query;
   if (!q) return res.status(400).json({ error: "Missing query" });
+  if (!roomId) return res.status(400).json({ error: "Missing roomId" });
 
   try {
+    // Find user by roomId (username)
+    const user = await User.findOne({ username: roomId });
+    if (!user) return res.status(404).json({ error: "User/Room not found" });
+
+    const safeQuery = escapeRegex(q);
+
+    const sections = await Section.find({
+      userId: user.auth0Id,
+      title: { $regex: safeQuery, $options: "i" },
+    });
+
+    // First get all sections for this user, then find items in those sections
+    const userSections = await Section.find({ userId: user.auth0Id });
+    const sectionIds = userSections.map(section => section._id);
+    
+    const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
+
+    const matchedItems = [];
+    const lowerQuery = safeQuery.toLowerCase();
+
+    itemsRaw.forEach((item) => {
+      let matchType = null;
+      if (item.content && item.content.toLowerCase().includes(lowerQuery)) {
+        matchType = "content";
+      } else if (item.notes && item.notes.toLowerCase().includes(lowerQuery)) {
+        matchType = "notes";
+      } else if (item.link && item.link.toLowerCase().includes(lowerQuery)) {
+        matchType = "link";
+      }
+      if (matchType) {
+        matchedItems.push({
+          ...item.toObject(),
+          matchType,
+        });
+      }
+    });
+
     const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
       q
     )}&format=json`;
-    const response = await fetch(url);
-    const data = await response.json();
-    res.json(data);
+    const ddgRes = await fetch(url);
+    const ddgData = await ddgRes.json();
+
+    res.json({
+      items: matchedItems,
+      sections,
+      duckduckgo: ddgData,
+    });
   } catch (err) {
-    res.status(500).json({ error: "DuckDuckGo fetch failed" });
+    console.error("Search error:", err);
+    res.status(500).json({ error: "Search failed" });
   }
 };
