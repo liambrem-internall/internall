@@ -2,6 +2,7 @@ import React from "react";
 import "./SlidingMenu.css";
 import Searchbar from "./Searchbar";
 import { IoMdClose } from "react-icons/io";
+import { FaSearch } from "react-icons/fa";
 
 
 const SlidingMenu = ({ open, onClose }) => {
@@ -14,7 +15,11 @@ const SlidingMenu = ({ open, onClose }) => {
         </button>
       </div>
       <Searchbar />
-      {/* Add search results here later */}
+      {/* search results will go here */}
+      <div className="search-placeholder">
+        <FaSearch size={100} />
+        <p>Start typing to see results...</p>
+      </div>
     </div>
   );
 };
