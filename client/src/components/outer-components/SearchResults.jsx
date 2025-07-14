@@ -1,13 +1,14 @@
 import "./SearchResults.css";
 
 const SearchResults = ({ webResults }) => {
+  const topics = webResults.RelatedTopics;
+
   return (
     <div className="search-results">
-      {webResults.AbstractText && <p>{webResults.AbstractText}</p>}
-      {webResults.RelatedTopics && webResults.RelatedTopics.length > 0 && (
+      {topics.length > 0 && (
         <ul>
-          {webResults.RelatedTopics
-            .filter(topic => topic.Text || topic.FirstURL)
+          {topics
+            .filter((topic) => topic.Text || topic.FirstURL)
             .map((topic, idx) => (
               <li key={idx} className="search-result-item">
                 {topic.Text && <span>{topic.Text}</span>}
@@ -28,6 +29,5 @@ const SearchResults = ({ webResults }) => {
     </div>
   );
 };
-
 
 export default SearchResults;
