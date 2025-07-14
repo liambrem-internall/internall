@@ -13,6 +13,7 @@ import SlidingMenu from "../outer-components/SlidingMenu";
 import LightBallsOverlay from "../visuals/LightBallsOverlay";
 import { FaSearch } from "react-icons/fa";
 
+import "./UserPage.css";
 
 const getDisplayName = (user) => {
   return user?.nickname || user?.name || user?.email || "Anonymous";
@@ -28,24 +29,25 @@ const UserPage = ({ setUserReady, userReady, viewMode, setViewMode }) => {
   const userId = user?.sub;
   const nickname = getDisplayName(user);
 
-  useEffect(() => { // handles connecting for entire client lifecycle
-  if (!roomId || !userId || !nickname) return;
+  useEffect(() => {
+    // handles connecting for entire client lifecycle
+    if (!roomId || !userId || !nickname) return;
 
-  const handleConnect = () => {
-    socket.emit(roomActions.JOIN, { roomId, userId, nickname });
-  };
+    const handleConnect = () => {
+      socket.emit(roomActions.JOIN, { roomId, userId, nickname });
+    };
 
-  if (socket.connected) {
-    handleConnect();
-  } else {
-    socket.once("connect", handleConnect);
-  }
+    if (socket.connected) {
+      handleConnect();
+    } else {
+      socket.once("connect", handleConnect);
+    }
 
-  return () => {
-    socket.emit(roomActions.LEAVE, { roomId });
-    socket.off("connect", handleConnect);
-  };
-}, [roomId, userId, nickname]);
+    return () => {
+      socket.emit(roomActions.LEAVE, { roomId });
+      socket.off("connect", handleConnect);
+    };
+  }, [roomId, userId, nickname]);
 
   if (isLoading) return <div>Loading...</div>;
   if (!isAuthenticated || !user) return <LoggedOut />;
@@ -58,26 +60,16 @@ const UserPage = ({ setUserReady, userReady, viewMode, setViewMode }) => {
           <LightBallsOverlay />
           <Navigation />
           <button
-            style={{
-              position: "fixed",
-              top: 24,
-              right: 24,
-              zIndex: 0,
-              background: "var(--pink2)",
-              color: "#fff",
-              border: "none",
-              borderRadius: "50%",
-              width: "48px",
-              height: "48px",
-              fontSize: "1.5rem",
-              cursor: "pointer",
-            }}
+            className="search-button"
             onClick={() => setSearchMenuOpen(true)}
             aria-label="Open search"
           >
             <FaSearch />
           </button>
-          <SlidingMenu open={searchMenuOpen} onClose={() => setSearchMenuOpen(false)} />
+          <SlidingMenu
+            open={searchMenuOpen}
+            onClose={() => setSearchMenuOpen(false)}
+          />
           <SectionList />
         </div>
       ) : (
