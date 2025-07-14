@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { socket } from "../../utils/socket";
 import { roomActions } from "../../utils/constants";
@@ -9,7 +9,11 @@ import EnsureUserInDB from "./EnsureUserInDB";
 import LoggedOut from "../logged-out-page/LoggedOut";
 import SectionList from "../main-content/SectionList";
 import Navigation from "../outer-components/Navigation";
+import SlidingMenu from "../outer-components/SlidingMenu";
 import LightBallsOverlay from "../visuals/LightBallsOverlay";
+import { FaSearch } from "react-icons/fa";
+
+import "./UserPage.css";
 
 const getDisplayName = (user) => {
   return user?.nickname || user?.name || user?.email || "Anonymous";
@@ -18,30 +22,32 @@ const getDisplayName = (user) => {
 const UserPage = ({ setUserReady, userReady, viewMode, setViewMode }) => {
   const { user, isLoading, isAuthenticated } = useAuth0();
   const { username } = useParams();
+  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const isOwnPage =
     user && (username === user.nickname || username === user.name);
   const roomId = username;
   const userId = user?.sub;
   const nickname = getDisplayName(user);
 
-  useEffect(() => { // handles connecting for entire client lifecycle
-  if (!roomId || !userId || !nickname) return;
+  useEffect(() => {
+    // handles connecting for entire client lifecycle
+    if (!roomId || !userId || !nickname) return;
 
-  const handleConnect = () => {
-    socket.emit(roomActions.JOIN, { roomId, userId, nickname });
-  };
+    const handleConnect = () => {
+      socket.emit(roomActions.JOIN, { roomId, userId, nickname });
+    };
 
-  if (socket.connected) {
-    handleConnect();
-  } else {
-    socket.once("connect", handleConnect);
-  }
+    if (socket.connected) {
+      handleConnect();
+    } else {
+      socket.once("connect", handleConnect);
+    }
 
-  return () => {
-    socket.emit(roomActions.LEAVE, { roomId });
-    socket.off("connect", handleConnect);
-  };
-}, [roomId, userId, nickname]);
+    return () => {
+      socket.emit(roomActions.LEAVE, { roomId });
+      socket.off("connect", handleConnect);
+    };
+  }, [roomId, userId, nickname]);
 
   if (isLoading) return <div>Loading...</div>;
   if (!isAuthenticated || !user) return <LoggedOut />;
@@ -53,6 +59,17 @@ const UserPage = ({ setUserReady, userReady, viewMode, setViewMode }) => {
         <div className="App">
           <LightBallsOverlay />
           <Navigation />
+          <button
+            className="search-button"
+            onClick={() => setSearchMenuOpen(true)}
+            aria-label="Open search"
+          >
+            <FaSearch />
+          </button>
+          <SlidingMenu
+            open={searchMenuOpen}
+            onClose={() => setSearchMenuOpen(false)}
+          />
           <SectionList />
         </div>
       ) : (

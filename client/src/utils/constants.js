@@ -56,3 +56,5 @@ export const cursorEvents = Object.freeze({
 });
 
 export const THROTTLE_MS = 33;
+
+export const logPageSize = 49;

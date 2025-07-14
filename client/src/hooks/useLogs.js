@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
+import { logPageSize } from '../utils/constants';
 
 const useLogs = () => {
   const [logs, setLogs] = useState([]);
 
   const addLog = useCallback((msg) => {
-    setLogs((prev) => [...prev.slice(-49), msg]); // keep last 50 logs
+    setLogs((prev) => [...prev.slice(-logPageSize), msg]);
   }, []);
 
   return {
