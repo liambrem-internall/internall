@@ -1,5 +1,28 @@
 const URL = import.meta.env.VITE_API_URL;
 
+/**
+ * Custom hook for managing save logic for sections and items.
+ *
+ * @param {Function} setShowModal - Show/hide the section modal.
+ * @param {Function} setShowItemModal - Show/hide the item modal.
+ * @param {Function} setTargetSectionId - Set the target section for editing.
+ * @param {Function} setSections - Update the sections object.
+ * @param {Function} setSectionOrder - Update the order of sections.
+ * @param {Function} getAccessTokenSilently - Auth0 token fetcher for API calls.
+ * @param {string} username - Current user's username.
+ * @param {Object} currentUser - Current user object.
+ * @param {Function} addLog - Function to add a log entry.
+ * @param {Function} setPendingSectionTitle - Set pending section title.
+ * @param {string} pendingSectionTitle - Current pending section title.
+ * @param {Object} editingItem - Current item being edited.
+ * @param {Function} setEditingItem - Set the editing item.
+ * @param {string} targetSectionId - Current target section ID.
+ * @param {Function} apiFetch - API fetch utility.
+ * @returns {Object} Handlers for saving sections and items.
+ * @example
+ * const { handleSaveSection, handleSaveItem } = useSaveHandlers(...);
+ */
+
 const useSaveHandlers = (
   setShowModal,
   setShowItemModal,
@@ -15,7 +38,7 @@ const useSaveHandlers = (
   editingItem,
   setEditingItem,
   targetSectionId,
-  apiFetch,
+  apiFetch
 ) => {
   const handleSaveSection = async () => {
     const newSection = await apiFetch({
