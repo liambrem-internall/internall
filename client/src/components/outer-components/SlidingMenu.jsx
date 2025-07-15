@@ -38,6 +38,7 @@ const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
             items={results.items}
             sections={results.sections}
             webResults={results.duckduckgo}
+            semantic={results.semantic}
             onItemClick={(item) => {
               // edit an item
               setShowItemModal(true);

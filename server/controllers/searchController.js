@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Fuse = require("fuse.js");
 
 const { ITEM_CONTENT_TYPES } = require("../utils/constants");
+const { getEmbedding } = require("../utils/embedder");
 
 const THRESHOLD = 0.4;
 
@@ -11,7 +12,7 @@ const WEIGHTS = {
   CONTENT: 0.4,
   NOTES: 0.4,
   LINK: 0.2,
-}
+};
 
 const fuzzySearchSections = (sections, query) => {
   const fuse = new Fuse(sections, {
@@ -65,6 +66,13 @@ const fetchDuckDuckGoData = async (query) => {
   return ddgRes.json();
 };
 
+const cosineSimilarity = (a, b) => {
+  const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
+  const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
+  const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
+  return dot / (normA * normB);
+};
+
 exports.search = async (req, res) => {
   const { q, roomId } = req.query;
   if (!q) return res.status(400).json({ error: "Missing query" });
@@ -77,17 +85,43 @@ exports.search = async (req, res) => {
     const userSections = await Section.find({ userId: user.auth0Id });
     const sectionIds = userSections.map((section) => section._id);
 
+    // fuzzy search
     const fuzzySections = fuzzySearchSections(userSections, q);
-
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
     const fuzzyItems = fuzzySearchItems(itemsRaw, q);
 
+    // ddg search
     const ddgData = await fetchDuckDuckGoData(q);
+
+    // semantic search
+    const queryEmbedding = await getEmbedding(q);
+
+    const semanticItems = itemsRaw
+      .filter((item) => item.embedding && item.embedding.length)
+      .map((item) => ({
+        ...item.toObject(),
+        similarity: cosineSimilarity(queryEmbedding, item.embedding),
+      }))
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 20);
+
+    const semanticSections = userSections
+      .filter((section) => section.embedding && section.embedding.length)
+      .map((section) => ({
+        ...section.toObject(),
+        similarity: cosineSimilarity(queryEmbedding, section.embedding),
+      }))
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 10);
 
     res.json({
       items: fuzzyItems,
       sections: fuzzySections,
       duckduckgo: ddgData,
+      semantic: {
+        items: semanticItems,
+        sections: semanticSections,
+      },
     });
   } catch (err) {
     console.error("Search error:", err);

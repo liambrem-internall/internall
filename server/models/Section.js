@@ -24,6 +24,10 @@ const SectionSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  embedding: {
+    type: [Number],
+    default: []
+  },
 });
 
 module.exports = mongoose.model("Section", SectionSchema);
