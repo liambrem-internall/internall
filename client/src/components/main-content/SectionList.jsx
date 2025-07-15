@@ -48,23 +48,21 @@ import "./SectionList.css";
 
 const URL = import.meta.env.VITE_API_URL;
 
-const SectionList = () => {
+const SectionList = ({
+  showItemModal,
+  setShowItemModal,
+  editingItem,
+  setEditingItem,
+}) => {
   const {
     sectionState: { sections, setSections, sectionOrder, setSectionOrder },
     modalState: {
       showModal,
       setShowModal,
-      showItemModal,
-      setShowItemModal,
       pendingSectionTitle,
       setPendingSectionTitle,
     },
-    editingState: {
-      targetSectionId,
-      setTargetSectionId,
-      editingItem,
-      setEditingItem,
-    },
+    editingState: { targetSectionId, setTargetSectionId },
     dragState: {
       activeId,
       setActiveId,

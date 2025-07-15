@@ -9,7 +9,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import { PersonOutline24 } from "metau-meta-icons";
+import { BsFillPersonFill } from "react-icons/bs";
 import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
 
 import ViewContext from "../../ViewContext";
@@ -35,7 +35,7 @@ const Navigation = () => {
         <Tooltip id={`tooltip-${user.socketId}`}>{user.nickname}</Tooltip>
       }
     >
-      <PersonOutline24
+      <BsFillPersonFill
         fontSize={25}
         style={{
           display: "inline-block",

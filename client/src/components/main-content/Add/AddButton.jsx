@@ -1,6 +1,7 @@
 import { useDraggable } from "@dnd-kit/core";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
-import { PlusOutline24 } from "metau-meta-icons";
+import { FaPlus } from "react-icons/fa6";
+
 import { SectionActions, DraggableComponentTypes } from "../../../utils/constants";
 import "./AddButton.css";
 
@@ -23,7 +24,7 @@ const AddButton = () => {
         {...attributes}
         style={{ opacity: isDragging ? 0.5 : 1 }}
       >
-        <PlusOutline24 className="add-plus-icon" />
+        <FaPlus className="add-plus-icon" />
       </button>
     </OverlayTrigger>
   );
