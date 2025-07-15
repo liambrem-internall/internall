@@ -3,7 +3,6 @@ const ItemResults = ({ items, onItemClick }) => {
 
   return (
     <div>
-      <h3>Items</h3>
       <ul>
         {items.map((item) => (
           <li
@@ -16,6 +15,11 @@ const ItemResults = ({ items, onItemClick }) => {
               {item.matchType && (
                 <span className="match-type">
                   (matched in {item.matchType})
+                </span>
+              )}
+              {item.similarity && (
+                <span className="match-type">
+                  (semantic score: {item.similarity.toFixed(2)})
                 </span>
               )}
             </div>
