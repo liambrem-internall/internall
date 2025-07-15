@@ -19,10 +19,12 @@ const getDisplayName = (user) => {
   return user?.nickname || user?.name || user?.email || "Anonymous";
 };
 
-const UserPage = ({ setUserReady, userReady, viewMode, setViewMode }) => {
+const UserPage = ({ setUserReady, userReady }) => {
   const { user, isLoading, isAuthenticated } = useAuth0();
   const { username } = useParams();
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
+  const [showItemModal, setShowItemModal] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   const isOwnPage =
     user && (username === user.nickname || username === user.name);
   const roomId = username;
@@ -69,8 +71,15 @@ const UserPage = ({ setUserReady, userReady, viewMode, setViewMode }) => {
           <SlidingMenu
             open={searchMenuOpen}
             onClose={() => setSearchMenuOpen(false)}
+            setShowItemModal={setShowItemModal}
+            setEditingItem={setEditingItem}
           />
-          <SectionList />
+          <SectionList
+            showItemModal={showItemModal}
+            setShowItemModal={setShowItemModal}
+            editingItem={editingItem}
+            setEditingItem={setEditingItem}
+          />
         </div>
       ) : (
         <div>Loading...</div>
