@@ -6,7 +6,7 @@ const Section = require("../models/Section");
 const Item = require("../models/Item");
 const itemEvents = require("../events/itemEvents");
 const { ITEMS_FIELD } = require("../utils/constants");
-const MICROSERVICE_URL = process.env.MICROSERVICE_URL;
+const { getEmbedding } = require("../utils/embedder");
 
 exports.getItems = async (req, res) => {
   try {
@@ -26,13 +26,7 @@ exports.createItem = async (req, res) => {
     if (!section) return res.status(404).json({ error: "Section not found" });
 
     // get embedding from Python microservice
-    const embedRes = await fetch(`${MICROSERVICE_URL}/embed`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ texts: [req.body.content] }),
-    });
-    const embedJson = await embedRes.json();
-    const embedding = embedJson.embeddings[0];
+    const embedding = await getEmbedding(req.body.content);
 
     const newItem = new Item({ ...req.body, embedding });
     await newItem.save();
@@ -61,13 +55,7 @@ exports.updateItem = async (req, res) => {
 
     // If content is updated, get a new embedding
     if (req.body.content && req.body.content !== item.content) {
-      const embedRes = await fetch(`${MICROSERVICE_URL}/embed`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texts: [req.body.content] }),
-      });
-      const embedJson = await embedRes.json();
-      item.embedding = embedJson.embeddings[0];
+      item.embedding = await getEmbedding(req.body.content);
     }
 
     // item fields are updated only if in body
