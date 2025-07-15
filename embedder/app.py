@@ -11,7 +11,6 @@ class TextsRequest(BaseModel):
 
 @app.post("/embed")
 async def embed_texts(request: TextsRequest):
-    print('hit')
     if not request.texts or not all(isinstance(t, str) and t.strip() for t in request.texts):
         raise HTTPException(status_code=400, detail="Input must be a non-empty list of non-empty strings.")
     embeddings = model.encode(request.texts)
