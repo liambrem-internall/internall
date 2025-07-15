@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import "./SlidingMenu.css";
 import Searchbar from "./Searchbar";
@@ -11,14 +11,17 @@ const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
   const [results, setResults] = useState(null);
   const { username: roomId } = useParams();
 
-  const handleSearch = async (query) => {
-    if (!query) {
-      setResults(null);
-      return;
-    }
-    const data = await combinedSearch(query, roomId);
-    setResults(data);
-  };
+  const handleSearch = useCallback(
+    async (query) => {
+      if (!query) {
+        setResults(null);
+        return;
+      }
+      const data = await combinedSearch(query, roomId);
+      setResults(data);
+    },
+    [roomId] 
+  );
 
   return (
     <div className={`sliding-menu${open ? " open" : ""}`}>
