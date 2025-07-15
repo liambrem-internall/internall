@@ -5,7 +5,6 @@ const WebResults = ({ webResults }) => {
 
   return (
     <div>
-      <h3>Web Results</h3>
       <ul>
         {topics
           .filter((topic) => topic.Text || topic.FirstURL)

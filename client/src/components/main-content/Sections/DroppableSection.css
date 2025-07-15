@@ -9,7 +9,6 @@
     #25252692 100%
   );
   border-radius: var(--border-radius);
-  /* border: 1px solid var(--gray3); */
   min-width: 20vw;
   max-width: 20vw;
   min-height: 7vh;
@@ -30,6 +29,7 @@
 }
 
 .section-header h3 {
+  font-size: 1.4em;
   margin: 0 0 0 10px;
 }
 

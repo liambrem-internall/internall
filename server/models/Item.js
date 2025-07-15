@@ -23,6 +23,10 @@ const ItemSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Section",
     required: true
+  },
+  embedding: {
+    type: [Number],
+    default: []
   }
 });
 

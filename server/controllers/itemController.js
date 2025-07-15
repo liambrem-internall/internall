@@ -6,6 +6,7 @@ const Section = require("../models/Section");
 const Item = require("../models/Item");
 const itemEvents = require("../events/itemEvents");
 const { ITEMS_FIELD } = require("../utils/constants");
+const { getEmbedding } = require("../utils/embedder");
 
 exports.getItems = async (req, res) => {
   try {
@@ -24,7 +25,10 @@ exports.createItem = async (req, res) => {
     const section = await Section.findById(req.params.sectionId);
     if (!section) return res.status(404).json({ error: "Section not found" });
 
-    const newItem = new Item(req.body);
+    // get embedding from Python microservice
+    const embedding = await getEmbedding(req.body.content);
+
+    const newItem = new Item({ ...req.body, embedding });
     await newItem.save();
 
     section.items.push(newItem._id);
@@ -48,6 +52,11 @@ exports.updateItem = async (req, res) => {
 
     const oldSectionId = item.sectionId.toString();
     const newSectionId = req.body.sectionId;
+
+    // If content is updated, get a new embedding
+    if (req.body.content && req.body.content !== item.content) {
+      item.embedding = await getEmbedding(req.body.content);
+    }
 
     // item fields are updated only if in body
     item.content = req.body.content ?? item.content;
@@ -86,12 +95,14 @@ exports.updateItemOrder = async (req, res) => {
       req.params.sectionId,
       { items: order },
       { new: true }
-    ).populate('items');
+    ).populate("items");
     if (!section) return res.status(404).json({ error: "Section not found" });
-    let content = '';
+    let content = "";
     if (section.items.length > 0) {
-      const firstItem = section.items.find(i => i._id.toString() === order[0]);
-      content = firstItem?.content || '';
+      const firstItem = section.items.find(
+        (i) => i._id.toString() === order[0]
+      );
+      content = firstItem?.content || "";
     }
     itemEvents.emitItemOrderUpdated(
       req.params.username,
