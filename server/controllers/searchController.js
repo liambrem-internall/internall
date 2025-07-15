@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Fuse = require("fuse.js");
 
 const { ITEM_CONTENT_TYPES } = require("../utils/constants");
+const { getEmbedding } = require("../utils/embedder");
 
 const THRESHOLD = 0.4;
 
@@ -11,7 +12,7 @@ const WEIGHTS = {
   CONTENT: 0.4,
   NOTES: 0.4,
   LINK: 0.2,
-}
+};
 
 const fuzzySearchSections = (sections, query) => {
   const fuse = new Fuse(sections, {
@@ -50,8 +51,6 @@ const fuzzySearchItems = (items, query) => {
     ) {
       matchType = ITEM_CONTENT_TYPES.LINK;
     }
-
-    console.log(`Fuzzy match found: ${item._id} (${matchType}) for query "${query}"`);
     return {
       ...item.toObject(),
       matchType,
@@ -67,14 +66,12 @@ const fetchDuckDuckGoData = async (query) => {
   return ddgRes.json();
 };
 
-
 const cosineSimilarity = (a, b) => {
   const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
   const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
   const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
   return dot / (normA * normB);
-}
-
+};
 
 exports.search = async (req, res) => {
   const { q, roomId } = req.query;
@@ -88,26 +85,20 @@ exports.search = async (req, res) => {
     const userSections = await Section.find({ userId: user.auth0Id });
     const sectionIds = userSections.map((section) => section._id);
 
-    // Fuzzy search
+    // fuzzy search
     const fuzzySections = fuzzySearchSections(userSections, q);
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
     const fuzzyItems = fuzzySearchItems(itemsRaw, q);
 
-    // DuckDuckGo search
+    // ddg search
     const ddgData = await fetchDuckDuckGoData(q);
 
-    // Semantic search
-    const embedRes = await fetch(process.env.MICROSERVICE_URL + "/embed", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ texts: [q] }),
-    });
-    const embedJson = await embedRes.json();
-    const queryEmbedding = embedJson.embeddings[0];
+    // semantic search
+    const queryEmbedding = await getEmbedding(q);
 
     const semanticItems = itemsRaw
-      .filter(item => item.embedding && item.embedding.length)
-      .map(item => ({
+      .filter((item) => item.embedding && item.embedding.length)
+      .map((item) => ({
         ...item.toObject(),
         similarity: cosineSimilarity(queryEmbedding, item.embedding),
       }))
@@ -115,8 +106,8 @@ exports.search = async (req, res) => {
       .slice(0, 20);
 
     const semanticSections = userSections
-      .filter(section => section.embedding && section.embedding.length)
-      .map(section => ({
+      .filter((section) => section.embedding && section.embedding.length)
+      .map((section) => ({
         ...section.toObject(),
         similarity: cosineSimilarity(queryEmbedding, section.embedding),
       }))
@@ -130,7 +121,7 @@ exports.search = async (req, res) => {
       semantic: {
         items: semanticItems,
         sections: semanticSections,
-      }
+      },
     });
   } catch (err) {
     console.error("Search error:", err);

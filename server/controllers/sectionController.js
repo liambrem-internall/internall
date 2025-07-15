@@ -6,7 +6,7 @@ const Section = require("../models/Section");
 const User = require("../models/User");
 const sectionEvents = require("../events/sectionEvents");
 const { ITEMS_FIELD } = require("../utils/constants");
-const MICROSERVICE_URL = process.env.MICROSERVICE_URL;
+const { getEmbedding } = require("../utils/embedder");
 
 exports.getSectionsByUsername = async (req, res) => {
   try {
@@ -76,17 +76,15 @@ exports.createSection = async (req, res) => {
     const pageOwner = await User.findOne({ username: req.params.username });
     if (!pageOwner) return res.status(404).json({ error: "User not found" });
 
-    // Get embedding for the section title
-    const embedRes = await fetch(`${MICROSERVICE_URL}/embed`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ texts: [req.body.title] }),
-    });
-    const embedJson = await embedRes.json();
-    const embedding = embedJson.embeddings[0];
+    // get embedding for the section title
+    const embedding = await getEmbedding(req.body.title);
 
     // attach the page owner's auth0Id
-    const newSection = new Section({ ...req.body, userId: pageOwner.auth0Id });
+    const newSection = new Section({
+      ...req.body,
+      userId: pageOwner.auth0Id,
+      embedding,
+    });
     await newSection.save();
     await User.findOneAndUpdate(
       { auth0Id: pageOwner.auth0Id },
@@ -109,13 +107,7 @@ exports.updateSection = async (req, res) => {
   try {
     let embedding;
     if (req.body.title) {
-      const embedRes = await fetch(`${MICROSERVICE_URL}/embed`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texts: [req.body.title] }),
-      });
-      const embedJson = await embedRes.json();
-      embedding = embedJson.embeddings[0];
+      embedding = await getEmbedding(req.body.title);
     }
 
     const updateData = { ...req.body };
