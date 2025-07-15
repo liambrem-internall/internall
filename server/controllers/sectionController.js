@@ -6,6 +6,7 @@ const Section = require("../models/Section");
 const User = require("../models/User");
 const sectionEvents = require("../events/sectionEvents");
 const { ITEMS_FIELD } = require("../utils/constants");
+const MICROSERVICE_URL = process.env.MICROSERVICE_URL;
 
 exports.getSectionsByUsername = async (req, res) => {
   try {
@@ -57,7 +58,6 @@ exports.updateSectionOrder = async (req, res) => {
       movedTitle = movedSection ? movedSection.title : "";
     }
 
-
     sectionEvents.emitSectionOrderUpdated(
       req.params.username,
       order,
@@ -75,6 +75,15 @@ exports.createSection = async (req, res) => {
     // find page owner
     const pageOwner = await User.findOne({ username: req.params.username });
     if (!pageOwner) return res.status(404).json({ error: "User not found" });
+
+    // Get embedding for the section title
+    const embedRes = await fetch(`${MICROSERVICE_URL}/embed`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts: [req.body.title] }),
+    });
+    const embedJson = await embedRes.json();
+    const embedding = embedJson.embeddings[0];
 
     // attach the page owner's auth0Id
     const newSection = new Section({ ...req.body, userId: pageOwner.auth0Id });
@@ -98,7 +107,21 @@ exports.createSection = async (req, res) => {
 
 exports.updateSection = async (req, res) => {
   try {
-    const section = await Section.findByIdAndUpdate(req.params.id, req.body, {
+    let embedding;
+    if (req.body.title) {
+      const embedRes = await fetch(`${MICROSERVICE_URL}/embed`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texts: [req.body.title] }),
+      });
+      const embedJson = await embedRes.json();
+      embedding = embedJson.embeddings[0];
+    }
+
+    const updateData = { ...req.body };
+    if (embedding) updateData.embedding = embedding;
+
+    const section = await Section.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
     });
     if (!section) return res.status(404).json({ error: "Section not found" });
