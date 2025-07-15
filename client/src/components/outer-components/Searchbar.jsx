@@ -1,14 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Searchbar.css";
+import { DEBOUNCE_DELAY } from "../../utils/constants"; 
 
 const Searchbar = ({ onSearch }) => {
   const [query, setQuery] = useState("");
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (onSearch) {
+        onSearch(query);
+      }
+    }, DEBOUNCE_DELAY);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [query]);
+
   const handleChange = (e) => {
     setQuery(e.target.value);
-    if (onSearch) {
-      onSearch(e.target.value);
-    }
   };
 
   return (
