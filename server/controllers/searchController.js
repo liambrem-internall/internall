@@ -2,7 +2,10 @@ const Item = require("../models/Item");
 const Section = require("../models/Section");
 const User = require("../models/User");
 
-function escapeRegex(string) {
+const { ITEM_CONTENT_TYPES } = require("../utils/constants");
+
+// escape special characters
+const escapeRegex = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
@@ -12,7 +15,6 @@ exports.search = async (req, res) => {
   if (!roomId) return res.status(400).json({ error: "Missing roomId" });
 
   try {
-    // Find user by roomId (username)
     const user = await User.findOne({ username: roomId });
     if (!user) return res.status(404).json({ error: "User/Room not found" });
 
@@ -23,7 +25,7 @@ exports.search = async (req, res) => {
       title: { $regex: safeQuery, $options: "i" },
     });
 
-    // First get all sections for this user, then find items in those sections
+    // get all sections for this user then find items in those sections
     const userSections = await Section.find({ userId: user.auth0Id });
     const sectionIds = userSections.map(section => section._id);
     
@@ -35,11 +37,11 @@ exports.search = async (req, res) => {
     itemsRaw.forEach((item) => {
       let matchType = null;
       if (item.content && item.content.toLowerCase().includes(lowerQuery)) {
-        matchType = "content";
+        matchType = ITEM_CONTENT_TYPES.CONTENT;
       } else if (item.notes && item.notes.toLowerCase().includes(lowerQuery)) {
-        matchType = "notes";
+        matchType = ITEM_CONTENT_TYPES.NOTES;
       } else if (item.link && item.link.toLowerCase().includes(lowerQuery)) {
-        matchType = "link";
+        matchType = ITEM_CONTENT_TYPES.LINK;
       }
       if (matchType) {
         matchedItems.push({

@@ -7,7 +7,7 @@ import { FaSearch } from "react-icons/fa";
 import { combinedSearch } from "../../utils/functions/combinedSearch";
 import SearchResults from "./SearchResults";
 
-const SlidingMenu = ({ open, onClose }) => {
+const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
   const [results, setResults] = useState(null);
   const { username: roomId } = useParams();
 
@@ -36,9 +36,10 @@ const SlidingMenu = ({ open, onClose }) => {
             sections={results.sections}
             webResults={results.duckduckgo}
             onItemClick={(item) => {
-              // open modal for editing
-              // setShowItemModal(true);
-              // setEditingItem(item);
+              // edit an item
+              setShowItemModal(true);
+              setEditingItem(item);
+              onClose()
             }}
           />
         ) : (
