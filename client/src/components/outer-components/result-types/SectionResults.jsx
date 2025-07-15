@@ -3,7 +3,6 @@ const SectionResults = ({ sections }) => {
 
   return (
     <div>
-      <h3>Sections</h3>
       <ul>
         {sections.map((section) => (
           <li key={section._id} className="search-result-item">
