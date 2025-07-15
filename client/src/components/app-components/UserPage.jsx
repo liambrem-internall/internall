@@ -60,26 +60,30 @@ const UserPage = ({ setUserReady, userReady }) => {
       {(isOwnPage ? userReady : true) ? (
         <div className="App">
           <LightBallsOverlay />
-          <Navigation />
-          <button
-            className="search-button"
-            onClick={() => setSearchMenuOpen(true)}
-            aria-label="Open search"
-          >
-            <FaSearch />
-          </button>
-          <SlidingMenu
-            open={searchMenuOpen}
-            onClose={() => setSearchMenuOpen(false)}
-            setShowItemModal={setShowItemModal}
-            setEditingItem={setEditingItem}
-          />
-          <SectionList
-            showItemModal={showItemModal}
-            setShowItemModal={setShowItemModal}
-            editingItem={editingItem}
-            setEditingItem={setEditingItem}
-          />
+          <div className="app-header">
+            <Navigation />
+            <button
+              className="search-button"
+              onClick={() => setSearchMenuOpen(true)}
+              aria-label="Open search"
+            >
+              <FaSearch />
+            </button>
+          </div>
+          <div className="app-content">
+            <SlidingMenu
+              open={searchMenuOpen}
+              onClose={() => setSearchMenuOpen(false)}
+              setShowItemModal={setShowItemModal}
+              setEditingItem={setEditingItem}
+            />
+            <SectionList
+              showItemModal={showItemModal}
+              setShowItemModal={setShowItemModal}
+              editingItem={editingItem}
+              setEditingItem={setEditingItem}
+            />
+          </div>
         </div>
       ) : (
         <div>Loading...</div>
