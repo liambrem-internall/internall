@@ -1,31 +1,19 @@
 import "./SearchResults.css";
+import ItemResults from "./result-types/ItemResults";
+import SectionResults from "./result-types/SectionResults";
+import WebResults from "./result-types/WebResults";
 
-const SearchResults = ({ webResults }) => {
-  const topics = webResults.RelatedTopics;
-
+const SearchResults = ({
+  items = [],
+  sections = [],
+  webResults = {},
+  onItemClick,
+}) => {
   return (
     <div className="search-results">
-      {topics.length > 0 && (
-        <ul>
-          {topics
-            .filter((topic) => topic.Text || topic.FirstURL)
-            .map((topic, idx) => (
-              <li key={idx} className="search-result-item">
-                {topic.Text && <span>{topic.Text}</span>}
-                {topic.FirstURL && (
-                  <a
-                    href={topic.FirstURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="search-result-link"
-                  >
-                    Learn more
-                  </a>
-                )}
-              </li>
-            ))}
-        </ul>
-      )}
+      <ItemResults items={items} onItemClick={onItemClick} />
+      <SectionResults sections={sections} />
+      <WebResults webResults={webResults} />
     </div>
   );
 };

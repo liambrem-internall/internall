@@ -1,4 +1,4 @@
-import { CursorArrowMoveOutline24 } from "metau-meta-icons";
+import { BsCursor } from "react-icons/bs";
 
 const CursorOverlay = ({ cursors }) => (
   <>
@@ -17,7 +17,7 @@ const CursorOverlay = ({ cursors }) => (
         }}
       >
         <svg width="24" height="24">
-          <CursorArrowMoveOutline24 />
+          <BsCursor />
         </svg>
       </div>
     ))}

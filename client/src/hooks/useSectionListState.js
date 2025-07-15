@@ -7,12 +7,10 @@ const useSectionListState = () => {
   
   // modal state
   const [showModal, setShowModal] = useState(false);
-  const [showItemModal, setShowItemModal] = useState(false);
   const [pendingSectionTitle, setPendingSectionTitle] = useState("");
   
   // editing state
   const [targetSectionId, setTargetSectionId] = useState(null);
-  const [editingItem, setEditingItem] = useState(null);
   
   // drag state
   const [activeId, setActiveId] = useState(null);
@@ -32,16 +30,12 @@ const useSectionListState = () => {
     modalState: {
       showModal,
       setShowModal,
-      showItemModal,
-      setShowItemModal,
       pendingSectionTitle,
       setPendingSectionTitle,
     },
     editingState: {
       targetSectionId,
       setTargetSectionId,
-      editingItem,
-      setEditingItem,
     },
     dragState: {
       activeId,

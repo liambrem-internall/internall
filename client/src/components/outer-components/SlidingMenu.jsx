@@ -1,20 +1,22 @@
 import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import "./SlidingMenu.css";
 import Searchbar from "./Searchbar";
 import { IoMdClose } from "react-icons/io";
 import { FaSearch } from "react-icons/fa";
-import { duckDuckGoSearch } from "../../utils/functions/duckDuckGoSearch";
+import { combinedSearch } from "../../utils/functions/combinedSearch";
 import SearchResults from "./SearchResults";
 
-const SlidingMenu = ({ open, onClose }) => {
+const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
   const [results, setResults] = useState(null);
+  const { username: roomId } = useParams();
 
   const handleSearch = async (query) => {
     if (!query) {
       setResults(null);
       return;
     }
-    const data = await duckDuckGoSearch(query);
+    const data = await combinedSearch(query, roomId);
     setResults(data);
   };
 
@@ -29,7 +31,17 @@ const SlidingMenu = ({ open, onClose }) => {
       <Searchbar onSearch={handleSearch} />
       <div className="search-results">
         {results ? (
-          <SearchResults webResults={results} />
+          <SearchResults
+            items={results.items}
+            sections={results.sections}
+            webResults={results.duckduckgo}
+            onItemClick={(item) => {
+              // edit an item
+              setShowItemModal(true);
+              setEditingItem(item);
+              onClose()
+            }}
+          />
         ) : (
           <div className="search-placeholder">
             <FaSearch size={100} />

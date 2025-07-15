@@ -43,6 +43,12 @@ const cursorEvents = Object.freeze({
 
 const ITEMS_FIELD = "items";
 
+const ITEM_CONTENT_TYPES = Object.freeze({
+  CONTENT: "content",
+  NOTES: "notes",
+  LINK: "link",
+});
+
 module.exports = {
   roomActions,
   COLORS,
@@ -50,4 +56,5 @@ module.exports = {
   itemEvents,
   cursorEvents,
   ITEMS_FIELD,
+  ITEM_CONTENT_TYPES,
 };
