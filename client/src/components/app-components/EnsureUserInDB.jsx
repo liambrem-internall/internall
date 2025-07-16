@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
 import { apiFetch } from "../../utils/apiFetch";
+import LoadingState from "./LoadingState";
 
 const URL = import.meta.env.VITE_API_URL;
 
@@ -32,7 +33,7 @@ const EnsureUserInDB = ({ onReady }) => {
     createUserIfNeeded();
   }, [isAuthenticated, getAccessTokenSilently, user, onReady]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingState />;
   return null;
 };
 
