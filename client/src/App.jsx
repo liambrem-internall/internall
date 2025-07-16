@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   Navigate,
@@ -13,6 +13,7 @@ import ViewContext from "./ViewContext";
 import { ViewModes } from "./utils/constants";
 import LoggedOut from "./components/logged-out-page/LoggedOut";
 import UserPage from "./components/app-components/UserPage";
+import LoadingState from "./components/app-components/LoadingState";
 
 import "./App.css";
 
@@ -24,10 +25,18 @@ const App = () => {
   const [userReady, setUserReady] = useState(false);
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
 
+  useEffect(() => {
+    // remove the initial loader once React has mounted
+    const loader = document.getElementById('initial-loader');
+    if (loader) {
+      loader.remove();
+    }
+  }, []);
+
   const HomeRedirect = () => {
     const { isAuthenticated, user, isLoading } = useAuth0();
 
-    if (isLoading) return <div>Loading...</div>;
+    if (isLoading) return <LoadingState />;
     if (isAuthenticated && user) {
       const username = user.nickname || user.name;
       return <Navigate to={`/${username}`} replace />;
