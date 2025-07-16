@@ -12,6 +12,7 @@ import Navigation from "../outer-components/Navigation";
 import SlidingMenu from "../outer-components/SlidingMenu";
 import LightBallsOverlay from "../visuals/LightBallsOverlay";
 import { FaSearch } from "react-icons/fa";
+import LoadingState from "./LoadingState";
 
 import "./UserPage.css";
 
@@ -51,7 +52,6 @@ const UserPage = ({ setUserReady, userReady }) => {
     };
   }, [roomId, userId, nickname]);
 
-  if (isLoading) return <div>Loading...</div>;
   if (!isAuthenticated || !user) return <LoggedOut />;
 
   return (
@@ -86,7 +86,7 @@ const UserPage = ({ setUserReady, userReady }) => {
           </div>
         </div>
       ) : (
-        <div>Loading...</div>
+        <LoadingState />
       )}
     </>
   );
