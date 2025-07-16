@@ -7,6 +7,7 @@ const User = require("../models/User");
 const sectionEvents = require("../events/sectionEvents");
 const { ITEMS_FIELD } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
+const { addJob } = require("../utils/jobQueue");
 
 exports.getSectionsByUsername = async (req, res) => {
   try {
@@ -76,20 +77,25 @@ exports.createSection = async (req, res) => {
     const pageOwner = await User.findOne({ username: req.params.username });
     if (!pageOwner) return res.status(404).json({ error: "User not found" });
 
-    // get embedding for the section title
-    const embedding = await getEmbedding(req.body.title);
-
     // attach the page owner's auth0Id
     const newSection = new Section({
       ...req.body,
       userId: pageOwner.auth0Id,
-      embedding,
+      embedding: [],
     });
     await newSection.save();
     await User.findOneAndUpdate(
       { auth0Id: pageOwner.auth0Id },
       { $push: { sections: newSection._id } }
     );
+
+    // add embedding to job queue
+    addJob(async () => {
+      const embedding = await getEmbedding(newSection.title);
+      if (embedding) {
+        await Section.findByIdAndUpdate(newSection._id, { embedding });
+      }
+    });
 
     // push to other users
     sectionEvents.emitSectionCreated(req.params.username, {
