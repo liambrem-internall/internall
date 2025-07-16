@@ -7,6 +7,7 @@ const Item = require("../models/Item");
 const itemEvents = require("../events/itemEvents");
 const { ITEMS_FIELD } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
+const { addJob } = require("../utils/jobQueue");
 
 exports.getItems = async (req, res) => {
   try {
@@ -28,11 +29,19 @@ exports.createItem = async (req, res) => {
     // get embedding from Python microservice
     const embedding = await getEmbedding(req.body.content);
 
-    const newItem = new Item({ ...req.body, embedding });
+    const newItem = new Item({ ...req.body, embedding: [] });
     await newItem.save();
 
     section.items.push(newItem._id);
     await section.save();
+
+    // add embedding job to queue
+    addJob(async () => {
+      const embedding = await getEmbedding(newItem.content);
+      if (embedding) {
+        await Item.findByIdAndUpdate(newItem._id, { embedding });
+      }
+    });
 
     itemEvents.emitItemCreated(req.params.username, {
       ...newItem.toObject(),
@@ -53,10 +62,8 @@ exports.updateItem = async (req, res) => {
     const oldSectionId = item.sectionId.toString();
     const newSectionId = req.body.sectionId;
 
-    // If content is updated, get a new embedding
-    if (req.body.content && req.body.content !== item.content) {
-      item.embedding = await getEmbedding(req.body.content);
-    }
+
+    const contentChanged = req.body.content && req.body.content !== item.content;
 
     // item fields are updated only if in body
     item.content = req.body.content ?? item.content;
@@ -65,6 +72,16 @@ exports.updateItem = async (req, res) => {
     item.sectionId = newSectionId ?? item.sectionId;
 
     await item.save();
+
+    // async embedding update if content changed
+    if (contentChanged) {
+      addJob(async () => {
+        const embedding = await getEmbedding(item.content);
+        if (embedding) {
+          await Item.findByIdAndUpdate(item._id, { embedding });
+        }
+      });
+    }
 
     if (oldSectionId !== newSectionId) {
       await Section.findByIdAndUpdate(oldSectionId, {
