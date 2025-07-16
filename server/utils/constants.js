@@ -49,6 +49,11 @@ const ITEM_CONTENT_TYPES = Object.freeze({
   LINK: "link",
 });
 
+const COMPONENT_TYPES = Object.freeze({
+  SECTION: "section",
+  ITEM: "item",
+});
+
 module.exports = {
   roomActions,
   COLORS,
@@ -57,4 +62,5 @@ module.exports = {
   cursorEvents,
   ITEMS_FIELD,
   ITEM_CONTENT_TYPES,
+  COMPONENT_TYPES
 };

@@ -1,62 +1,11 @@
 const Item = require("../models/Item");
 const Section = require("../models/Section");
 const User = require("../models/User");
-const Fuse = require("fuse.js");
 
-const { ITEM_CONTENT_TYPES } = require("../utils/constants");
+const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
+const fuzzySearch = require("../utils/fuzzySearch");
 
-const THRESHOLD = 0.4;
-
-const WEIGHTS = {
-  CONTENT: 0.4,
-  NOTES: 0.4,
-  LINK: 0.2,
-};
-
-const fuzzySearchSections = (sections, query) => {
-  const fuse = new Fuse(sections, {
-    keys: ["title"],
-    threshold: THRESHOLD,
-  });
-  return fuse.search(query).map((res) => res.item);
-};
-
-const fuzzySearchItems = (items, query) => {
-  const fuse = new Fuse(items, {
-    keys: [
-      { name: ITEM_CONTENT_TYPES.CONTENT, weight: WEIGHTS.CONTENT },
-      { name: ITEM_CONTENT_TYPES.NOTES, weight: WEIGHTS.NOTES },
-      { name: ITEM_CONTENT_TYPES.LINK, weight: WEIGHTS.LINK },
-    ],
-    threshold: THRESHOLD,
-  });
-
-  return fuse.search(query).map((res) => {
-    const item = res.item;
-    let matchType = null;
-    if (
-      item.content &&
-      item.content.toLowerCase().includes(query.toLowerCase())
-    ) {
-      matchType = ITEM_CONTENT_TYPES.CONTENT;
-    } else if (
-      item.notes &&
-      item.notes.toLowerCase().includes(query.toLowerCase())
-    ) {
-      matchType = ITEM_CONTENT_TYPES.NOTES;
-    } else if (
-      item.link &&
-      item.link.toLowerCase().includes(query.toLowerCase())
-    ) {
-      matchType = ITEM_CONTENT_TYPES.LINK;
-    }
-    return {
-      ...item.toObject(),
-      matchType,
-    };
-  });
-};
 
 const fetchDuckDuckGoData = async (query) => {
   const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
@@ -86,9 +35,9 @@ exports.search = async (req, res) => {
     const sectionIds = userSections.map((section) => section._id);
 
     // fuzzy search
-    const fuzzySections = fuzzySearchSections(userSections, q);
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
-    const fuzzyItems = fuzzySearchItems(itemsRaw, q);
+    const fuzzySections = fuzzySearch(userSections, q, COMPONENT_TYPES.SECTION);
+    const fuzzyItems = fuzzySearch(itemsRaw, q, COMPONENT_TYPES.ITEM);
 
     // ddg search
     const ddgData = await fetchDuckDuckGoData(q);
