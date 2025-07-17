@@ -63,4 +63,18 @@ describe("Search API speed tests", () => {
     // All should be under 1200ms
     times.forEach((t) => expect(t).toBeLessThan(1200));
   });
+
+  it("should handle multiple concurrent search queries rapidly", async () => {
+    const roomId = USERNAME;
+    const queries = ["test", "office", "running", "food", "resources"];
+    const promises = queries.map((q) => measureSearchTime(q, roomId));
+    const results = await Promise.all(promises);
+
+    results.forEach(({ res, duration }) => {
+      expect(res.status).toBe(200);
+      expect(duration).toBeLessThan(1200);
+      expect(res.body).toHaveProperty("items");
+      expect(res.body).toHaveProperty("sections");
+    });
+  });
 });
