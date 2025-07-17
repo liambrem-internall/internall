@@ -6,6 +6,8 @@ const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
 const fuzzySearch = require("../utils/fuzzySearch");
 
+const { getFrequencyScore, getRecencyScore, getUnifiedScore } = require("../utils/calculateScores");
+
 const fetchDuckDuckGoData = async (query) => {
   const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
     query
@@ -19,42 +21,6 @@ const cosineSimilarity = (a, b) => {
   const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
   const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
   return dot / (normA * normB);
-};
-
-const getRecencyScore = (lastSearchedAt) => {
-  if (!lastSearchedAt) return 0;
-  const now = Date.now();
-  const diff = now - new Date(lastSearchedAt).getTime();
-  // Decay: 1 if just now, 0 if a month ago
-  const month = 1000 * 60 * 60 * 24 * 30;
-  return Math.max(0, 1 - diff / month);
-};
-
-const getFrequencyScore = (searchCount) => {
-  if (!searchCount) return 0;
-  return Math.min(1, Math.log10(searchCount + 1) / 2); // log scale, max 1
-};
-
-const getUnifiedScore = ({
-  fuzzyScore = 0,
-  semanticScore = 0,
-  freqScore = 0,
-  recencyScore = 0,
-  type = "item",
-  ddgScore = 0,
-}) => {
-  if (type === "item") {
-    // Tune weights as needed
-    return (
-      0.4 * fuzzyScore +
-      0.4 * semanticScore +
-      0.1 * freqScore +
-      0.1 * recencyScore
-    );
-  } else if (type === "web") {
-    return ddgScore; // or some other logic
-  }
-  return 0;
 };
 
 exports.search = async (req, res) => {
@@ -72,7 +38,7 @@ exports.search = async (req, res) => {
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
 
     // Fuzzy and semantic scores
-    const fuzzyResults = fuzzySearch(itemsRaw, q, "item");
+    const fuzzyResults = fuzzySearch(itemsRaw, q, COMPONENT_TYPES.ITEM);
     const queryEmbedding = await getEmbedding(q);
 
     // Map itemId to fuzzy score
@@ -110,11 +76,11 @@ exports.search = async (req, res) => {
         semanticScore,
         freqScore,
         recencyScore,
-        type: "item",
+        type: COMPONENT_TYPES.ITEM,
       });
 
       return {
-        type: "item",
+        type: COMPONENT_TYPES.ITEM,
         data: {
           ...item.toObject(),
           matchType,
@@ -131,7 +97,7 @@ exports.search = async (req, res) => {
     const ddgResults = (ddgData.RelatedTopics || [])
       .filter((topic) => topic.Text || topic.FirstURL)
       .map((topic) => ({
-        type: "web",
+        type: COMPONENT_TYPES.WEB,
         data: topic,
         score: 0.5, // You can tune this or use a keyword match score
       }));
