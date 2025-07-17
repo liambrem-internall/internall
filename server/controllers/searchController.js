@@ -1,3 +1,7 @@
+/*
+ * This file handles the search endpoints
+ */
+
 const Item = require("../models/Item");
 const Section = require("../models/Section");
 const User = require("../models/User");
