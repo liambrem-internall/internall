@@ -52,6 +52,7 @@ const ITEM_CONTENT_TYPES = Object.freeze({
 const COMPONENT_TYPES = Object.freeze({
   SECTION: "section",
   ITEM: "item",
+  WEB: "web",
 });
 
 module.exports = {

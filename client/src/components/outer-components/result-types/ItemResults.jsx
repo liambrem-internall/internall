@@ -12,14 +12,23 @@ const ItemResults = ({ items, onItemClick }) => {
           >
             <div className="top-row">
               <strong>{item.content}</strong>
+              <span className="score">
+                {" "}
+                Score: {item.score ? item.score.toFixed(2) : "N/A"}
+              </span>
               {item.matchType && (
                 <span className="match-type">
-                  (matched in {item.matchType})
+                  {" "}
+                  Fuzzy match in: {item.matchType}
+                  {typeof item.fuzzyScore === "number" && (
+                    <> (fuzzy: {item.fuzzyScore.toFixed(2)})</>
+                  )}
                 </span>
               )}
-              {item.similarity && (
-                <span className="match-type">
-                  (semantic score: {item.similarity.toFixed(2)})
+              {typeof item.semanticScore === "number" && (
+                <span className="semantic-score">
+                  {" "}
+                  Semantic: {item.semanticScore.toFixed(2)}
                 </span>
               )}
             </div>

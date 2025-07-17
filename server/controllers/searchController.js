@@ -1,11 +1,16 @@
+/*
+ * This file handles the search endpoints
+ */
+
 const Item = require("../models/Item");
 const Section = require("../models/Section");
 const User = require("../models/User");
+const DdgStats = require("../models/DdgStats");
 
 const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
 const fuzzySearch = require("../utils/fuzzySearch");
-
+const { runSearchAlgorithm } = require("../utils/searchAlgorithm");
 
 const fetchDuckDuckGoData = async (query) => {
   const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
@@ -13,13 +18,6 @@ const fetchDuckDuckGoData = async (query) => {
   )}&format=json`;
   const ddgRes = await fetch(url);
   return ddgRes.json();
-};
-
-const cosineSimilarity = (a, b) => {
-  const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
-  const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
-  const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
-  return dot / (normA * normB);
 };
 
 exports.search = async (req, res) => {
@@ -34,46 +32,65 @@ exports.search = async (req, res) => {
     const userSections = await Section.find({ userId: user.auth0Id });
     const sectionIds = userSections.map((section) => section._id);
 
-    // fuzzy search
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
-    const fuzzySections = fuzzySearch(userSections, q, COMPONENT_TYPES.SECTION);
-    const fuzzyItems = fuzzySearch(itemsRaw, q, COMPONENT_TYPES.ITEM);
 
-    // ddg search
+    // fuzzy search results
+    const fuzzyResults = fuzzySearch(itemsRaw, q, COMPONENT_TYPES.ITEM);
+    const queryEmbedding = await getEmbedding(q);
+    const ddgStats = await DdgStats.findOne({});
     const ddgData = await fetchDuckDuckGoData(q);
 
-    // semantic search
-    const queryEmbedding = await getEmbedding(q);
-
-    const semanticItems = itemsRaw
-      .filter((item) => item.embedding && item.embedding.length)
-      .map((item) => ({
-        ...item.toObject(),
-        similarity: cosineSimilarity(queryEmbedding, item.embedding),
-      }))
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 20);
-
-    const semanticSections = userSections
-      .filter((section) => section.embedding && section.embedding.length)
-      .map((section) => ({
-        ...section.toObject(),
-        similarity: cosineSimilarity(queryEmbedding, section.embedding),
-      }))
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 10);
-
-    res.json({
-      items: fuzzyItems,
-      sections: fuzzySections,
-      duckduckgo: ddgData,
-      semantic: {
-        items: semanticItems,
-        sections: semanticSections,
-      },
+    const results = await runSearchAlgorithm({
+      itemsRaw,
+      fuzzyResults,
+      queryEmbedding,
+      ddgStats,
+      ddgData,
+      ItemModel: Item,
     });
+
+    res.json({ results });
   } catch (err) {
     console.error("Search error:", err);
     res.status(500).json({ error: "Search failed" });
+  }
+};
+
+exports.accessSearch = async (req, res) => {
+  try {
+    const { matchedIn } = req.body;
+    if (!matchedIn) return res.status(400).json({ error: "Missing matchedIn" });
+
+    const incObj = {
+      searchCount: 1,
+      [`matchedInCounts.${matchedIn}`]: 1,
+    };
+
+    const item = await Item.findByIdAndUpdate(
+      req.params.id,
+      {
+        $inc: incObj,
+        $set: { lastSearchedAt: new Date() },
+      },
+      { new: true }
+    );
+    if (!item) return res.status(404).json({ error: "Item not found" });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update access state" });
+  }
+};
+
+exports.webAccessed = async (req, res) => {
+  try {
+    const { url, text, timestamp } = req.body;
+    await DdgStats.findOneAndUpdate(
+      {},
+      { $inc: { totalClicks: 1 } },
+      { upsert: true, new: true }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to log web access" });
   }
 };

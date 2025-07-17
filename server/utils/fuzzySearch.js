@@ -110,7 +110,7 @@ const fuzzySearchItems = (items, query) => {
       return {
         item,
         score: finalScore,
-        matchedIn: bestField, // <-- add this
+        matchedIn: bestField,
       };
     })
     .filter((result) => result.score >= THRESHOLD)
@@ -120,7 +120,8 @@ const fuzzySearchItems = (items, query) => {
     const item = res.item;
     return {
       ...item.toObject(),
-      matchType: res.matchedIn, // or use "matchedIn" if you prefer
+      matchType: res.matchedIn, 
+      matchTypeScore: res.score,
     };
   });
 };

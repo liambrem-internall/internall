@@ -1,15 +1,20 @@
 import React, { useState, useCallback } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useParams } from "react-router-dom";
 import "./SlidingMenu.css";
 import Searchbar from "./Searchbar";
 import { IoMdClose } from "react-icons/io";
 import { FaSearch } from "react-icons/fa";
 import { combinedSearch } from "../../utils/functions/combinedSearch";
+import { apiFetch } from "../../utils/apiFetch";
 import SearchResults from "./SearchResults";
+
+const URL = import.meta.env.VITE_API_URL;
 
 const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
   const [results, setResults] = useState(null);
   const { username: roomId } = useParams();
+  const { getAccessTokenSilently } = useAuth0();
 
   const handleSearch = useCallback(
     async (query) => {
@@ -20,8 +25,33 @@ const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
       const data = await combinedSearch(query, roomId);
       setResults(data);
     },
-    [roomId] 
+    [roomId]
   );
+
+  const handleItemClick = async (item) => {
+    await apiFetch({
+      endpoint: `${URL}/api/search/${item._id}/accessed`,
+      method: "POST",
+      body: { matchedIn: item.matchType },
+      getAccessTokenSilently,
+    });
+    setShowItemModal(true);
+    setEditingItem(item);
+    onClose();
+  };
+
+  const handleDdgClick = async (topic) => {
+    await apiFetch({
+      endpoint: `${URL}/api/search/web-accessed`,
+      method: "POST",
+      body: {
+        url: topic.FirstURL,
+        text: topic.Text,
+        timestamp: new Date().toISOString(),
+      },
+      getAccessTokenSilently,
+    });
+  };
 
   return (
     <div className={`sliding-menu${open ? " open" : ""}`}>
@@ -35,16 +65,9 @@ const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
       <div className="search-results">
         {results ? (
           <SearchResults
-            items={results.items}
-            sections={results.sections}
-            webResults={results.duckduckgo}
-            semantic={results.semantic}
-            onItemClick={(item) => {
-              // edit an item
-              setShowItemModal(true);
-              setEditingItem(item);
-              onClose()
-            }}
+            results={results?.results || []}
+            onItemClick={(item) => handleItemClick(item)}
+            onDdgClick={(topic) => handleDdgClick(topic)}
           />
         ) : (
           <div className="search-placeholder">
