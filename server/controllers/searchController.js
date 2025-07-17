@@ -12,6 +12,9 @@ const { getEmbedding } = require("../utils/embedder");
 const fuzzySearch = require("../utils/fuzzySearch");
 const { runSearchAlgorithm } = require("../utils/searchAlgorithm");
 
+const PAGE_SIZE_DEFAULT = 8;
+const OFFSET_DEFAULT = 0;
+
 const fetchDuckDuckGoData = async (query) => {
   const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
     query
@@ -22,6 +25,8 @@ const fetchDuckDuckGoData = async (query) => {
 
 exports.search = async (req, res) => {
   const { q, roomId } = req.query;
+  const limit = parseInt(req.query.limit, 10) || PAGE_SIZE_DEFAULT;
+  const offset = parseInt(req.query.offset, 10) || OFFSET_DEFAULT;
   if (!q) return res.status(400).json({ error: "Missing query" });
   if (!roomId) return res.status(400).json({ error: "Missing roomId" });
 
@@ -49,7 +54,9 @@ exports.search = async (req, res) => {
       ItemModel: Item,
     });
 
-    res.json({ results });
+    const pagedResults = results.slice(offset, offset + limit);
+
+    res.json({ results: pagedResults, total: results.length });
   } catch (err) {
     console.error("Search error:", err);
     res.status(500).json({ error: "Search failed" });
