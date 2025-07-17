@@ -1,12 +1,12 @@
 const Item = require("../models/Item");
 const Section = require("../models/Section");
 const User = require("../models/User");
+const DdgStats = require("../models/DdgStats");
 
 const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
 const fuzzySearch = require("../utils/fuzzySearch");
-
-const { getFrequencyScore, getRecencyScore, getUnifiedScore } = require("../utils/calculateScores");
+const { runSearchAlgorithm } = require("../utils/searchAlgorithm");
 
 const fetchDuckDuckGoData = async (query) => {
   const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
@@ -14,13 +14,6 @@ const fetchDuckDuckGoData = async (query) => {
   )}&format=json`;
   const ddgRes = await fetch(url);
   return ddgRes.json();
-};
-
-const cosineSimilarity = (a, b) => {
-  const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
-  const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
-  const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
-  return dot / (normA * normB);
 };
 
 exports.search = async (req, res) => {
@@ -40,72 +33,19 @@ exports.search = async (req, res) => {
     // fuzzy search results
     const fuzzyResults = fuzzySearch(itemsRaw, q, COMPONENT_TYPES.ITEM);
     const queryEmbedding = await getEmbedding(q);
-
-    // map fuzzy results to their scores
-    const fuzzyMap = {};
-    fuzzyResults.forEach((item) => {
-      fuzzyMap[item._id] = item.matchTypeScore || 0.0;
-    });
-
-    // semantic scores
-    const semanticMap = {};
-    itemsRaw.forEach((item) => {
-      if (item.embedding && item.embedding.length) {
-        semanticMap[item._id] = cosineSimilarity(
-          queryEmbedding,
-          item.embedding
-        );
-      }
-    });
-
-    const itemResults = itemsRaw.map((item) => {
-      const fuzzyScore = fuzzyMap[item._id] || 0;
-      const semanticScore = semanticMap[item._id] || 0;
-      const freqScore = getFrequencyScore(item.searchCount);
-      const recencyScore = getRecencyScore(item.lastSearchedAt);
-
-      const fuzzyResult = fuzzyResults.find(
-        (f) => f._id.toString() === item._id.toString()
-      );
-      const matchType = fuzzyResult ? fuzzyResult.matchType : null;
-
-      const unifiedScore = getUnifiedScore({
-        fuzzyScore,
-        semanticScore,
-        freqScore,
-        recencyScore,
-        type: COMPONENT_TYPES.ITEM,
-      });
-
-      return {
-        type: COMPONENT_TYPES.ITEM,
-        data: {
-          ...item.toObject(),
-          matchType,
-          fuzzyScore,
-          semanticScore,
-          score: unifiedScore,
-        },
-        score: unifiedScore,
-      };
-    });
-
-    // DDG results
+    const ddgStats = await DdgStats.findOne({});
     const ddgData = await fetchDuckDuckGoData(q);
-    const ddgResults = (ddgData.RelatedTopics || [])
-      .filter((topic) => topic.Text || topic.FirstURL)
-      .map((topic) => ({
-        type: COMPONENT_TYPES.WEB,
-        data: topic,
-        score: 0.5,
-      }));
 
-    // combine & sort results by scores
-    const allResults = [...itemResults, ...ddgResults].sort(
-      (a, b) => b.score - a.score
-    );
+    const results = await runSearchAlgorithm({
+      itemsRaw,
+      fuzzyResults,
+      queryEmbedding,
+      ddgStats,
+      ddgData,
+      ItemModel: Item,
+    });
 
-    res.json({ results: allResults });
+    res.json({ results });
   } catch (err) {
     console.error("Search error:", err);
     res.status(500).json({ error: "Search failed" });
@@ -121,7 +61,6 @@ exports.accessSearch = async (req, res) => {
       searchCount: 1,
       [`matchedInCounts.${matchedIn}`]: 1,
     };
-
 
     const item = await Item.findByIdAndUpdate(
       req.params.id,
@@ -141,8 +80,11 @@ exports.accessSearch = async (req, res) => {
 exports.webAccessed = async (req, res) => {
   try {
     const { url, text, timestamp } = req.body;
-    // Save to DB or log as needed
-    console.log("Web result accessed:", { url, text, timestamp });
+    await DdgStats.findOneAndUpdate(
+      {},
+      { $inc: { totalClicks: 1 } },
+      { upsert: true, new: true }
+    );
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to log web access" });
