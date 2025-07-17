@@ -22,6 +22,7 @@ const WebResults = ({ webResults, onDdgClick }) => {
                   Learn more
                 </a>
               )}
+              
             </li>
           ))}
       </ul>
