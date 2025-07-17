@@ -27,7 +27,15 @@ const ItemSchema = new mongoose.Schema({
   embedding: {
     type: [Number],
     default: []
-  }
+  },
+  searchCount: {
+    type: Number,
+    default: 0
+  },
+  lastSearchedAt: {
+    type: Date,
+    default: null
+  },
 });
 
 module.exports = mongoose.model('Item', ItemSchema);
