@@ -8,9 +8,11 @@ import { FaSearch } from "react-icons/fa";
 import { combinedSearch } from "../../utils/functions/combinedSearch";
 import { apiFetch } from "../../utils/apiFetch";
 import { Trie } from "../../utils/trieLogic";
+import { FaArrowDown } from "react-icons/fa6";
 import SearchResults from "./SearchResults";
 
 const URL = import.meta.env.VITE_API_URL;
+const PAGE_SIZE = 8;
 
 const SlidingMenu = ({
   open,
@@ -19,7 +21,10 @@ const SlidingMenu = ({
   setEditingItem,
   sections,
 }) => {
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [query, setQuery] = useState("");
   const { username: roomId } = useParams();
   const { getAccessTokenSilently } = useAuth0();
   const [suggestions, setSuggestions] = useState([]);
@@ -63,16 +68,28 @@ const SlidingMenu = ({
   }, [sections]);
 
   const handleSearch = useCallback(
-    async (query) => {
-      if (!query) {
-        setResults(null);
+    async (q) => {
+      setQuery(q);
+      setPage(0);
+      if (!q) {
+        setResults([]);
+        setTotal(0);
         return;
       }
-      const data = await combinedSearch(query, roomId);
-      setResults(data);
+      const data = await combinedSearch(q, roomId, PAGE_SIZE, 0);
+      setResults(data.results || []);
+      setTotal(data.total || 0);
     },
     [roomId]
   );
+
+  const handleLoadMore = async () => {
+    const nextPage = page + 1;
+    const offset = nextPage * PAGE_SIZE;
+    const data = await combinedSearch(query, roomId, PAGE_SIZE, offset);
+    setResults((prev) => [...prev, ...(data.results || [])]);
+    setPage(nextPage);
+  };
 
   const handleItemClick = async (item) => {
     await apiFetch({
@@ -126,12 +143,21 @@ const SlidingMenu = ({
         suggestions={suggestions}
       />
       <div className="search-results">
-        {results ? (
-          <SearchResults
-            results={results?.results || []}
-            onItemClick={(item) => handleItemClick(item)}
-            onDdgClick={(topic) => handleDdgClick(topic)}
-          />
+        {results.length ? (
+          <>
+            <SearchResults
+              results={results}
+              onItemClick={handleItemClick}
+              onDdgClick={handleDdgClick}
+            />
+            {results.length < total && (
+              <FaArrowDown
+                className="load-more-button"
+                onClick={handleLoadMore}
+                size={50}
+              />
+            )}
+          </>
         ) : (
           <div className="search-placeholder">
             <FaSearch size={100} />
