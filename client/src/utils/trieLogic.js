@@ -38,4 +38,24 @@ export class Trie {
     }
     return results;
   }
+
+  remove(word, item) {
+  let node = this.root;
+  const stack = [];
+  for (const char of word.toLowerCase()) {
+    if (!node.children[char]) return; // Not found
+    stack.push([node, char]);
+    node = node.children[char];
+  }
+  if (node.isEnd) {
+    node.items = node.items.filter(i => i._id !== item._id);
+    if (node.items.length === 0) node.isEnd = false;
+    // clean empty nodes
+    while (stack.length && Object.keys(node.children).length === 0 && !node.isEnd) {
+      const [parent, char] = stack.pop();
+      delete parent.children[char];
+      node = parent;
+    }
+  }
+}
 }
