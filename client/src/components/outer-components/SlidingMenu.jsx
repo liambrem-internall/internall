@@ -12,22 +12,54 @@ import SearchResults from "./SearchResults";
 
 const URL = import.meta.env.VITE_API_URL;
 
-const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem, sections }) => {
+const SlidingMenu = ({
+  open,
+  onClose,
+  setShowItemModal,
+  setEditingItem,
+  sections,
+}) => {
   const [results, setResults] = useState(null);
   const { username: roomId } = useParams();
   const { getAccessTokenSilently } = useAuth0();
   const [suggestions, setSuggestions] = useState([]);
   const trieRef = useRef(null);
+  const prevItemsRef = useRef([]);
 
   useEffect(() => {
     if (!sections) return;
-    const trie = new Trie();
-    Object.values(sections).forEach((section) => {
-      section.items.forEach((item) => {
+    const trie = trieRef.current || new Trie();
+
+    const allItems = Object.values(sections).flatMap(
+      (section) => section.items
+    );
+
+    const prevItems = prevItemsRef.current;
+    const prevIds = new Set(prevItems.map((i) => i._id));
+    const currIds = new Set(allItems.map((i) => i._id));
+
+    allItems.forEach((item) => {
+      if (!prevIds.has(item._id)) {
         trie.insert(item.content, item);
-      });
+      }
     });
+
+    prevItems.forEach((item) => {
+      if (!currIds.has(item._id)) {
+        trie.remove(item.content, item);
+      }
+    });
+
+    allItems.forEach((item) => {
+      const prev = prevItems.find((i) => i._id === item._id);
+      if (prev && prev.content !== item.content) {
+        trie.remove(prev.content, prev);
+        trie.insert(item.content, item);
+      }
+    });
+
     trieRef.current = trie;
+    prevItemsRef.current = allItems;
   }, [sections]);
 
   const handleSearch = useCallback(
@@ -73,7 +105,6 @@ const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem, sections
       return;
     }
     const matches = trieRef.current.search(query);
-    // Remove duplicates and limit suggestions
     const unique = Array.from(new Set(matches.map((i) => i.content))).slice(
       0,
       8
