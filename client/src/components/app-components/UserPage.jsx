@@ -26,6 +26,7 @@ const UserPage = ({ setUserReady, userReady }) => {
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [sections, setSections] = useState({}); 
   const isOwnPage =
     user && (username === user.nickname || username === user.name);
   const roomId = username;
@@ -76,12 +77,14 @@ const UserPage = ({ setUserReady, userReady }) => {
               onClose={() => setSearchMenuOpen(false)}
               setShowItemModal={setShowItemModal}
               setEditingItem={setEditingItem}
+              sections={sections}
             />
             <SectionList
               showItemModal={showItemModal}
               setShowItemModal={setShowItemModal}
               editingItem={editingItem}
               setEditingItem={setEditingItem}
+              onSectionsChange={setSections} 
             />
           </div>
         </div>
