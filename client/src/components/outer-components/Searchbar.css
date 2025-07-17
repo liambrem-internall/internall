@@ -18,10 +18,31 @@
     color: white;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+    line-height: 1.5;
+    position: relative;
+    box-sizing: border-box;
 }
 
 .searchbar-input:focus {
     border-color: var(--pink2);
     outline: none;
     box-shadow: 0 2px 12px rgba(0,0,0,0.14);
+}
+
+.searchbar-suggestion {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #888;
+  pointer-events: none;
+  padding: 2px;
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.5;
+  width: 100%;
+  white-space: pre;
+  user-select: none;
+  z-index: 1;
+  margin-top: 6px;
 }
