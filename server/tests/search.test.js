@@ -6,6 +6,8 @@ const connectDB = require("../utils/db");
 
 const USERNAME = "liambrem";
 const ENDPOINT = "/api/search/search";
+const SECTIONS = "sections";
+const ITEMS = "items";
 
 describe("Search API speed tests", () => {
   let server;
@@ -31,8 +33,8 @@ describe("Search API speed tests", () => {
     const { res, duration } = await measureSearchTime("test", roomId);
     expect(res.status).toBe(200);
     expect(duration).toBeLessThan(1000);
-    expect(res.body).toHaveProperty("items");
-    expect(res.body).toHaveProperty("sections");
+    expect(res.body).toHaveProperty(ITEMS);
+    expect(res.body).toHaveProperty(SECTIONS);
   });
 
   it("should handle empty query quickly", async () => {
@@ -60,7 +62,6 @@ describe("Search API speed tests", () => {
       const { duration } = await measureSearchTime(q, roomId);
       times.push(duration);
     }
-    // All should be under 1200ms
     times.forEach((t) => expect(t).toBeLessThan(1200));
   });
 
@@ -73,8 +74,8 @@ describe("Search API speed tests", () => {
     results.forEach(({ res, duration }) => {
       expect(res.status).toBe(200);
       expect(duration).toBeLessThan(1200);
-      expect(res.body).toHaveProperty("items");
-      expect(res.body).toHaveProperty("sections");
+      expect(res.body).toHaveProperty(ITEMS);
+      expect(res.body).toHaveProperty(SECTIONS);
     });
   });
 });
