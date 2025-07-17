@@ -42,6 +42,11 @@ const ItemSchema = new mongoose.Schema({
       date: { type: Date, default: Date.now },
     },
   ],
+  matchedInCounts: {
+    type: Map,
+    of: Number,
+    default: {},
+  },
 });
 
 module.exports = mongoose.model("Item", ItemSchema);
