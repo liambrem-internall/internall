@@ -1,4 +1,4 @@
-const WebResults = ({ webResults }) => {
+const WebResults = ({ webResults, onDdgClick }) => {
   const topics = webResults.RelatedTopics || [];
 
   if (topics.length === 0) return null;
@@ -17,6 +17,7 @@ const WebResults = ({ webResults }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="search-result-link"
+                  onClick={() => onDdgClick && onDdgClick(topic)}
                 >
                   Learn more
                 </a>
