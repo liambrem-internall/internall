@@ -64,7 +64,6 @@ const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
         {results ? (
           <SearchResults
             items={results.items}
-            sections={results.sections}
             webResults={results.duckduckgo}
             semantic={results.semantic}
             onItemClick={(item) => handleItemClick(item)}
