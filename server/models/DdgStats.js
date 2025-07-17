@@ -1,3 +1,7 @@
+/*
+ * This file defines the DdgStats model for MongoDB
+ */
+
 const mongoose = require("mongoose");
 
 const DdgStatsSchema = new mongoose.Schema({

@@ -1,4 +1,9 @@
-const COMPONENT_TYPES = require("../utils/constants");
+const WEIGHTS = {
+    fuzzy: 0.4,
+    semantic: 0.3,
+    frequency: 0.2,
+    recency: 0.1,
+};
 
 const getRecencyScore = (lastSearchedAt) => {
   if (!lastSearchedAt) return 0;
@@ -23,10 +28,10 @@ const getUnifiedScore = ({
 }) => {
   if (type === "item") {
     return (
-      0.4 * fuzzyScore +
-      0.3 * semanticScore +
-      0.2 * freqScore +
-      0.1 * recencyScore
+      WEIGHTS.fuzzy * fuzzyScore +
+      WEIGHTS.semantic * semanticScore +
+      WEIGHTS.frequency * freqScore +
+      WEIGHTS.recency * recencyScore
     );
   } else if (type === "web") {
     return ddgScore;
