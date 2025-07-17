@@ -3,8 +3,6 @@ const http = require("http");
 const { Server } = require("socket.io");
 const connectDB = require("./utils/db");
 
-const checkJwt = require("./middleware/checkJwt");
-
 const app = require("./app");
 
 const PORT = process.env.PORT || 3000;
