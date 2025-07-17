@@ -35,7 +35,6 @@ exports.search = async (req, res) => {
 
     // fuzzy search
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
-    const fuzzySections = fuzzySearch(userSections, q, COMPONENT_TYPES.SECTION);
     const fuzzyItems = fuzzySearch(itemsRaw, q, COMPONENT_TYPES.ITEM);
 
     // ddg search
@@ -53,22 +52,11 @@ exports.search = async (req, res) => {
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 20);
 
-    const semanticSections = userSections
-      .filter((section) => section.embedding && section.embedding.length)
-      .map((section) => ({
-        ...section.toObject(),
-        similarity: cosineSimilarity(queryEmbedding, section.embedding),
-      }))
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 10);
-
     res.json({
       items: fuzzyItems,
-      sections: fuzzySections,
       duckduckgo: ddgData,
       semantic: {
         items: semanticItems,
-        sections: semanticSections,
       },
     });
   } catch (err) {
