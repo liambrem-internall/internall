@@ -6,7 +6,9 @@ import Searchbar from "./Searchbar";
 import { IoMdClose } from "react-icons/io";
 import { FaSearch } from "react-icons/fa";
 import { combinedSearch } from "../../utils/functions/combinedSearch";
+import { apiFetch } from "../../utils/apiFetch";
 import SearchResults from "./SearchResults";
+
 const URL = import.meta.env.VITE_API_URL;
 
 const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {

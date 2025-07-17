@@ -37,17 +37,17 @@ exports.search = async (req, res) => {
 
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
 
-    // Fuzzy and semantic scores
+    // fuzzy search results
     const fuzzyResults = fuzzySearch(itemsRaw, q, COMPONENT_TYPES.ITEM);
     const queryEmbedding = await getEmbedding(q);
 
-    // Map itemId to fuzzy score
+    // map fuzzy results to their scores
     const fuzzyMap = {};
     fuzzyResults.forEach((item) => {
       fuzzyMap[item._id] = item.matchTypeScore || 0.0;
     });
 
-    // Semantic scores
+    // semantic scores
     const semanticMap = {};
     itemsRaw.forEach((item) => {
       if (item.embedding && item.embedding.length) {
@@ -58,14 +58,12 @@ exports.search = async (req, res) => {
       }
     });
 
-    // Build unified item results
     const itemResults = itemsRaw.map((item) => {
       const fuzzyScore = fuzzyMap[item._id] || 0;
       const semanticScore = semanticMap[item._id] || 0;
       const freqScore = getFrequencyScore(item.searchCount);
       const recencyScore = getRecencyScore(item.lastSearchedAt);
 
-      // Find matchType from fuzzyResults (if present)
       const fuzzyResult = fuzzyResults.find(
         (f) => f._id.toString() === item._id.toString()
       );
@@ -99,10 +97,10 @@ exports.search = async (req, res) => {
       .map((topic) => ({
         type: COMPONENT_TYPES.WEB,
         data: topic,
-        score: 0.5, // You can tune this or use a keyword match score
+        score: 0.5,
       }));
 
-    // Combine and sort all results
+    // combine & sort results by scores
     const allResults = [...itemResults, ...ddgResults].sort(
       (a, b) => b.score - a.score
     );
@@ -117,15 +115,19 @@ exports.search = async (req, res) => {
 exports.accessSearch = async (req, res) => {
   try {
     const { matchedIn } = req.body;
-    console.log("Accessing search result in:", matchedIn);
-    // Optionally: store matchedIn in a log or array for analytics
-    // For now, just update access stats as before
+    if (!matchedIn) return res.status(400).json({ error: "Missing matchedIn" });
+
+    const incObj = {
+      searchCount: 1,
+      [`matchedInCounts.${matchedIn}`]: 1,
+    };
+
+
     const item = await Item.findByIdAndUpdate(
       req.params.id,
       {
-        $inc: { searchCount: 1 },
+        $inc: incObj,
         $set: { lastSearchedAt: new Date() },
-        // Optionally: $push: { searchAccesses: { matchedIn, date: new Date() } }
       },
       { new: true }
     );
