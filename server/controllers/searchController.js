@@ -21,6 +21,42 @@ const cosineSimilarity = (a, b) => {
   return dot / (normA * normB);
 };
 
+const getRecencyScore = (lastSearchedAt) => {
+  if (!lastSearchedAt) return 0;
+  const now = Date.now();
+  const diff = now - new Date(lastSearchedAt).getTime();
+  // Decay: 1 if just now, 0 if a month ago
+  const month = 1000 * 60 * 60 * 24 * 30;
+  return Math.max(0, 1 - diff / month);
+};
+
+const getFrequencyScore = (searchCount) => {
+  if (!searchCount) return 0;
+  return Math.min(1, Math.log10(searchCount + 1) / 2); // log scale, max 1
+};
+
+const getUnifiedScore = ({
+  fuzzyScore = 0,
+  semanticScore = 0,
+  freqScore = 0,
+  recencyScore = 0,
+  type = "item",
+  ddgScore = 0,
+}) => {
+  if (type === "item") {
+    // Tune weights as needed
+    return (
+      0.4 * fuzzyScore +
+      0.4 * semanticScore +
+      0.1 * freqScore +
+      0.1 * recencyScore
+    );
+  } else if (type === "web") {
+    return ddgScore; // or some other logic
+  }
+  return 0;
+};
+
 exports.search = async (req, res) => {
   const { q, roomId } = req.query;
   if (!q) return res.status(400).json({ error: "Missing query" });
@@ -33,32 +69,79 @@ exports.search = async (req, res) => {
     const userSections = await Section.find({ userId: user.auth0Id });
     const sectionIds = userSections.map((section) => section._id);
 
-    // fuzzy search
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
-    const fuzzyItems = fuzzySearch(itemsRaw, q, COMPONENT_TYPES.ITEM);
 
-    // ddg search
-    const ddgData = await fetchDuckDuckGoData(q);
-
-    // semantic search
+    // Fuzzy and semantic scores
+    const fuzzyResults = fuzzySearch(itemsRaw, q, "item");
     const queryEmbedding = await getEmbedding(q);
 
-    const semanticItems = itemsRaw
-      .filter((item) => item.embedding && item.embedding.length)
-      .map((item) => ({
-        ...item.toObject(),
-        similarity: cosineSimilarity(queryEmbedding, item.embedding),
-      }))
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 20);
-
-    res.json({
-      items: fuzzyItems,
-      duckduckgo: ddgData,
-      semantic: {
-        items: semanticItems,
-      },
+    // Map itemId to fuzzy score
+    const fuzzyMap = {};
+    fuzzyResults.forEach((item) => {
+      fuzzyMap[item._id] = item.matchTypeScore || 0.0;
     });
+
+    // Semantic scores
+    const semanticMap = {};
+    itemsRaw.forEach((item) => {
+      if (item.embedding && item.embedding.length) {
+        semanticMap[item._id] = cosineSimilarity(
+          queryEmbedding,
+          item.embedding
+        );
+      }
+    });
+
+    // Build unified item results
+    const itemResults = itemsRaw.map((item) => {
+      const fuzzyScore = fuzzyMap[item._id] || 0;
+      const semanticScore = semanticMap[item._id] || 0;
+      const freqScore = getFrequencyScore(item.searchCount);
+      const recencyScore = getRecencyScore(item.lastSearchedAt);
+
+      // Find matchType from fuzzyResults (if present)
+      const fuzzyResult = fuzzyResults.find(
+        (f) => f._id.toString() === item._id.toString()
+      );
+      const matchType = fuzzyResult ? fuzzyResult.matchType : null;
+
+      const unifiedScore = getUnifiedScore({
+        fuzzyScore,
+        semanticScore,
+        freqScore,
+        recencyScore,
+        type: "item",
+      });
+
+      return {
+        type: "item",
+        data: {
+          ...item.toObject(),
+          matchType,
+          fuzzyScore,
+          semanticScore,
+          score: unifiedScore,
+        },
+        score: unifiedScore,
+      };
+    });
+
+    // DDG results
+    const ddgData = await fetchDuckDuckGoData(q);
+    const ddgResults = (ddgData.RelatedTopics || [])
+      .filter((topic) => topic.Text || topic.FirstURL)
+      .map((topic) => ({
+        type: "web",
+        data: topic,
+        score: 0.5, // You can tune this or use a keyword match score
+      }));
+
+    // Combine and sort all results
+    const allResults = [...itemResults, ...ddgResults].sort(
+      (a, b) => b.score - a.score
+    );
+
+    res.json({ results: allResults });
   } catch (err) {
     console.error("Search error:", err);
     res.status(500).json({ error: "Search failed" });
@@ -86,7 +169,6 @@ exports.accessSearch = async (req, res) => {
     res.status(500).json({ error: "Failed to update access state" });
   }
 };
-
 
 exports.webAccessed = async (req, res) => {
   try {

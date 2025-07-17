@@ -63,9 +63,7 @@ const SlidingMenu = ({ open, onClose, setShowItemModal, setEditingItem }) => {
       <div className="search-results">
         {results ? (
           <SearchResults
-            items={results.items}
-            webResults={results.duckduckgo}
-            semantic={results.semantic}
+            results={results?.results || []}
             onItemClick={(item) => handleItemClick(item)}
             onDdgClick={(topic) => handleDdgClick(topic)}
           />
