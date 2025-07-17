@@ -53,6 +53,7 @@ const SectionList = ({
   setShowItemModal,
   editingItem,
   setEditingItem,
+  onSectionsChange
 }) => {
   const {
     sectionState: { sections, setSections, sectionOrder, setSectionOrder },
@@ -133,6 +134,12 @@ const SectionList = ({
     };
     fetchSections();
   }, [getAccessTokenSilently, isAuthenticated, username]);
+
+  useEffect(() => {
+    if (onSectionsChange) {
+      onSectionsChange(sections);
+    }
+  }, [sections, onSectionsChange]);
 
   // for regular cursor movement
   useThrottledCursorBroadcast({
