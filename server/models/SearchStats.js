@@ -4,8 +4,8 @@ const SearchStatsSchema = new mongoose.Schema({
   matchTypeCounts: {
     fuzzy: { type: Number, default: 0 },
     semantic: { type: Number, default: 0 },
-    notes: { type: Number, default: 0 },
-    link: { type: Number, default: 0 },
+    frequency: { type: Number, default: 0 },
+    recency: { type: Number, default: 0 },
   },
   updatedAt: { type: Date, default: Date.now },
 });
