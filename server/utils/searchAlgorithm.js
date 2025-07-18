@@ -3,6 +3,7 @@ const {
   getFrequencyScore,
   getRecencyScore,
   getUnifiedScore,
+  getUnifiedScoreDynamic,
 } = require("./calculateScores");
 
 const cosineSimilarity = (a, b) => {
@@ -10,6 +11,16 @@ const cosineSimilarity = (a, b) => {
   const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
   const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
   return dot / (normA * normB);
+};
+
+const getDominantMatchType = ({ fuzzyScore, semanticScore, freqScore, recencyScore }) => {
+  const scores = {
+    fuzzy: fuzzyScore,
+    semantic: semanticScore,
+    frequency: freqScore,
+    recency: recencyScore,
+  };
+  return Object.entries(scores).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
 };
 
 async function runSearchAlgorithm({
@@ -34,37 +45,38 @@ async function runSearchAlgorithm({
     }
   });
 
-  const itemResults = itemsRaw.map((item) => {
-    const fuzzyScore = fuzzyMap[item._id] || 0;
-    const semanticScore = semanticMap[item._id] || 0;
-    const freqScore = getFrequencyScore(item.searchCount);
-    const recencyScore = getRecencyScore(item.lastSearchedAt);
+  const itemResults = await Promise.all(
+    itemsRaw.map(async (item) => {
+      const fuzzyScore = fuzzyMap[item._id] || 0;
+      const semanticScore = semanticMap[item._id] || 0;
+      const freqScore = getFrequencyScore(item.searchCount);
+      const recencyScore = getRecencyScore(item.lastSearchedAt);
 
-    const fuzzyResult = fuzzyResults.find(
-      (f) => f._id.toString() === item._id.toString()
-    );
-    const matchType = fuzzyResult ? fuzzyResult.matchType : null;
+      const matchType = getDominantMatchType({ fuzzyScore, semanticScore, freqScore, recencyScore });
 
-    const unifiedScore = getUnifiedScore({
-      fuzzyScore,
-      semanticScore,
-      freqScore,
-      recencyScore,
-      type: COMPONENT_TYPES.ITEM,
-    });
-
-    return {
-      type: COMPONENT_TYPES.ITEM,
-      data: {
-        ...item.toObject(),
-        matchType,
+      const unifiedScore = await getUnifiedScoreDynamic({
         fuzzyScore,
         semanticScore,
+        freqScore,
+        recencyScore,
+        type: COMPONENT_TYPES.ITEM,
+      });
+
+      return {
+        type: COMPONENT_TYPES.ITEM,
+        data: {
+          ...item.toObject(),
+          matchType,
+          fuzzyScore,
+          semanticScore,
+          freqScore,
+          recencyScore,
+          score: unifiedScore,
+        },
         score: unifiedScore,
-      },
-      score: unifiedScore,
-    };
-  });
+      };
+    })
+  );
 
   const ddgClicks = ddgStats?.totalClicks || 0;
   const itemClicks = await ItemModel.aggregate([

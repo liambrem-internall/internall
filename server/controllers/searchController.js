@@ -6,6 +6,7 @@ const Item = require("../models/Item");
 const Section = require("../models/Section");
 const User = require("../models/User");
 const DdgStats = require("../models/DdgStats");
+const SearchStats = require("../models/SearchStats");
 
 const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
@@ -73,6 +74,7 @@ exports.accessSearch = async (req, res) => {
       [`matchedInCounts.${matchedIn}`]: 1,
     };
 
+    // Update item stats
     const item = await Item.findByIdAndUpdate(
       req.params.id,
       {
@@ -81,6 +83,16 @@ exports.accessSearch = async (req, res) => {
       },
       { new: true }
     );
+
+    // Update global stats
+    const stats = await SearchStats.findOneAndUpdate(
+      {},
+      { $inc: { [`matchTypeCounts.${matchedIn}`]: 1 } },
+      { upsert: true }
+    );
+
+    console.log(stats);
+
     if (!item) return res.status(404).json({ error: "Item not found" });
     res.json({ success: true });
   } catch (err) {
