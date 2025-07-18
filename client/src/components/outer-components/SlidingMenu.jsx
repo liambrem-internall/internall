@@ -95,7 +95,12 @@ const SlidingMenu = ({
     await apiFetch({
       endpoint: `${URL}/api/search/${item._id}/accessed`,
       method: "POST",
-      body: { matchedIn: item.matchType },
+      body: {
+        fuzzyScore: item.fuzzyScore,
+        semanticScore: item.semanticScore,
+        frequencyScore: item.freqScore,
+        recencyScore: item.recencyScore,
+      },
       getAccessTokenSilently,
     });
     setShowItemModal(true);

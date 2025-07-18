@@ -6,6 +6,7 @@ const Item = require("../models/Item");
 const Section = require("../models/Section");
 const User = require("../models/User");
 const DdgStats = require("../models/DdgStats");
+const SearchStats = require("../models/SearchStats");
 
 const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
@@ -63,25 +64,51 @@ exports.search = async (req, res) => {
   }
 };
 
+const MATCH_TYPES = ["fuzzy", "semantic", "frequency", "recency"];
+
 exports.accessSearch = async (req, res) => {
   try {
-    const { matchedIn } = req.body;
-    if (!matchedIn) return res.status(400).json({ error: "Missing matchedIn" });
+    const {
+      fuzzyScore = 0,
+      semanticScore = 0,
+      frequencyScore = 0,
+      recencyScore = 0,
+    } = req.body;
 
-    const incObj = {
-      searchCount: 1,
-      [`matchedInCounts.${matchedIn}`]: 1,
-    };
-
-    const item = await Item.findByIdAndUpdate(
+    // update item stats
+    await Item.findByIdAndUpdate(
       req.params.id,
       {
-        $inc: incObj,
+        $inc: { searchCount: 1 },
         $set: { lastSearchedAt: new Date() },
+        $push: {
+          searchAccesses: {
+            fuzzyScore,
+            semanticScore,
+            frequencyScore,
+            recencyScore,
+            date: new Date(),
+          },
+        },
       },
       { new: true }
     );
-    if (!item) return res.status(404).json({ error: "Item not found" });
+
+    const incObj = {};
+    MATCH_TYPES.forEach(type => {
+      incObj[`matchTypeCounts.${type}`] = req.body[`${type}Score`] || 0;
+    });
+
+    // update global stats proportionally
+    await SearchStats.findOneAndUpdate(
+      {},
+      {
+        $inc: incObj,
+        $set: { updatedAt: new Date() },
+      },
+      { upsert: true }
+    );
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to update access state" });

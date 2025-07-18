@@ -1,3 +1,5 @@
+const SearchStats = require("../models/SearchStats");
+
 const WEIGHTS = {
     fuzzy: 0.4,
     semantic: 0.3,
@@ -39,8 +41,38 @@ const getUnifiedScore = ({
   return 0;
 };
 
+async function getDynamicWeights() {
+  const stats = await SearchStats.findOne({});
+  const counts = stats?.matchTypeCounts || {};
+  const total =
+    (counts.fuzzy || 0) +
+    (counts.semantic || 0) +
+    (counts.frequency || 0) +
+    (counts.recency || 0);
+
+  if (!total) return { fuzzy: 0.4, semantic: 0.3, frequency: 0.2, recency: 0.1 };
+
+  return {
+    fuzzy: (counts.fuzzy || 0) / total,
+    semantic: (counts.semantic || 0) / total,
+    frequency: (counts.frequency || 0) / total,
+    recency: (counts.recency || 0) / total,
+  };
+}
+
+async function getUnifiedScoreDynamic(params) {
+  const weights = await getDynamicWeights();
+  return (
+    weights.fuzzy * params.fuzzyScore +
+    weights.semantic * params.semanticScore +
+    weights.frequency * params.freqScore +
+    weights.recency * params.recencyScore
+  );
+}
+
 module.exports = {
   getRecencyScore,
   getFrequencyScore,
   getUnifiedScore,
+  getUnifiedScoreDynamic,
 };
