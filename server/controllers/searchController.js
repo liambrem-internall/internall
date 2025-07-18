@@ -64,7 +64,7 @@ exports.search = async (req, res) => {
   }
 };
 
-const VALID_MATCH_TYPES = ["fuzzy", "semantic", "frequency", "recency"];
+const MATCH_TYPES = ["fuzzy", "semantic", "frequency", "recency"];
 
 exports.accessSearch = async (req, res) => {
   try {
