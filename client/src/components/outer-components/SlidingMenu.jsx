@@ -31,6 +31,7 @@ const SlidingMenu = ({
   const trieRef = useRef(null);
   const prevItemsRef = useRef([]);
   const sentinelRef = useRef(null);
+  const resultsContainerRef = useRef(null);
 
   useEffect(() => {
     if (!sections) return;
@@ -79,6 +80,9 @@ const SlidingMenu = ({
       if (!q) {
         setResults([]);
         setTotal(0);
+        if (resultsContainerRef.current) {
+          resultsContainerRef.current.scrollTop = 0;
+        }
         return;
       }
       const data = await combinedSearch(q, roomId, PAGE_SIZE, 0);
@@ -93,6 +97,10 @@ const SlidingMenu = ({
       });
       setResults(normalizedResults);
       setTotal(data.total || 0);
+      // Scroll to top after new search
+      if (resultsContainerRef.current) {
+        resultsContainerRef.current.scrollTop = 0;
+      }
     },
     [roomId]
   );
@@ -160,7 +168,7 @@ const SlidingMenu = ({
           handleLoadMore();
         }
       },
-      { root: null, rootMargin: "0px", threshold: OBSERVER_THRESHOLD } 
+      { root: null, rootMargin: "0px", threshold: OBSERVER_THRESHOLD }
     );
     observer.observe(sentinelRef.current);
 
@@ -180,7 +188,7 @@ const SlidingMenu = ({
         onAutocomplete={handleAutocomplete}
         suggestions={suggestions}
       />
-      <div className="search-results">
+      <div className="search-results" ref={resultsContainerRef}>
         {results.length ? (
           <>
             <SearchResults
