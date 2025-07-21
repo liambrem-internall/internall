@@ -16,7 +16,7 @@ import AddButton from "./Add/AddButton";
 import ItemModal from "./Items/ItemModal";
 import ViewContext from "../../ViewContext";
 import { socket } from "../../utils/socket";
-import { apiFetch } from "../../utils/apiFetch";
+import { useApiFetch } from "../../hooks/useApiFetch";
 import DeleteButton from "./Delete/DeleteButton";
 import SectionModal from "./Sections/SectionModal";
 import useRoomUsers from "../../hooks/rooms/useRoomUsers";
@@ -43,6 +43,7 @@ import {
   THROTTLE_MS,
   ViewModes,
 } from "../../utils/constants";
+import useSafeSocketEmit from "../../hooks/socketHandlers/useSafeSocketEmit";
 
 import "./SectionList.css";
 
@@ -89,6 +90,8 @@ const SectionList = ({
   const currentUser = allUsers?.find((u) => u.id === userId);
   const color = currentUser?.color || "#000"; // fallback color if not found
   const { logs, addLog } = useLogs();
+  const apiFetch = useApiFetch();
+  const safeEmit = useSafeSocketEmit(socket, roomId);
 
   useSectionSocketHandlers({
     setSections,
@@ -189,7 +192,9 @@ const SectionList = ({
     cursorEvents,
     handleDragEndUtil,
     setIsDeleteZoneOver,
-    setIsDragging
+    setIsDragging,
+    apiFetch,
+    safeEmit,
   );
 
   const saveHandlers = useSaveHandlers(

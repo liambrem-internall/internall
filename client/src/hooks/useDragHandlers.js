@@ -53,7 +53,9 @@ const useDragHandlers = (
   cursorEvents,
   handleDragEndUtil,
   setIsDeleteZoneOver,
-  setIsDragging
+  setIsDragging,
+  apiFetch,
+  safeEmit,
 ) => {
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
@@ -63,7 +65,7 @@ const useDragHandlers = (
       x: event.activatorEvent?.clientX ?? 0,
       y: event.activatorEvent?.clientY ?? 0,
     });
-    socket.emit(cursorEvents.COMPONENT_DRAG_START, {
+    safeEmit(cursorEvents.COMPONENT_DRAG_START, {
       roomId,
       userId,
       color,
@@ -74,7 +76,7 @@ const useDragHandlers = (
   };
 
   const handleDragEnd = (event) => {
-    socket.emit(cursorEvents.COMPONENT_DRAG_END, {
+    safeEmit(cursorEvents.COMPONENT_DRAG_END, {
       roomId,
       userId,
       color,
@@ -101,6 +103,7 @@ const useDragHandlers = (
       username,
       currentUser,
       addLog,
+      apiFetch,
     });
   };
 

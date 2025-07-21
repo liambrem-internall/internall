@@ -11,6 +11,9 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { BsFillPersonFill } from "react-icons/bs";
 import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
+import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
+import { useApiFetch } from "../../hooks/useApiFetch";
+
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
@@ -24,8 +27,9 @@ const Navigation = () => {
   const { username } = useParams();
   const roomId = username;
   const userId = user?.sub;
-
+  const isOnline = useContext(NetworkStatusContext);
   const otherUsers = useRoomUsers(roomId, userId, user.nickname);
+  const apiFetch = useApiFetch();
 
   const userColors = otherUsers.map((user, i) => (
     <OverlayTrigger
@@ -54,6 +58,11 @@ const Navigation = () => {
           <Navbar.Brand className="fw-bold d-flex align-items-center text-white">
             {userColors}
           </Navbar.Brand>
+          <span
+            className={`status-indicator ${isOnline ? "online" : "offline"}`}
+          >
+            {isOnline ? "Online" : "Offline"}
+          </span>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <div className="d-flex ms-auto align-items-center">
@@ -64,6 +73,7 @@ const Navigation = () => {
                     prepopulateDemoData({
                       username,
                       getAccessTokenSilently,
+                      apiFetch,
                     })
                   }
                 >

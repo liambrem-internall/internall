@@ -6,7 +6,7 @@ import Searchbar from "./Searchbar";
 import { IoMdClose } from "react-icons/io";
 import { FaSearch } from "react-icons/fa";
 import { combinedSearch } from "../../utils/functions/combinedSearch";
-import { apiFetch } from "../../utils/apiFetch";
+import { useApiFetch } from "../../hooks/useApiFetch";
 import { Trie } from "../../utils/trieLogic";
 import SearchResults from "./SearchResults";
 
@@ -33,6 +33,7 @@ const SlidingMenu = ({
   const sentinelRef = useRef(null);
   const resultsContainerRef = useRef(null);
   const searchCacheRef = useRef(new Map());
+  const apiFetch = useApiFetch();
 
   useEffect(() => {
     if (!sections) return;
