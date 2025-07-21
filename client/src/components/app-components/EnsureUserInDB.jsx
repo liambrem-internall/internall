@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 
 import { useAuth0 } from "@auth0/auth0-react";
 
-import { apiFetch } from "../../utils/apiFetch";
+import { useApiFetch } from "../../hooks/useApiFetch";
+
 import LoadingState from "./LoadingState";
 
 const URL = import.meta.env.VITE_API_URL;
@@ -10,6 +11,7 @@ const URL = import.meta.env.VITE_API_URL;
 const EnsureUserInDB = ({ onReady }) => {
   const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
   const [loading, setLoading] = useState(true);
+  const apiFetch = useApiFetch();
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
