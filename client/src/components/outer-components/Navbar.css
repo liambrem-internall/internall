@@ -39,3 +39,7 @@
   transform: translateY(-4px);
   filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 16px currentColor);
 }
+
+.status-indicator {
+  color: var(--gray2);
+}
