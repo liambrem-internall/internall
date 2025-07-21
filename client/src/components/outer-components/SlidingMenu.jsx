@@ -32,9 +32,14 @@ const SlidingMenu = ({
   const prevItemsRef = useRef([]);
   const sentinelRef = useRef(null);
   const resultsContainerRef = useRef(null);
+  const searchCacheRef = useRef(new Map());
 
   useEffect(() => {
     if (!sections) return;
+
+    //if the data changes, clear the cache
+    searchCacheRef.current.clear();
+
     const trie = trieRef.current || new Trie();
 
     const allItems = Object.values(sections).flatMap(
@@ -85,6 +90,18 @@ const SlidingMenu = ({
         }
         return;
       }
+
+      // check cache first
+      if (searchCacheRef.current.has(q)) {
+        const cached = searchCacheRef.current.get(q);
+        setResults(cached.results);
+        setTotal(cached.total);
+        if (resultsContainerRef.current) {
+          resultsContainerRef.current.scrollTop = 0;
+        }
+        return;
+      }
+
       const data = await combinedSearch(q, roomId, PAGE_SIZE, 0);
       const normalizedResults = (data.results || []).map((result) => {
         if (result.type === "item" && result.data?._id) {
@@ -97,7 +114,13 @@ const SlidingMenu = ({
       });
       setResults(normalizedResults);
       setTotal(data.total || 0);
-      // scroll to top after new search
+
+      // Cache the results
+      searchCacheRef.current.set(q, {
+        results: normalizedResults,
+        total: data.total || 0,
+      });
+
       if (resultsContainerRef.current) {
         resultsContainerRef.current.scrollTop = 0;
       }
