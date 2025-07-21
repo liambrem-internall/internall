@@ -14,6 +14,7 @@ import { ViewModes } from "./utils/constants";
 import LoggedOut from "./components/logged-out-page/LoggedOut";
 import UserPage from "./components/app-components/UserPage";
 import LoadingState from "./components/app-components/LoadingState";
+import useSocketConnection from "./hooks/socketHandlers/useSocketConnection";
 
 import "./App.css";
 
@@ -24,6 +25,8 @@ const CLIENTID = import.meta.env.VITE_AUTH0_CLIENT_ID;
 const App = () => {
   const [userReady, setUserReady] = useState(false);
   const [viewMode, setViewMode] = useState(ViewModes.BOARD);
+
+  useSocketConnection();
 
   useEffect(() => {
     // remove the initial loader once React has mounted
