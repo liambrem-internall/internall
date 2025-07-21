@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { socket } from "../utils/socket";
+import useSafeSocketEmit from "./socketHandlers/useSafeSocketEmit";
 
 const useThrottledCursorBroadcast = ({
   roomId,
@@ -12,6 +13,7 @@ const useThrottledCursorBroadcast = ({
 }) => {
   const lastCursorPositionRef = useRef({ x: null, y: null });
   const lastEmitTimeRef = useRef(0);
+  const safeEmit = useSafeSocketEmit();
 
   useEffect(() => {
     if (!roomId || !userId || !active) return;
@@ -23,7 +25,7 @@ const useThrottledCursorBroadcast = ({
           lastCursorPositionRef.current.y !== pos.y) &&
         now - lastEmitTimeRef.current > throttleMs
       ) {
-        socket.emit(eventType, {
+        safeEmit(eventType, {
           roomId,
           userId,
           color,

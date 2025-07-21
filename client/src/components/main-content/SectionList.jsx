@@ -43,6 +43,7 @@ import {
   THROTTLE_MS,
   ViewModes,
 } from "../../utils/constants";
+import useSafeSocketEmit from "../../hooks/socketHandlers/useSafeSocketEmit";
 
 import "./SectionList.css";
 
@@ -90,6 +91,7 @@ const SectionList = ({
   const color = currentUser?.color || "#000"; // fallback color if not found
   const { logs, addLog } = useLogs();
   const apiFetch = useApiFetch();
+  const safeEmit = useSafeSocketEmit(socket, roomId);
 
   useSectionSocketHandlers({
     setSections,
@@ -192,6 +194,7 @@ const SectionList = ({
     setIsDeleteZoneOver,
     setIsDragging,
     apiFetch,
+    safeEmit,
   );
 
   const saveHandlers = useSaveHandlers(
