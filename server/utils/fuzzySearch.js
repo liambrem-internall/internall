@@ -136,4 +136,4 @@ const fuzzySearch = (content, query, contentType) => {
   }
 };
 
-module.exports = fuzzySearch;
+module.exports = { fuzzySearch, calculateSimilarity, };

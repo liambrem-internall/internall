@@ -5,16 +5,15 @@ const {
   getUnifiedScore,
   getUnifiedScoreDynamic,
 } = require("./calculateScores");
+const SemanticSearchGraph = require("./SemanticSearchGraph");
+const { cosineSimilarity } = require("./similarity");
 
-const cosineSimilarity = (a, b) => {
-  if (!a || !b) return 0;
-  const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
-  const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
-  const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
-  return dot / (normA * normB);
-};
-
-const getDominantMatchType = ({ fuzzyScore, semanticScore, freqScore, recencyScore }) => {
+const getDominantMatchType = ({
+  fuzzyScore,
+  semanticScore,
+  freqScore,
+  recencyScore,
+}) => {
   const scores = {
     fuzzy: fuzzyScore,
     semantic: semanticScore,
@@ -24,6 +23,24 @@ const getDominantMatchType = ({ fuzzyScore, semanticScore, freqScore, recencySco
   return Object.entries(scores).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
 };
 
+async function runSemanticGraphSearch({ itemsRaw, queryEmbedding }) {
+  const graph = new SemanticSearchGraph();
+  itemsRaw.forEach((item) => graph.addItem(item));
+  
+  // semantic graph search
+  graph.buildEdges(cosineSimilarity, 0.8, true);
+  const graphResults = graph.search(queryEmbedding, cosineSimilarity, 2, true);
+  
+  // return as a map of item ID to semantic graph score
+  const semanticGraphScoreMap = {};
+  graphResults.forEach((item, index) => {
+    const itemId = item._id || item.id;
+    semanticGraphScoreMap[itemId] = 0.9 - (index * 0.1); // Decreasing scores
+  });
+  
+  return semanticGraphScoreMap;
+}
+
 async function runSearchAlgorithm({
   itemsRaw,
   fuzzyResults,
@@ -31,6 +48,7 @@ async function runSearchAlgorithm({
   ddgStats,
   ddgData,
   ItemModel,
+  query,
 }) {
   // map fuzzy results to their scores
   const fuzzyMap = {};
@@ -46,22 +64,38 @@ async function runSearchAlgorithm({
     }
   });
 
+  // Get only semantic graph score map
+  const semanticGraphScoreMap = await runSemanticGraphSearch({ itemsRaw, queryEmbedding });
+
   const itemResults = await Promise.all(
     itemsRaw.map(async (item) => {
       const fuzzyScore = fuzzyMap[item._id] || 0;
       const semanticScore = semanticMap[item._id] || 0;
       const freqScore = getFrequencyScore(item.searchCount);
       const recencyScore = getRecencyScore(item.lastSearchedAt);
+      
+      // Add only semantic graph boost
+      const semanticGraphBoost = semanticGraphScoreMap[item._id] || 0;
 
-      const matchType = getDominantMatchType({ fuzzyScore, semanticScore, freqScore, recencyScore });
+      const matchType = getDominantMatchType({
+        fuzzyScore,
+        semanticScore,
+        freqScore,
+        recencyScore,
+      });
 
-      const unifiedScore = await getUnifiedScoreDynamic({
+      let unifiedScore = await getUnifiedScoreDynamic({
         fuzzyScore,
         semanticScore,
         freqScore,
         recencyScore,
         type: COMPONENT_TYPES.ITEM,
       });
+
+      // Apply semantic graph boost only
+      if (semanticGraphBoost > 0) {
+        unifiedScore *= (1 + semanticGraphBoost * 0.3); // 30% boost weight
+      }
 
       return {
         type: COMPONENT_TYPES.ITEM,
@@ -72,6 +106,7 @@ async function runSearchAlgorithm({
           semanticScore,
           freqScore,
           recencyScore,
+          semanticGraphBoost,
           score: unifiedScore,
         },
         score: unifiedScore,
@@ -103,10 +138,11 @@ async function runSearchAlgorithm({
       score: 0.2 + ddgPercent,
     }));
 
-  // combine & sort results by scores
-  const allResults = [...itemResults, ...ddgResults].sort(
-    (a, b) => b.score - a.score
-  );
+  // Combine results (no more duplicate items!)
+  const allResults = [...itemResults, ...ddgResults];
+  
+  // Sort by score
+  allResults.sort((a, b) => b.score - a.score);
 
   return allResults;
 }

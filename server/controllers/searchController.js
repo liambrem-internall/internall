@@ -10,7 +10,7 @@ const SearchStats = require("../models/SearchStats");
 
 const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
-const fuzzySearch = require("../utils/fuzzySearch");
+const { fuzzySearch } = require("../utils/fuzzySearch");
 const { runSearchAlgorithm } = require("../utils/searchAlgorithm");
 
 const PAGE_SIZE_DEFAULT = 8;
@@ -53,6 +53,7 @@ exports.search = async (req, res) => {
       ddgStats,
       ddgData,
       ItemModel: Item,
+      query: q,
     });
 
     const pagedResults = results.slice(offset, offset + limit);
