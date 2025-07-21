@@ -1,5 +1,3 @@
-import { apiFetch } from "../apiFetch";
-
 const URL = import.meta.env.VITE_API_URL;
 
 const demoSections = [
@@ -373,6 +371,7 @@ const demoSections = [
 export async function prepopulateDemoData({
   username,
   getAccessTokenSilently,
+  apiFetch,
 }) {
   for (const sectionData of demoSections) {
     const section = await apiFetch({

@@ -12,6 +12,8 @@ import Tooltip from "react-bootstrap/Tooltip";
 import { BsFillPersonFill } from "react-icons/bs";
 import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
 import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
+import { useApiFetch } from "../../hooks/useApiFetch";
+
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
@@ -27,6 +29,7 @@ const Navigation = () => {
   const userId = user?.sub;
   const isOnline = useContext(NetworkStatusContext);
   const otherUsers = useRoomUsers(roomId, userId, user.nickname);
+  const apiFetch = useApiFetch();
 
   const userColors = otherUsers.map((user, i) => (
     <OverlayTrigger
@@ -70,6 +73,7 @@ const Navigation = () => {
                     prepopulateDemoData({
                       username,
                       getAccessTokenSilently,
+                      apiFetch,
                     })
                   }
                 >

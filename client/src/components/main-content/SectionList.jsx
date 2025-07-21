@@ -16,7 +16,7 @@ import AddButton from "./Add/AddButton";
 import ItemModal from "./Items/ItemModal";
 import ViewContext from "../../ViewContext";
 import { socket } from "../../utils/socket";
-import { apiFetch } from "../../utils/apiFetch";
+import { useApiFetch } from "../../hooks/useApiFetch";
 import DeleteButton from "./Delete/DeleteButton";
 import SectionModal from "./Sections/SectionModal";
 import useRoomUsers from "../../hooks/rooms/useRoomUsers";
@@ -89,6 +89,7 @@ const SectionList = ({
   const currentUser = allUsers?.find((u) => u.id === userId);
   const color = currentUser?.color || "#000"; // fallback color if not found
   const { logs, addLog } = useLogs();
+  const apiFetch = useApiFetch();
 
   useSectionSocketHandlers({
     setSections,
@@ -189,7 +190,8 @@ const SectionList = ({
     cursorEvents,
     handleDragEndUtil,
     setIsDeleteZoneOver,
-    setIsDragging
+    setIsDragging,
+    apiFetch,
   );
 
   const saveHandlers = useSaveHandlers(

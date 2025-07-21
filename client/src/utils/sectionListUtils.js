@@ -4,7 +4,6 @@ import {
   DraggableComponentTypes,
 } from "./constants";
 import { arrayMove } from "@dnd-kit/sortable";
-import { apiFetch } from "./apiFetch";
 
 export const findItemBySection = (section, { activeId }) => {
   for (const i of section.items) {
@@ -20,7 +19,7 @@ const URL = import.meta.env.VITE_API_URL;
 const handleDragEndSection = (
   active,
   over,
-  { setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog }
+  { setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, }
 ) => {
   if (active.id !== over.id) {
     setSectionOrder((prev) => {
@@ -46,7 +45,7 @@ const handleDragEndSection = (
 const handleDragEndItem = (
   active,
   over,
-  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username, currentUser, addLog }
+  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, }
 ) => {
   const fromSectionId = active.data.current.sectionId;
   const toSectionId = over.data.current?.sectionId || over.id;
@@ -143,7 +142,7 @@ const handleDragEndItem = (
   setActiveId(null);
 };
 
-const handleDragEndAdd = (active, over, { setShowModal, setActiveId, currentUser, addLog }) => {
+const handleDragEndAdd = (active, over, { setShowModal, setActiveId, currentUser, addLog, apiFetch, }) => {
   setShowModal(true);
   setActiveId(null);
 };
@@ -151,7 +150,7 @@ const handleDragEndAdd = (active, over, { setShowModal, setActiveId, currentUser
 const handleDragEndDelete = (
   active,
   over,
-  { setSections, sections, activeId, setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog }
+  { setSections, sections, activeId, setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, }
 ) => {
   // Delete item
   if (active.data.current?.type === DraggableComponentTypes.ITEM) {
@@ -221,6 +220,7 @@ export const handleDragEnd = (
     username,
     currentUser,
     addLog,
+    apiFetch,
   }
 ) => {
   const { active, over } = event;
@@ -265,6 +265,7 @@ export const handleDragEnd = (
         currentUser,
         addLog,
         activeId,
+        apiFetch,
       });
       break;
     case DragEndActions.ADD_SECTION:
@@ -273,6 +274,7 @@ export const handleDragEnd = (
         setActiveId,
         currentUser,
         addLog,
+        apiFetch,
       });
       break;
     case DragEndActions.ADD_ITEM:
@@ -294,6 +296,7 @@ export const handleDragEnd = (
         username,
         currentUser,
         addLog,
+        apiFetch,
       });
       break;
     case DragEndActions.MOVE_ITEM:
@@ -306,6 +309,7 @@ export const handleDragEnd = (
         username,
         currentUser,
         addLog,
+        apiFetch,
       });
       break;
     default:
