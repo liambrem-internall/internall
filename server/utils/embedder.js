@@ -19,17 +19,34 @@ async function getEmbedding(text) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ texts: [text] }),
     });
-    if (!res.ok) throw new Error("Embedding service error");
-    const json = await res.json();
-    const embedding = json.embeddings?.[0] || null;
-    // store in cache
-    if (embedding) {
-      if (embedCache.size >= MAX_CACHE_SIZE) {
-        const firstKey = embedCache.keys().next().value;
-        embedCache.delete(firstKey); // remove the oldest entry
-      }
-      embedCache.set(text, embedding);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Embedding service error:", res.status, errorText);
+      return null;
     }
+
+    let json;
+    try {
+      json = await res.json();
+    } catch (jsonErr) {
+      console.error("Failed to parse embedding service response as JSON:", jsonErr);
+      return null;
+    }
+
+    const embedding = Array.isArray(json.embeddings?.[0]) ? json.embeddings[0] : null;
+    if (!embedding) {
+      console.error("No valid embedding returned for text:", text, "Response:", json);
+      return null;
+    }
+
+    // store in cache
+    if (embedCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = embedCache.keys().next().value;
+      embedCache.delete(firstKey); // remove the oldest entry
+    }
+    embedCache.set(text, embedding);
+
     return embedding;
   } catch (err) {
     console.error("Embedding fetch failed:", err);
