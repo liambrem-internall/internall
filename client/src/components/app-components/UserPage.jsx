@@ -13,6 +13,7 @@ import SlidingMenu from "../outer-components/SlidingMenu";
 import LightBallsOverlay from "../visuals/LightBallsOverlay";
 import { FaSearch } from "react-icons/fa";
 import LoadingState from "./LoadingState";
+import useSafeSocketEmit from "../../hooks/socketHandlers/useSafeSocketEmit";
 
 import "./UserPage.css";
 
@@ -32,13 +33,15 @@ const UserPage = ({ setUserReady, userReady }) => {
   const roomId = username;
   const userId = user?.sub;
   const nickname = getDisplayName(user);
+  const safeEmit = useSafeSocketEmit();
+
 
   useEffect(() => {
     // handles connecting for entire client lifecycle
     if (!roomId || !userId || !nickname) return;
 
     const handleConnect = () => {
-      socket.emit(roomActions.JOIN, { roomId, userId, nickname });
+      safeEmit(roomActions.JOIN, { roomId, userId, nickname });
     };
 
     if (socket.connected) {
@@ -48,7 +51,7 @@ const UserPage = ({ setUserReady, userReady }) => {
     }
 
     return () => {
-      socket.emit(roomActions.LEAVE, { roomId });
+      safeEmit(roomActions.LEAVE, { roomId });
       socket.off("connect", handleConnect);
     };
   }, [roomId, userId, nickname]);
