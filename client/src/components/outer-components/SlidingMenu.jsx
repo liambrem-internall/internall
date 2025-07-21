@@ -37,27 +37,31 @@ const SlidingMenu = ({
     const trie = trieRef.current || new Trie();
 
     const allItems = Object.values(sections).flatMap(
-      (section) => section.items
+      (section) =>
+        section.items.map(({ _id, ...rest }) => ({
+          ...rest,
+          id: _id,
+        }))
     );
 
     const prevItems = prevItemsRef.current;
-    const prevIds = new Set(prevItems.map((i) => i._id));
-    const currIds = new Set(allItems.map((i) => i._id));
+    const prevIds = new Set(prevItems.map((i) => i.id));
+    const currIds = new Set(allItems.map((i) => i.id));
 
     allItems.forEach((item) => {
-      if (!prevIds.has(item._id)) {
+      if (!prevIds.has(item.id)) {
         trie.insert(item.content, item);
       }
     });
 
     prevItems.forEach((item) => {
-      if (!currIds.has(item._id)) {
+      if (!currIds.has(item.id)) {
         trie.remove(item.content, item);
       }
     });
 
     allItems.forEach((item) => {
-      const prev = prevItems.find((i) => i._id === item._id);
+      const prev = prevItems.find((i) => i.id === item.id);
       if (prev && prev.content !== item.content) {
         trie.remove(prev.content, prev);
         trie.insert(item.content, item);
@@ -78,7 +82,16 @@ const SlidingMenu = ({
         return;
       }
       const data = await combinedSearch(q, roomId, PAGE_SIZE, 0);
-      setResults(data.results || []);
+      const normalizedResults = (data.results || []).map((result) => {
+        if (result.type === "item" && result.data?._id) {
+          return {
+            ...result,
+            data: { ...result.data, id: result.data._id },
+          };
+        }
+        return result;
+      });
+      setResults(normalizedResults);
       setTotal(data.total || 0);
     },
     [roomId]
@@ -95,7 +108,7 @@ const SlidingMenu = ({
 
   const handleItemClick = async (item) => {
     await apiFetch({
-      endpoint: `${URL}/api/search/${item._id}/accessed`,
+      endpoint: `${URL}/api/search/${item.id}/accessed`,
       method: "POST",
       body: {
         fuzzyScore: item.fuzzyScore,
