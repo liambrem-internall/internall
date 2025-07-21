@@ -97,7 +97,7 @@ const SlidingMenu = ({
       });
       setResults(normalizedResults);
       setTotal(data.total || 0);
-      // Scroll to top after new search
+      // scroll to top after new search
       if (resultsContainerRef.current) {
         resultsContainerRef.current.scrollTop = 0;
       }
