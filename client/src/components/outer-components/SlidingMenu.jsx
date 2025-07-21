@@ -8,11 +8,11 @@ import { FaSearch } from "react-icons/fa";
 import { combinedSearch } from "../../utils/functions/combinedSearch";
 import { apiFetch } from "../../utils/apiFetch";
 import { Trie } from "../../utils/trieLogic";
-import { FaArrowDown } from "react-icons/fa6";
 import SearchResults from "./SearchResults";
 
 const URL = import.meta.env.VITE_API_URL;
 const PAGE_SIZE = 8;
+const OBSERVER_THRESHOLD = 0.1;
 
 const SlidingMenu = ({
   open,
@@ -30,6 +30,7 @@ const SlidingMenu = ({
   const [suggestions, setSuggestions] = useState([]);
   const trieRef = useRef(null);
   const prevItemsRef = useRef([]);
+  const sentinelRef = useRef(null);
 
   useEffect(() => {
     if (!sections) return;
@@ -83,13 +84,14 @@ const SlidingMenu = ({
     [roomId]
   );
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = useCallback(async () => {
+    if (results.length >= total) return;
     const nextPage = page + 1;
     const offset = nextPage * PAGE_SIZE;
     const data = await combinedSearch(query, roomId, PAGE_SIZE, offset);
     setResults((prev) => [...prev, ...(data.results || [])]);
     setPage(nextPage);
-  };
+  }, [results.length, total, page, query, roomId]);
 
   const handleItemClick = async (item) => {
     await apiFetch({
@@ -129,10 +131,28 @@ const SlidingMenu = ({
     const matches = trieRef.current.search(query);
     const unique = Array.from(new Set(matches.map((i) => i.content))).slice(
       0,
-      8
+      PAGE_SIZE
     );
     setSuggestions(unique);
   };
+
+  // infinite scrolling
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    if (results.length >= total) return; // no more results to load
+
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { root: null, rootMargin: "0px", threshold: OBSERVER_THRESHOLD } 
+    );
+    observer.observe(sentinelRef.current);
+
+    return () => observer.disconnect();
+  }, [results, total, handleLoadMore]);
 
   return (
     <div className={`sliding-menu${open ? " open" : ""}`}>
@@ -155,12 +175,9 @@ const SlidingMenu = ({
               onItemClick={handleItemClick}
               onDdgClick={handleDdgClick}
             />
-            {results.length < total && (
-              <FaArrowDown
-                className="load-more-button"
-                onClick={handleLoadMore}
-                size={50}
-              />
+            <div ref={sentinelRef} style={{ height: 32 }} />{" "}
+            {results.length >= total && total > 0 && (
+              <div className="no-more-content">No more content to show</div>
             )}
           </>
         ) : (
