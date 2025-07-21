@@ -53,7 +53,8 @@ const useDragHandlers = (
   cursorEvents,
   handleDragEndUtil,
   setIsDeleteZoneOver,
-  setIsDragging
+  setIsDragging,
+  apiFetch
 ) => {
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
@@ -101,6 +102,7 @@ const useDragHandlers = (
       username,
       currentUser,
       addLog,
+      apiFetch,
     });
   };
 

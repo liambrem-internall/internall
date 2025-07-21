@@ -1,4 +1,8 @@
 const URL = import.meta.env.VITE_API_URL;
+import { useContext } from "react";
+import { NetworkStatusContext } from "../contexts/NetworkStatusContext";
+import { addPendingEdit } from "../utils/offlineQueue";
+import { useApiFetch } from "./useApiFetch";
 
 /**
  * Custom hook for managing save logic for sections and items.
@@ -38,9 +42,41 @@ const useSaveHandlers = (
   editingItem,
   setEditingItem,
   targetSectionId,
-  apiFetch
 ) => {
+  const isOnline = useContext(NetworkStatusContext);
+  const apiFetch = useApiFetch();
+
   const handleSaveSection = async () => {
+    if (!isOnline) {
+      // save to offline queue
+      addPendingEdit({
+        type: "section",
+        action: "create",
+        payload: {
+          title: pendingSectionTitle,
+          username: currentUser?.nickname,
+        },
+        timestamp: Date.now(),
+      });
+      setSections((prev) => ({
+        ...prev,
+        // temporary ID for offline section
+        [`offline-${Date.now()}`]: {
+          title: pendingSectionTitle,
+          id: `offline-${Date.now()}`,
+          items: [],
+          offline: true,
+        },
+      }));
+      setSectionOrder((prev) => [...prev, `offline-${Date.now()}`]);
+      if (addLog) {
+        addLog(`(Offline) You created section "${pendingSectionTitle}"`);
+      }
+      setShowModal(false);
+      setPendingSectionTitle("");
+      return;
+    }
+
     const newSection = await apiFetch({
       endpoint: `${URL}/api/sections/${username}`,
       method: "POST",
@@ -69,6 +105,48 @@ const useSaveHandlers = (
       } else {
         addLog(`${currentUser?.nickname || "Someone"} added item "${content}"`);
       }
+      setShowItemModal(false);
+      setEditingItem(null);
+      setTargetSectionId(null);
+      return;
+    }
+
+    if (!isOnline) {
+      // save to offline queue
+      addPendingEdit({
+        type: "item",
+        action: editingItem ? "edit" : "create",
+        payload: {
+          content,
+          link,
+          notes,
+          sectionId: targetSectionId,
+          username: currentUser?.nickname,
+          itemId: editingItem?.id,
+        },
+        timestamp: Date.now(),
+      });
+      setSections((prev) => {
+        const section = prev[targetSectionId];
+        if (!section) return prev;
+        return {
+          ...prev,
+          [targetSectionId]: {
+            ...section,
+            items: [
+              ...section.items,
+              {
+                id: `offline-item-${Date.now()}`,
+                content,
+                link,
+                notes,
+                offline: true,
+              },
+            ],
+          },
+        };
+      });
+      addLog(`(Offline) You added item "${content}"`);
       setShowItemModal(false);
       setEditingItem(null);
       setTargetSectionId(null);

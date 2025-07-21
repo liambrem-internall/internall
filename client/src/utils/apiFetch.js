@@ -3,8 +3,14 @@ export const apiFetch = async ({
   method = "GET",
   body,
   getAccessTokenSilently,
+  isOnline = true,
   ...options
 }) => {
+
+  if (!isOnline) {
+    throw new Error("Offline: API call prevented");
+  }
+
   const token = await getAccessTokenSilently();
   const headers = {
     Authorization: `Bearer ${token}`,
