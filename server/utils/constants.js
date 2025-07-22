@@ -3,6 +3,8 @@ const roomActions = Object.freeze({
   JOIN: "join-room",
   USERS: "room-users",
   DISCONNECTING: "disconnecting",
+  GET_ROOM_USERS: "get-room-users",
+  DISCONNECT: "disconnect",
 });
 
 const COLORS = [
