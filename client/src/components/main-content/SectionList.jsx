@@ -43,10 +43,9 @@ import {
   THROTTLE_MS,
   ViewModes,
 } from "../../utils/constants";
+import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
 import useSafeSocketEmit from "../../hooks/socketHandlers/useSafeSocketEmit";
 import useOfflineSync from "../../hooks/useOfflineSync";
-import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
-
 
 import "./SectionList.css";
 
@@ -236,6 +235,7 @@ const SectionList = ({
     setIsDragging,
     apiFetch,
     safeEmit,
+    isOnline  // Add this parameter
   );
 
   const saveHandlers = useSaveHandlers(
