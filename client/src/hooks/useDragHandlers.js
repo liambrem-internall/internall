@@ -141,7 +141,7 @@ const useDragHandlers = (
       currentUser,
       addLog,
       apiFetch,
-      isOnline,  // Add this parameter
+      isOnline,
     });
   };
 

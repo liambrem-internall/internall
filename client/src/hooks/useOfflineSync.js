@@ -5,6 +5,19 @@ import { apiFetch } from "../utils/apiFetch";
 
 const URL = import.meta.env.VITE_API_URL;
 
+const EDIT_TYPES = Object.freeze({
+  SECTION: "section",
+  ITEM: "item"
+});
+
+const EDIT_ACTIONS = Object.freeze({
+  CREATE: "create",
+  EDIT: "edit",
+  DELETE: "delete",
+  REORDER: "reorder",
+  MOVE: "move"
+});
+
 export default function useOfflineSync(getAccessTokenSilently, username, addLog) {
   const isOnline = useContext(NetworkStatusContext);
   const isSyncing = useRef(false);
@@ -34,8 +47,8 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
         }
 
         // SECTION ACTIONS
-        if (edit.type === "section") {
-          if (edit.action === "create") {
+        if (edit.type === EDIT_TYPES.SECTION) {
+          if (edit.action === EDIT_ACTIONS.CREATE) {
             await apiFetch({
               endpoint: `${URL}/api/sections/${editUsername}`,
               method: "POST",
@@ -48,7 +61,7 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
             });
             if (addLog) addLog(`Synced: Created section "${edit.payload.title}"`);
           }
-          if (edit.action === "edit") {
+          if (edit.action === EDIT_ACTIONS.EDIT) {
             await apiFetch({
               endpoint: `${URL}/api/sections/${edit.payload.sectionId}`,
               method: "PUT",
@@ -61,7 +74,7 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
             });
             if (addLog) addLog(`Synced: Updated section "${edit.payload.title}"`);
           }
-          if (edit.action === "delete") {
+          if (edit.action === EDIT_ACTIONS.DELETE) {
             await apiFetch({
               endpoint: `${URL}/api/sections/${edit.payload.sectionId}/${editUsername}`,
               method: "DELETE",
@@ -71,7 +84,7 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
             });
             if (addLog) addLog(`Synced: Deleted section`);
           }
-          if (edit.action === "reorder") {
+          if (edit.action === EDIT_ACTIONS.REORDER) {
             await apiFetch({
               endpoint: `${URL}/api/sections/user/${editUsername}/order`,
               method: "PUT",
@@ -88,8 +101,8 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
         }
 
         // ITEM ACTIONS
-        if (edit.type === "item") {
-          if (edit.action === "create") {
+        if (edit.type === EDIT_TYPES.ITEM) {
+          if (edit.action === EDIT_ACTIONS.CREATE) {
             await apiFetch({
               endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${editUsername}`,
               method: "POST",
@@ -105,7 +118,7 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
             });
             if (addLog) addLog(`Synced: Created item "${edit.payload.content}"`);
           }
-          if (edit.action === "edit") {
+          if (edit.action === EDIT_ACTIONS.EDIT) {
             await apiFetch({
               endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
               method: "PUT",
@@ -121,7 +134,7 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
             });
             if (addLog) addLog(`Synced: Updated item "${edit.payload.content}"`);
           }
-          if (edit.action === "delete") {
+          if (edit.action === EDIT_ACTIONS.DELETE) {
             await apiFetch({
               endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
               method: "DELETE",
@@ -131,7 +144,7 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
             });
             if (addLog) addLog(`Synced: Deleted item`);
           }
-          if (edit.action === "reorder") {
+          if (edit.action === EDIT_ACTIONS.REORDER) {
             await apiFetch({
               endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${editUsername}/order`,
               method: "PUT",
@@ -144,7 +157,7 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
             });
             if (addLog) addLog(`Synced: Reordered items`);
           }
-          if (edit.action === "move") {
+          if (edit.action === EDIT_ACTIONS.MOVE) {
             await apiFetch({
               endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}/move`,
               method: "PUT",

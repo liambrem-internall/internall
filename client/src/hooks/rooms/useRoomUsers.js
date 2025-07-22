@@ -9,15 +9,13 @@ const useRoomUsers = (roomId, userId = undefined) => {
     if (!roomId) return;
 
     const handleUsersUpdate = (userList) => {
-      console.log("Room users updated:", userList); // Debug log
       setUsers(userList);
     };
 
     socket.on(roomActions.USERS, handleUsersUpdate);
 
-    // Request current users when component mounts or roomId changes
     if (socket.connected) {
-      socket.emit("get-room-users", { roomId });
+      socket.emit(roomActions.GET_ROOM_USERS, { roomId });
     }
 
     return () => {
