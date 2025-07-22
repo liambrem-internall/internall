@@ -2,7 +2,10 @@
  * This file handles the section-related operations (CRUD)
  */
 
+const { updateGraph } = require("../utils/graphCache");
+
 const Section = require("../models/Section");
+const Item = require("../models/Item");
 const User = require("../models/User");
 const sectionEvents = require("../events/sectionEvents");
 const { ITEMS_FIELD } = require("../utils/constants");
@@ -73,11 +76,9 @@ exports.updateSectionOrder = async (req, res) => {
 
 exports.createSection = async (req, res) => {
   try {
-    // find page owner
     const pageOwner = await User.findOne({ username: req.params.username });
     if (!pageOwner) return res.status(404).json({ error: "User not found" });
 
-    // attach the page owner's auth0Id
     const newSection = new Section({
       ...req.body,
       userId: pageOwner.auth0Id,
@@ -137,8 +138,25 @@ exports.updateSection = async (req, res) => {
 
 exports.deleteSection = async (req, res) => {
   try {
-    const section = await Section.findByIdAndDelete(req.params.id);
+    const section = await Section.findById(req.params.id).populate('items');
     if (!section) return res.status(404).json({ error: "Section not found" });
+
+    const roomId = req.params.username;
+
+    if (section.items && section.items.length > 0) {
+      section.items.forEach(item => {
+        updateGraph(roomId, { _id: item._id || item.id }, 'remove');
+      });
+    }
+
+    await Item.deleteMany({ _id: { $in: section.items } });
+
+    await User.findOneAndUpdate(
+      { auth0Id: section.userId },
+      { $pull: { sections: section._id } }
+    );
+
+    await Section.findByIdAndDelete(req.params.id);
 
     sectionEvents.emitSectionDeleted(
       req.params.username,
@@ -149,6 +167,7 @@ exports.deleteSection = async (req, res) => {
 
     res.status(204).send();
   } catch (err) {
-    res.status(404).json({ error: "Section not found" });
+    console.error("Delete section error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };

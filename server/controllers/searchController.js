@@ -12,8 +12,7 @@ const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
 const { fuzzySearch } = require("../utils/fuzzySearch");
 const { runSearchAlgorithm } = require("../utils/searchAlgorithm");
-const SemanticSearchGraph = require("../utils/SemanticSearchGraph");
-const { cosineSimilarity } = require("../utils/similarity");
+const { getGraph, buildGraph } = require("../utils/graphCache");
 
 const PAGE_SIZE_DEFAULT = 8;
 const OFFSET_DEFAULT = 0;
@@ -56,6 +55,7 @@ exports.search = async (req, res) => {
       ddgData,
       ItemModel: Item,
       query: q,
+      roomId,
     });
 
     const pagedResults = results.slice(offset, offset + limit);
@@ -98,7 +98,7 @@ exports.accessSearch = async (req, res) => {
     );
 
     const incObj = {};
-    MATCH_TYPES.forEach(type => {
+    MATCH_TYPES.forEach((type) => {
       incObj[`matchTypeCounts.${type}`] = req.body[`${type}Score`] || 0;
     });
 
@@ -132,8 +132,6 @@ exports.webAccessed = async (req, res) => {
   }
 };
 
-
-
 exports.getSemanticGraph = async (req, res) => {
   try {
     const { roomId } = req.query;
@@ -145,22 +143,25 @@ exports.getSemanticGraph = async (req, res) => {
     const userSections = await Section.find({ userId: user.auth0Id });
     const sectionIds = userSections.map((section) => section._id);
     const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
-    
-    const graph = new SemanticSearchGraph();
-    itemsRaw.forEach((item) => graph.addItem(item));
-    
-    const threshold = 0.4; 
-    graph.buildEdges(cosineSimilarity, threshold, true);
+
+    // pull graph from cache
+    let graph = getGraph(roomId);
+    if (!graph) {
+      graph = buildGraph(roomId, itemsRaw);
+    }
 
     const nodes = Object.entries(graph.nodes).map(([id, node]) => ({
       id,
-      label: (node.item.title || node.item.content || 'Untitled').substring(0, 50),
-      hasEmbedding: !!(node.item.embedding && node.item.embedding.length > 0)
+      label: (node.item.title || node.item.content || "Untitled").substring(
+        0,
+        50
+      ),
+      hasEmbedding: !!(node.item.embedding && node.item.embedding.length > 0),
     }));
-    
+
     const edges = [];
     Object.entries(graph.nodes).forEach(([id, node]) => {
-      node.edges.forEach(edge => {
+      node.edges.forEach((edge) => {
         edges.push({ source: id, target: edge.id, weight: edge.weight });
       });
     });

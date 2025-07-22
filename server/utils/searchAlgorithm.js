@@ -7,37 +7,38 @@ const {
 } = require("./calculateScores");
 const SemanticSearchGraph = require("./SemanticSearchGraph");
 const { cosineSimilarity } = require("./similarity");
+const { getGraph, buildGraph } = require("./graphCache");
 
 const getDominantMatchType = ({
   fuzzyScore,
   semanticScore,
+  semanticGraphScore,
   freqScore,
   recencyScore,
 }) => {
   const scores = {
     fuzzy: fuzzyScore,
     semantic: semanticScore,
+    semanticGraph: semanticGraphScore,
     frequency: freqScore,
     recency: recencyScore,
   };
   return Object.entries(scores).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
 };
 
-async function runSemanticGraphSearch({ itemsRaw, queryEmbedding }) {
-  const graph = new SemanticSearchGraph();
-  itemsRaw.forEach((item) => graph.addItem(item));
-  
-  // semantic graph search
-  graph.buildEdges(cosineSimilarity, 0.8, true);
+async function runSemanticGraphSearch({ itemsRaw, queryEmbedding, roomId }) {
+  let graph = getGraph(roomId);
+  if (!graph) {
+    graph = buildGraph(roomId, itemsRaw);
+  }
   const graphResults = graph.search(queryEmbedding, cosineSimilarity, 2, true);
-  
-  // return as a map of item ID to semantic graph score
+
   const semanticGraphScoreMap = {};
   graphResults.forEach((item, index) => {
     const itemId = item._id || item.id;
-    semanticGraphScoreMap[itemId] = 0.9 - (index * 0.1); // Decreasing scores
+    semanticGraphScoreMap[itemId] = 0.9 - (index * 0.1); // decreasing scores
   });
-  
+
   return semanticGraphScoreMap;
 }
 
@@ -49,6 +50,7 @@ async function runSearchAlgorithm({
   ddgData,
   ItemModel,
   query,
+  roomId,
 }) {
   // map fuzzy results to their scores
   const fuzzyMap = {};
@@ -56,7 +58,7 @@ async function runSearchAlgorithm({
     fuzzyMap[item._id] = item.matchTypeScore || 0.0;
   });
 
-  // semantic scores
+  // regular semantic scores (cosine similarity with query embedding)
   const semanticMap = {};
   itemsRaw.forEach((item) => {
     if (item.embedding && item.embedding.length) {
@@ -64,22 +66,21 @@ async function runSearchAlgorithm({
     }
   });
 
-  // Get only semantic graph score map
-  const semanticGraphScoreMap = await runSemanticGraphSearch({ itemsRaw, queryEmbedding });
+  // semantic graph scores (graph-based semantic search)
+  const semanticGraphScoreMap = await runSemanticGraphSearch({ itemsRaw, queryEmbedding, roomId });
 
   const itemResults = await Promise.all(
     itemsRaw.map(async (item) => {
       const fuzzyScore = fuzzyMap[item._id] || 0;
       const semanticScore = semanticMap[item._id] || 0;
+      const semanticGraphScore = semanticGraphScoreMap[item._id] || 0;
       const freqScore = getFrequencyScore(item.searchCount);
       const recencyScore = getRecencyScore(item.lastSearchedAt);
-      
-      // Add only semantic graph boost
-      const semanticGraphBoost = semanticGraphScoreMap[item._id] || 0;
 
       const matchType = getDominantMatchType({
         fuzzyScore,
         semanticScore,
+        semanticGraphScore,
         freqScore,
         recencyScore,
       });
@@ -87,15 +88,11 @@ async function runSearchAlgorithm({
       let unifiedScore = await getUnifiedScoreDynamic({
         fuzzyScore,
         semanticScore,
+        semanticGraphScore,
         freqScore,
         recencyScore,
         type: COMPONENT_TYPES.ITEM,
       });
-
-      // Apply semantic graph boost only
-      if (semanticGraphBoost > 0) {
-        unifiedScore *= (1 + semanticGraphBoost * 0.3); // 30% boost weight
-      }
 
       return {
         type: COMPONENT_TYPES.ITEM,
@@ -104,9 +101,9 @@ async function runSearchAlgorithm({
           matchType,
           fuzzyScore,
           semanticScore,
+          semanticGraphScore,
           freqScore,
           recencyScore,
-          semanticGraphBoost,
           score: unifiedScore,
         },
         score: unifiedScore,
@@ -138,10 +135,7 @@ async function runSearchAlgorithm({
       score: 0.2 + ddgPercent,
     }));
 
-  // Combine results (no more duplicate items!)
   const allResults = [...itemResults, ...ddgResults];
-  
-  // Sort by score
   allResults.sort((a, b) => b.score - a.score);
 
   return allResults;
