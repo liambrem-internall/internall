@@ -37,6 +37,8 @@ class SemanticSearchGraph {
     }
   }
 
+
+  // uses a BFS approach to find items similar to the query embedding
   search(query, similarityFn, maxDepth = 2) {
     const candidateIds = Object.keys(this.nodes).filter(
       (id) =>
