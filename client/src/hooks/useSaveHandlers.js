@@ -55,7 +55,7 @@ const useSaveHandlers = (
         action: "create",
         payload: {
           title: pendingSectionTitle,
-          username: username, // Use the username from useParams, not currentUser?.nickname
+          username: username,
         },
         timestamp: Date.now(),
       });
@@ -118,14 +118,14 @@ const useSaveHandlers = (
           link,
           notes,
           sectionId: targetSectionId,
-          username: username, // Use the username from useParams, not currentUser?.nickname
+          username: username,
           itemId: editingItem?.id,
         },
         timestamp: Date.now(),
       });
 
       if (editingItem) {
-        // Update existing item
+        // update existing item
         setSections((prev) => {
           const section = prev[targetSectionId];
           if (!section) return prev;
@@ -143,7 +143,7 @@ const useSaveHandlers = (
         });
         addLog(`(Offline) You edited item "${content}"`);
       } else {
-        // Create new item
+        // create new item
         setSections((prev) => {
           const section = prev[targetSectionId];
           if (!section) return prev;

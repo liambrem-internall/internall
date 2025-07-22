@@ -171,7 +171,6 @@ const SectionList = ({
     performSync();
   }, [isOnline, hasInitialLoad, hasSynced]);
 
-  // Reset sync flag when going offline
   useEffect(() => {
     if (!isOnline) {
       setHasSynced(false);

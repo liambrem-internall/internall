@@ -45,7 +45,7 @@ module.exports = (io, socket, usersInRoom) => {
     io.to(roomId).emit(roomActions.USERS, Object.values(usersInRoom[roomId]));
   });
 
-  socket.on('get-room-users', ({ roomId }) => {
+  socket.on(roomActions.GET_ROOM_USERS, ({ roomId }) => {
     if (usersInRoom[roomId]) {
       socket.emit(roomActions.USERS, Object.values(usersInRoom[roomId]));
     }
@@ -66,7 +66,7 @@ module.exports = (io, socket, usersInRoom) => {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on(roomActions.DISCONNECT, () => {
     Object.keys(usersInRoom).forEach(roomId => {
       if (usersInRoom[roomId] && usersInRoom[roomId][socket.id]) {
         delete usersInRoom[roomId][socket.id];

@@ -28,6 +28,9 @@ export const roomActions = Object.freeze({
   LEAVE: "leave-room",
   JOIN: "join-room",
   USERS: "room-users",
+  DISCONNECTING: "disconnecting",
+  GET_ROOM_USERS: "get-room-users",
+  DISCONNECT: "disconnect",
 });
 
 export const sectionEvents = Object.freeze({
