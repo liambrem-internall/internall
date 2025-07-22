@@ -7,9 +7,19 @@ const useRoomUsers = (roomId, userId = undefined) => {
 
   useEffect(() => {
     if (!roomId) return;
-    socket.on(roomActions.USERS, setUsers);
+
+    const handleUsersUpdate = (userList) => {
+      setUsers(userList);
+    };
+
+    socket.on(roomActions.USERS, handleUsersUpdate);
+
+    if (socket.connected) {
+      socket.emit(roomActions.GET_ROOM_USERS, { roomId });
+    }
+
     return () => {
-      socket.off(roomActions.USERS, setUsers);
+      socket.off(roomActions.USERS, handleUsersUpdate);
     };
   }, [roomId]);
 

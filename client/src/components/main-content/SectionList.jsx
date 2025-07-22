@@ -43,7 +43,9 @@ import {
   THROTTLE_MS,
   ViewModes,
 } from "../../utils/constants";
+import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
 import useSafeSocketEmit from "../../hooks/socketHandlers/useSafeSocketEmit";
+import useOfflineSync from "../../hooks/useOfflineSync";
 
 import "./SectionList.css";
 
@@ -81,7 +83,7 @@ const SectionList = ({
   const { viewMode } = useContext(ViewContext);
   const { username } = useParams();
   const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
-
+  
   const roomId = username;
   const editingUsers = useRoomEditing(roomId);
   const allUsers = useRoomUsers(roomId, null);
@@ -92,6 +94,11 @@ const SectionList = ({
   const { logs, addLog } = useLogs();
   const apiFetch = useApiFetch();
   const safeEmit = useSafeSocketEmit(socket, roomId);
+  const { syncPendingEdits } = useOfflineSync(getAccessTokenSilently, username, addLog);
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+  const [hasSynced, setHasSynced] = useState(false);
+  const isOnline = useContext(NetworkStatusContext);
+
 
   useSectionSocketHandlers({
     setSections,
@@ -108,35 +115,67 @@ const SectionList = ({
 
   const cursors = useRoomCursors(roomId, userId);
 
+  // initial data fetch
   useEffect(() => {
-    if (!isAuthenticated || !username) return;
+    if (!isAuthenticated || !username || hasInitialLoad) return;
+    
     const fetchSections = async () => {
-      const data = await apiFetch({
-        endpoint: `${URL}/api/sections/user/${username}`,
-        getAccessTokenSilently,
-      });
+      try {
+        const data = await apiFetch({
+          endpoint: `${URL}/api/sections/user/${username}`,
+          getAccessTokenSilently,
+        });
 
-      // convert to object
-      const sectionsObj = {};
-      const order = [];
-      data.forEach((section) => {
-        const { _id, items = [], ...rest } = section;
-        const id = _id;
-        sectionsObj[id] = {
-          ...rest,
-          id,
-          items: items.map(({ _id: itemId, ...itemRest }) => ({
-            ...itemRest,
-            id: itemId,
-          })),
-        };
-        order.push(id);
-      });
-      setSections(sectionsObj);
-      setSectionOrder(order);
+        const sectionsObj = {};
+        const order = [];
+        data.forEach((section) => {
+          const { _id, items = [], ...rest } = section;
+          const id = _id;
+          sectionsObj[id] = {
+            ...rest,
+            id,
+            items: items.map(({ _id: itemId, ...itemRest }) => ({
+              ...itemRest,
+              id: itemId,
+            })),
+          };
+          order.push(id);
+        });
+
+        setSections(sectionsObj);
+        setSectionOrder(order);
+        setHasInitialLoad(true);
+        
+        if (onSectionsChange) {
+          onSectionsChange(sectionsObj);
+        }
+      } catch (error) {
+        console.error("Error fetching sections:", error);
+      }
     };
+    
     fetchSections();
-  }, [getAccessTokenSilently, isAuthenticated, username]);
+  }, [getAccessTokenSilently, isAuthenticated, username, hasInitialLoad]);
+
+  // sync pending edits when coming online
+  useEffect(() => {
+    if (!hasInitialLoad || hasSynced) return;
+    
+    const performSync = async () => {
+      const syncResult = await syncPendingEdits();
+      setHasSynced(true);
+      
+      // if sync was successful, no need to re-fetch since socket events will update the UI with the changes
+    };
+    
+    performSync();
+  }, [isOnline, hasInitialLoad, hasSynced]);
+
+  useEffect(() => {
+    if (!isOnline) {
+      setHasSynced(false);
+    }
+  }, [isOnline]);
 
   useEffect(() => {
     if (onSectionsChange) {
@@ -195,6 +234,7 @@ const SectionList = ({
     setIsDragging,
     apiFetch,
     safeEmit,
+    isOnline  // Add this parameter
   );
 
   const saveHandlers = useSaveHandlers(
