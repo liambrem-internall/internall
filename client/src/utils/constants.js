@@ -55,6 +55,12 @@ export const cursorEvents = Object.freeze({
   COMPONENT_DRAG_MOVE: "component:drag:move",
 });
 
+const COMPONENT_TYPES = Object.freeze({
+  SECTION: "section",
+  ITEM: "item",
+  WEB: "web",
+});
+
 export const THROTTLE_MS = 33;
 
 export const logPageSize = 49;
