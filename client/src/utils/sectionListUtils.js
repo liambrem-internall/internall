@@ -17,11 +17,18 @@ export const findItemBySection = (section, { activeId }) => {
 
 const URL = import.meta.env.VITE_API_URL;
 
-const handleDragEndSection = (
-  active,
-  over,
-  { setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, isOnline }
-) => {
+const handleDragEndSection = (active, over, params) => {
+  const {
+    setSectionOrder,
+    setActiveId,
+    getAccessTokenSilently,
+    username,
+    currentUser,
+    addLog,
+    apiFetch,
+    isOnline,
+  } = params;
+
   if (active.id !== over.id) {
     setSectionOrder((prev) => {
       const oldIndex = prev.indexOf(active.id);
@@ -50,7 +57,11 @@ const handleDragEndSection = (
         await apiFetch({
           endpoint: `${URL}/api/sections/user/${username}/order`,
           method: "PUT",
-          body: { order: newOrder, username: currentUser?.nickname, movedId: active.id },
+          body: {
+            order: newOrder,
+            username: currentUser?.nickname,
+            movedId: active.id,
+          },
           getAccessTokenSilently,
         });
       })();
@@ -61,11 +72,20 @@ const handleDragEndSection = (
   setActiveId(null);
 };
 
-const handleDragEndItem = (
-  active,
-  over,
-  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, isOnline }
-) => {
+const handleDragEndItem = (active, over, params) => {
+  const {
+    setSections,
+    setActiveId,
+    sections,
+    activeId,
+    getAccessTokenSilently,
+    username,
+    currentUser,
+    addLog,
+    apiFetch,
+    isOnline,
+  } = params;
+
   const fromSectionId = active.data.current.sectionId;
   const toSectionId = over.data.current?.sectionId || over.id;
 
@@ -101,7 +121,7 @@ const handleDragEndItem = (
         },
         timestamp: Date.now(),
       });
-      
+
       if (addLog) {
         const item = findItemBySection(sections[fromSectionId], { activeId });
         addLog(`(Offline) You reordered item "${item?.content}"`);
@@ -164,9 +184,11 @@ const handleDragEndItem = (
     };
   });
 
-  // Check if offline
+  // check if offline
   if (!isOnline) {
-    const overIndex = sections[toSectionId].items.findIndex((i) => i.id === over.id);
+    const overIndex = sections[toSectionId].items.findIndex(
+      (i) => i.id === over.id
+    );
     addPendingEdit({
       type: "item",
       action: "move",
@@ -174,12 +196,13 @@ const handleDragEndItem = (
         sectionId: fromSectionId,
         itemId: active.id,
         toSectionId: toSectionId,
-        toIndex: overIndex === -1 ? sections[toSectionId].items.length : overIndex,
+        toIndex:
+          overIndex === -1 ? sections[toSectionId].items.length : overIndex,
         username: username,
       },
       timestamp: Date.now(),
     });
-    
+
     if (addLog) {
       addLog(`(Offline) You moved item "${item?.content || active.id}"`);
     }
@@ -203,21 +226,34 @@ const handleDragEndItem = (
   setActiveId(null);
 };
 
-const handleDragEndAdd = (active, over, { setShowModal, setActiveId, currentUser, addLog, apiFetch, }) => {
+const handleDragEndAdd = (active, over, params) => {
+  const { setShowModal, setActiveId } = params;
   setShowModal(true);
   setActiveId(null);
 };
 
-const handleDragEndDelete = (
-  active,
-  over,
-  { setSections, sections, activeId, setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, isOnline }
-) => {
-  // Delete item
+const handleDragEndDelete = (active, over, params) => {
+  const {
+    setSections,
+    sections,
+    activeId,
+    setSectionOrder,
+    setActiveId,
+    getAccessTokenSilently,
+    username,
+    currentUser,
+    addLog,
+    apiFetch,
+    isOnline,
+  } = params;
+
+  // delete item
   if (active.data.current?.type === DraggableComponentTypes.ITEM) {
     const fromSectionId = active.data.current.sectionId;
-    const item = findItemBySection(sections[fromSectionId], { activeId: active.id });
-    
+    const item = findItemBySection(sections[fromSectionId], {
+      activeId: active.id,
+    });
+
     setSections((prev) => ({
       ...prev,
       [fromSectionId]: {
@@ -226,7 +262,7 @@ const handleDragEndDelete = (
       },
     }));
 
-    // Check if offline
+    // check if offline
     if (!isOnline) {
       addPendingEdit({
         type: "item",
@@ -238,7 +274,7 @@ const handleDragEndDelete = (
         },
         timestamp: Date.now(),
       });
-      
+
       if (addLog) {
         addLog(`(Offline) You deleted item "${item?.content}"`);
       }
@@ -259,10 +295,10 @@ const handleDragEndDelete = (
       addLog(`You deleted item "${item?.content}"`);
     }
   }
-  // Delete section
+  // delete section
   if (active.data.current?.type === DraggableComponentTypes.SECTION) {
     const section = sections[active.id];
-    
+
     setSections((prev) => {
       const newSections = { ...prev };
       delete newSections[active.id];
@@ -273,7 +309,7 @@ const handleDragEndDelete = (
       return updatedOrder;
     });
 
-    // Check if offline
+    // check if offline
     if (!isOnline) {
       addPendingEdit({
         type: "section",
@@ -284,9 +320,11 @@ const handleDragEndDelete = (
         },
         timestamp: Date.now(),
       });
-      
+
       if (addLog) {
-        addLog(`(Offline) You deleted section "${section?.title || active.id}"`);
+        addLog(
+          `(Offline) You deleted section "${section?.title || active.id}"`
+        );
       }
       setActiveId(null);
       return;
@@ -300,7 +338,7 @@ const handleDragEndDelete = (
         getAccessTokenSilently,
       });
     })();
-    
+
     if (addLog) {
       const section = sections[active.id];
       addLog(`You deleted section "${section?.title || active.id}"`);
@@ -310,25 +348,9 @@ const handleDragEndDelete = (
   return;
 };
 
-export const handleDragEnd = (
-  event,
-  {
-    setActiveId,
-    activeId,
-    setShowModal,
-    setShowItemModal,
-    setTargetSectionId,
-    setSections,
-    setSectionOrder,
-    sections,
-    getAccessTokenSilently,
-    username,
-    currentUser,
-    addLog,
-    apiFetch,
-    isOnline, // Add this parameter
-  }
-) => {
+export const handleDragEnd = (event, params) => {
+  const { setActiveId, setShowItemModal, setTargetSectionId } = params;
+
   const { active, over } = event;
   if (!over) {
     setActiveId(null);
@@ -361,28 +383,10 @@ export const handleDragEnd = (
 
   switch (actionType) {
     case DragEndActions.DELETE:
-      handleDragEndDelete(active, over, {
-        setSections,
-        sections,
-        setSectionOrder,
-        setActiveId,
-        getAccessTokenSilently,
-        username,
-        currentUser,
-        addLog,
-        activeId,
-        apiFetch,
-        isOnline, // Pass isOnline
-      });
+      handleDragEndDelete(active, over, params);
       break;
     case DragEndActions.ADD_SECTION:
-      handleDragEndAdd(active, over, {
-        setShowModal,
-        setActiveId,
-        currentUser,
-        addLog,
-        apiFetch,
-      });
+      handleDragEndAdd(active, over, params);
       break;
     case DragEndActions.ADD_ITEM:
       {
@@ -396,30 +400,10 @@ export const handleDragEnd = (
       }
       break;
     case DragEndActions.MOVE_SECTION:
-      handleDragEndSection(active, over, {
-        setSectionOrder,
-        setActiveId,
-        getAccessTokenSilently,
-        username,
-        currentUser,
-        addLog,
-        apiFetch,
-        isOnline, // Pass isOnline
-      });
+      handleDragEndSection(active, over, params);
       break;
     case DragEndActions.MOVE_ITEM:
-      handleDragEndItem(active, over, {
-        setSections,
-        setActiveId,
-        sections,
-        activeId,
-        getAccessTokenSilently,
-        username,
-        currentUser,
-        addLog,
-        apiFetch,
-        isOnline, // Pass isOnline
-      });
+      handleDragEndItem(active, over, params);
       break;
     default:
       setActiveId(null);
