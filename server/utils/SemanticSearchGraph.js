@@ -18,7 +18,7 @@ class SemanticSearchGraph {
     }
   }
 
-  buildEdges(similarityFn, threshold = 0.8, useEmbeddings = true) {
+  buildEdges(similarityFn, threshold = 0.4, useEmbeddings = true) {
     const ids = Object.keys(this.nodes);
     for (let i = 0; i < ids.length; i++) {
       for (let j = i + 1; j < ids.length; j++) {
@@ -29,7 +29,6 @@ class SemanticSearchGraph {
           if (!a || !b) continue;
           sim = similarityFn(a, b);
         } else {
-          // Use item objects for text-based similarity
           const a = this.nodes[ids[i]].item;
           const b = this.nodes[ids[j]].item;
           sim = similarityFn(a, b);

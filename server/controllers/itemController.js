@@ -8,6 +8,7 @@ const itemEvents = require("../events/itemEvents");
 const { ITEMS_FIELD } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
 const { addJob } = require("../utils/jobQueue");
+const { updateGraph } = require("../utils/graphCache");
 
 exports.getItems = async (req, res) => {
   try {
@@ -26,22 +27,28 @@ exports.createItem = async (req, res) => {
     const section = await Section.findById(req.params.sectionId);
     if (!section) return res.status(404).json({ error: "Section not found" });
 
-    // get embedding from Python microservice
-    const embedding = await getEmbedding(req.body.content);
-
-    const newItem = new Item({ ...req.body, embedding: [] });
+    const newItem = new Item({
+      ...req.body,
+      sectionId: req.params.sectionId,
+      embedding: [],
+    });
     await newItem.save();
 
     section.items.push(newItem._id);
     await section.save();
 
-    // add embedding job to queue
+    const roomId = req.params.username;
+
     addJob(async () => {
       const embedding = await getEmbedding(newItem.content);
       if (embedding) {
         await Item.findByIdAndUpdate(newItem._id, { embedding });
+        const updatedItem = await Item.findById(newItem._id);
+        updateGraph(roomId, updatedItem, "update");
       }
     });
+
+    updateGraph(roomId, newItem, "add");
 
     itemEvents.emitItemCreated(req.params.username, {
       ...newItem.toObject(),
@@ -50,6 +57,7 @@ exports.createItem = async (req, res) => {
 
     res.status(201).json(newItem);
   } catch (err) {
+    console.error("Create item error:", err);
     res.status(400).json({ error: "Invalid data" });
   }
 };
@@ -61,11 +69,11 @@ exports.updateItem = async (req, res) => {
 
     const oldSectionId = item.sectionId.toString();
     const newSectionId = req.body.sectionId;
+    const roomId = req.params.username;
 
+    const contentChanged =
+      req.body.content && req.body.content !== item.content;
 
-    const contentChanged = req.body.content && req.body.content !== item.content;
-
-    // item fields are updated only if in body
     item.content = req.body.content ?? item.content;
     item.link = req.body.link ?? item.link;
     item.notes = req.body.notes ?? item.notes;
@@ -73,15 +81,19 @@ exports.updateItem = async (req, res) => {
 
     await item.save();
 
-    // async embedding update if content changed
     if (contentChanged) {
       addJob(async () => {
         const embedding = await getEmbedding(item.content);
         if (embedding) {
           await Item.findByIdAndUpdate(item._id, { embedding });
+          const updatedItem = await Item.findById(item._id);
+          updateGraph(roomId, updatedItem, 'update');
         }
       });
     }
+
+    const updatedItem = await Item.findById(item._id);
+    updateGraph(roomId, updatedItem, 'update');
 
     if (oldSectionId !== newSectionId) {
       await Section.findByIdAndUpdate(oldSectionId, {
@@ -92,15 +104,14 @@ exports.updateItem = async (req, res) => {
       });
     }
 
-    const updatedItem = await Item.findById(item._id);
-
     itemEvents.emitItemUpdated(req.params.username, {
-      ...item.toObject(),
+      ...updatedItem.toObject(),
       username: req.body.username,
     });
 
     res.json(updatedItem);
   } catch (err) {
+    console.error("Update item error:", err);
     res.status(400).json({ error: "Invalid data" });
   }
 };
@@ -112,7 +123,8 @@ exports.updateItemOrder = async (req, res) => {
       req.params.sectionId,
       { items: order },
       { new: true }
-    ).populate("items");
+    )
+      .populate("items");
     if (!section) return res.status(404).json({ error: "Section not found" });
     let content = "";
     if (section.items.length > 0) {
@@ -191,6 +203,10 @@ exports.deleteItem = async (req, res) => {
     const item = await Item.findById(req.params.itemId);
     if (!item) return res.status(404).json({ error: "Item not found" });
 
+    const roomId = req.params.username;
+
+    updateGraph(roomId, { _id: item._id }, 'remove');
+
     await Item.findByIdAndDelete(req.params.itemId);
     section.items.pull(req.params.itemId);
     await section.save();
@@ -204,6 +220,7 @@ exports.deleteItem = async (req, res) => {
 
     res.status(204).send();
   } catch (err) {
+    console.error("Delete item error:", err);
     res.status(400).json({ error: "Invalid data" });
   }
 };
