@@ -42,6 +42,10 @@ const getUnifiedScore = ({
   return 0;
 };
 
+
+// calculates weights for each match type based on how often each type is clicked
+// this allows the algorithm to adapt over time based on user behavior
+// these are then used as the weights to calculate the priority of each match type
 async function getDynamicWeights() {
   const stats = await SearchStats.findOne({});
   const counts = stats?.matchTypeCounts || {};
