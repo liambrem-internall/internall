@@ -1,3 +1,6 @@
+const EDGE_THRESHOLD = 0.4;
+const SIMILARITY_THRESHOLD = 0.5;
+
 class SemanticSearchGraph {
   constructor() {
     this.nodes = {}; // id -> { item, embedding, edges: [{ id, weight }] }
@@ -18,21 +21,14 @@ class SemanticSearchGraph {
     }
   }
 
-  buildEdges(similarityFn, threshold = 0.4, useEmbeddings = true) {
+  buildEdges(similarityFn, threshold = EDGE_THRESHOLD) {
     const ids = Object.keys(this.nodes);
     for (let i = 0; i < ids.length; i++) {
       for (let j = i + 1; j < ids.length; j++) {
-        let sim;
-        if (useEmbeddings) {
-          const a = this.nodes[ids[i]].embedding;
-          const b = this.nodes[ids[j]].embedding;
-          if (!a || !b) continue;
-          sim = similarityFn(a, b);
-        } else {
-          const a = this.nodes[ids[i]].item;
-          const b = this.nodes[ids[j]].item;
-          sim = similarityFn(a, b);
-        }
+        const a = this.nodes[ids[i]].embedding;
+        const b = this.nodes[ids[j]].embedding;
+        if (!a || !b) continue;
+        const sim = similarityFn(a, b);
         if (sim >= threshold) {
           this.nodes[ids[i]].edges.push({ id: ids[j], weight: sim });
           this.nodes[ids[j]].edges.push({ id: ids[i], weight: sim });
@@ -41,23 +37,12 @@ class SemanticSearchGraph {
     }
   }
 
-  search(query, similarityFn, maxDepth = 2, useEmbeddings = true) {
-    let candidateIds;
-    if (useEmbeddings) {
-      candidateIds = Object.keys(this.nodes).filter(
-        (id) =>
-          this.nodes[id].embedding &&
-          similarityFn(query, this.nodes[id].embedding) > 0.5
-      );
-    } else {
-      candidateIds = Object.keys(this.nodes).filter((id) => {
-        const item = this.nodes[id].item;
-        const text = [item.title, item.content, item.notes, item.link]
-          .filter(Boolean)
-          .join(" ");
-        return similarityFn(text, query) > 0.5;
-      });
-    }
+  search(query, similarityFn, maxDepth = 2) {
+    const candidateIds = Object.keys(this.nodes).filter(
+      (id) =>
+        this.nodes[id].embedding &&
+        similarityFn(query, this.nodes[id].embedding) > SIMILARITY_THRESHOLD
+    );
 
     const results = {};
     for (const startId of candidateIds) {

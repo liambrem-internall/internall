@@ -70,6 +70,12 @@ const Navigation = () => {
               <Nav className="mx-auto">
                 <Nav.Link
                   className="nav-link-custom"
+                  onClick={() => setShowGraph((prev) => !prev)}
+                >
+                  {showGraph ? "Hide Graph" : "Show Graph"}
+                </Nav.Link>
+                <Nav.Link
+                  className="nav-link-custom"
                   onClick={() =>
                     prepopulateDemoData({
                       username,
@@ -95,12 +101,6 @@ const Navigation = () => {
                   onClick={() => setViewMode(ViewModes.LIST)}
                 >
                   List
-                </Nav.Link>
-                <Nav.Link
-                  className="nav-link-custom"
-                  onClick={() => setShowGraph((prev) => !prev)}
-                >
-                  {showGraph ? "Hide Graph" : "Show Graph"}
                 </Nav.Link>
               </Nav>
               <Button
