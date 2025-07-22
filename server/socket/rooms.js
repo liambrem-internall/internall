@@ -11,21 +11,44 @@ module.exports = (io, socket, usersInRoom) => {
   const getNextColor = (roomId) => {
     const users = usersInRoom[roomId] ? Object.values(usersInRoom[roomId]) : [];
     for (const color of COLORS) {
-      if (!users.some((user) => user.color === color)) return color; // if no user currently has this color, return it
+      if (!users.some((user) => user.color === color)) return color;
     }
     return COLORS[users.length % COLORS.length];
   };
 
+  // clean up any existing entries for user before joining
+  const cleanupUserEntries = (userId, roomId) => {
+    if (!usersInRoom[roomId]) return;
+    
+    const entries = Object.entries(usersInRoom[roomId]);
+    entries.forEach(([socketId, user]) => {
+      if (user.id === userId && socketId !== socket.id) {
+        delete usersInRoom[roomId][socketId];
+      }
+    });
+  };
+
   socket.on(roomActions.JOIN, ({ roomId, userId, nickname }) => {
     socket.join(roomId);
+    
+    // clean up any old entries for user
+    cleanupUserEntries(userId, roomId);
+    
     if (!usersInRoom[roomId]) usersInRoom[roomId] = {};
     usersInRoom[roomId][socket.id] = {
       id: userId,
       nickname,
       color: getNextColor(roomId),
-      socketId: socket.id, // unique id for each connection (could be multiple per user)
+      socketId: socket.id,
     };
+    
     io.to(roomId).emit(roomActions.USERS, Object.values(usersInRoom[roomId]));
+  });
+
+  socket.on('get-room-users', ({ roomId }) => {
+    if (usersInRoom[roomId]) {
+      socket.emit(roomActions.USERS, Object.values(usersInRoom[roomId]));
+    }
   });
 
   socket.on(roomActions.LEAVE, ({ roomId }) => {
@@ -43,9 +66,9 @@ module.exports = (io, socket, usersInRoom) => {
     }
   });
 
-  socket.on(roomActions.DISCONNECTING, () => {
-    for (const roomId of socket.rooms) {
-      if (usersInRoom[roomId]) {
+  socket.on('disconnect', () => {
+    Object.keys(usersInRoom).forEach(roomId => {
+      if (usersInRoom[roomId] && usersInRoom[roomId][socket.id]) {
         delete usersInRoom[roomId][socket.id];
         if (Object.keys(usersInRoom[roomId]).length === 0) {
           delete usersInRoom[roomId];
@@ -56,6 +79,6 @@ module.exports = (io, socket, usersInRoom) => {
           );
         }
       }
-    }
+    });
   });
 };

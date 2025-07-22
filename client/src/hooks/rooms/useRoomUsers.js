@@ -7,9 +7,21 @@ const useRoomUsers = (roomId, userId = undefined) => {
 
   useEffect(() => {
     if (!roomId) return;
-    socket.on(roomActions.USERS, setUsers);
+
+    const handleUsersUpdate = (userList) => {
+      console.log("Room users updated:", userList); // Debug log
+      setUsers(userList);
+    };
+
+    socket.on(roomActions.USERS, handleUsersUpdate);
+
+    // Request current users when component mounts or roomId changes
+    if (socket.connected) {
+      socket.emit("get-room-users", { roomId });
+    }
+
     return () => {
-      socket.off(roomActions.USERS, setUsers);
+      socket.off(roomActions.USERS, handleUsersUpdate);
     };
   }, [roomId]);
 
