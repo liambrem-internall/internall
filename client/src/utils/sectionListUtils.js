@@ -40,7 +40,9 @@ const handleDragEndSection = (
           },
           timestamp: Date.now(),
         });
-        addLog(`(Offline) You moved section`);
+        if (addLog) {
+          addLog(`(Offline) You moved section`);
+        }
         return newOrder;
       }
 

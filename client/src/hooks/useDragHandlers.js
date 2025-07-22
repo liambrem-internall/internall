@@ -59,9 +59,8 @@ const useDragHandlers = (
   setIsDragging,
   apiFetch,
   safeEmit,
+  isOnline 
 ) => {
-  const isOnline = useContext(NetworkStatusContext);
-
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
     activeIdRef.current = event.active.id;
@@ -142,6 +141,7 @@ const useDragHandlers = (
       currentUser,
       addLog,
       apiFetch,
+      isOnline,  // Add this parameter
     });
   };
 
