@@ -12,6 +12,8 @@ const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
 const { fuzzySearch } = require("../utils/fuzzySearch");
 const { runSearchAlgorithm } = require("../utils/searchAlgorithm");
+const SemanticSearchGraph = require("../utils/SemanticSearchGraph");
+const { cosineSimilarity } = require("../utils/similarity");
 
 const PAGE_SIZE_DEFAULT = 8;
 const OFFSET_DEFAULT = 0;
@@ -128,4 +130,36 @@ exports.webAccessed = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to log web access" });
   }
+};
+
+
+
+exports.getSemanticGraph = async (req, res) => {
+  const { roomId } = req.query;
+  if (!roomId) return res.status(400).json({ error: "Missing roomId" });
+
+  const user = await User.findOne({ username: roomId });
+  if (!user) return res.status(404).json({ error: "User/Room not found" });
+
+  const userSections = await Section.find({ userId: user.auth0Id });
+  const sectionIds = userSections.map((section) => section._id);
+  const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
+
+  const graph = new SemanticSearchGraph();
+  itemsRaw.forEach((item) => graph.addItem(item));
+  graph.buildEdges(cosineSimilarity, 0.8, true);
+
+  // Format for frontend: nodes and edges
+  const nodes = Object.entries(graph.nodes).map(([id, node]) => ({
+    id,
+    label: node.item.title || node.item.content,
+  }));
+  const edges = [];
+  Object.entries(graph.nodes).forEach(([id, node]) => {
+    node.edges.forEach(edge => {
+      edges.push({ source: id, target: edge.id, weight: edge.weight });
+    });
+  });
+
+  res.json({ nodes, edges });
 };
