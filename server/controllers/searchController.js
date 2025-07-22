@@ -16,6 +16,7 @@ const { getGraph, buildGraph } = require("../utils/graphCache");
 
 const PAGE_SIZE_DEFAULT = 8;
 const OFFSET_DEFAULT = 0;
+const STRING_MAX = 50;
 
 const fetchDuckDuckGoData = async (query) => {
   const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
@@ -120,7 +121,6 @@ exports.accessSearch = async (req, res) => {
 
 exports.webAccessed = async (req, res) => {
   try {
-    const { url, text, timestamp } = req.body;
     await DdgStats.findOneAndUpdate(
       {},
       { $inc: { totalClicks: 1 } },
@@ -154,7 +154,7 @@ exports.getSemanticGraph = async (req, res) => {
       id,
       label: (node.item.title || node.item.content || "Untitled").substring(
         0,
-        50
+        STRING_MAX
       ),
       hasEmbedding: !!(node.item.embedding && node.item.embedding.length > 0),
     }));

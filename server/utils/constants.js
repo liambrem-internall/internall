@@ -55,6 +55,12 @@ const COMPONENT_TYPES = Object.freeze({
   WEB: "web",
 });
 
+const ACTIONS = Object.freeze({
+    ADD: 'add',
+    UPDATE: 'update',
+    REMOVE: 'remove',
+});
+
 module.exports = {
   roomActions,
   COLORS,
@@ -63,5 +69,6 @@ module.exports = {
   cursorEvents,
   ITEMS_FIELD,
   ITEM_CONTENT_TYPES,
-  COMPONENT_TYPES
+  COMPONENT_TYPES,
+  ACTIONS,
 };
