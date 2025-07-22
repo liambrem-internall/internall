@@ -5,7 +5,7 @@ import { apiFetch } from "../utils/apiFetch";
 
 const URL = import.meta.env.VITE_API_URL;
 
-export default function useOfflineSync(getAccessTokenSilently, username) {
+export default function useOfflineSync(getAccessTokenSilently, username, addLog) {
   const isOnline = useContext(NetworkStatusContext);
   const isSyncing = useRef(false);
 
@@ -20,6 +20,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
     }
 
     isSyncing.current = true;
+    let syncedCount = 0;
 
     try {
       // process edits sequentially from queue
@@ -29,7 +30,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
 
         if (!editUsername) {
           console.error("No username available for edit:", edit);
-          continue; // skip this edit if no username is available
+          continue;
         }
 
         // SECTION ACTIONS
@@ -45,6 +46,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Created section "${edit.payload.title}"`);
           }
           if (edit.action === "edit") {
             await apiFetch({
@@ -57,6 +59,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Updated section "${edit.payload.title}"`);
           }
           if (edit.action === "delete") {
             await apiFetch({
@@ -66,6 +69,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Deleted section`);
           }
           if (edit.action === "reorder") {
             await apiFetch({
@@ -79,6 +83,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Reordered sections`);
           }
         }
 
@@ -98,6 +103,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Created item "${edit.payload.content}"`);
           }
           if (edit.action === "edit") {
             await apiFetch({
@@ -113,6 +119,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Updated item "${edit.payload.content}"`);
           }
           if (edit.action === "delete") {
             await apiFetch({
@@ -122,6 +129,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Deleted item`);
           }
           if (edit.action === "reorder") {
             await apiFetch({
@@ -134,6 +142,7 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Reordered items`);
           }
           if (edit.action === "move") {
             await apiFetch({
@@ -147,30 +156,36 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
               getAccessTokenSilently,
               isOnline,
             });
+            if (addLog) addLog(`Synced: Moved item`);
           }
         }
 
+        syncedCount++;
         const timeout = 100;
-        // small delay between requests
         await new Promise(resolve => setTimeout(resolve, timeout));
       }
 
       clearPendingEdits();
       isSyncing.current = false;
+      
+      if (syncedCount > 0 && addLog) {
+        addLog(`Successfully synced ${syncedCount} offline changes`);
+      }
+      
       return true;
     } catch (error) {
       console.error("Failed to sync pending edits:", error);
       isSyncing.current = false;
+      if (addLog) addLog(`Failed to sync offline changes: ${error.message}`);
       return false;
     }
-  }, [getAccessTokenSilently, isOnline, username]);
+  }, [getAccessTokenSilently, isOnline, username, addLog]);
 
   useEffect(() => {
     if (!isOnline) return;
 
     const timeout = 1000;
     
-    //sync when coming online with a small delay
     const timeoutId = setTimeout(() => {
       syncPendingEdits();
     }, timeout);
