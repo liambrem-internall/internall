@@ -4,6 +4,7 @@ import {
   DraggableComponentTypes,
 } from "./constants";
 import { arrayMove } from "@dnd-kit/sortable";
+import { addPendingEdit } from "./offlineQueue";
 
 export const findItemBySection = (section, { activeId }) => {
   for (const i of section.items) {
@@ -19,13 +20,29 @@ const URL = import.meta.env.VITE_API_URL;
 const handleDragEndSection = (
   active,
   over,
-  { setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, }
+  { setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, isOnline }
 ) => {
   if (active.id !== over.id) {
     setSectionOrder((prev) => {
       const oldIndex = prev.indexOf(active.id);
       const newIndex = prev.indexOf(over.id);
       const newOrder = arrayMove(prev, oldIndex, newIndex);
+
+      // check if offline
+      if (!isOnline) {
+        addPendingEdit({
+          type: "section",
+          action: "reorder",
+          payload: {
+            order: newOrder,
+            movedId: active.id,
+            username: username,
+          },
+          timestamp: Date.now(),
+        });
+        addLog(`(Offline) You moved section`);
+        return newOrder;
+      }
 
       (async () => {
         await apiFetch({
@@ -45,7 +62,7 @@ const handleDragEndSection = (
 const handleDragEndItem = (
   active,
   over,
-  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, }
+  { setSections, setActiveId, sections, activeId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, isOnline }
 ) => {
   const fromSectionId = active.data.current.sectionId;
   const toSectionId = over.data.current?.sectionId || over.id;
@@ -70,6 +87,27 @@ const handleDragEndItem = (
 
     const newOrder = newItems.map((i) => i.id);
 
+    // check if offline
+    if (!isOnline) {
+      addPendingEdit({
+        type: "item",
+        action: "reorder",
+        payload: {
+          sectionId: fromSectionId,
+          order: newOrder,
+          username: username,
+        },
+        timestamp: Date.now(),
+      });
+      
+      if (addLog) {
+        const item = findItemBySection(sections[fromSectionId], { activeId });
+        addLog(`(Offline) You reordered item "${item?.content}"`);
+      }
+      setActiveId(null);
+      return;
+    }
+
     (async () => {
       await apiFetch({
         endpoint: `${URL}/api/items/${fromSectionId}/items/${username}/order`,
@@ -78,8 +116,6 @@ const handleDragEndItem = (
         getAccessTokenSilently,
       });
     })();
-
-    
 
     if (addLog) {
       const item = findItemBySection(sections[fromSectionId], { activeId });
@@ -126,6 +162,29 @@ const handleDragEndItem = (
     };
   });
 
+  // Check if offline
+  if (!isOnline) {
+    const overIndex = sections[toSectionId].items.findIndex((i) => i.id === over.id);
+    addPendingEdit({
+      type: "item",
+      action: "move",
+      payload: {
+        sectionId: fromSectionId,
+        itemId: active.id,
+        toSectionId: toSectionId,
+        toIndex: overIndex === -1 ? sections[toSectionId].items.length : overIndex,
+        username: username,
+      },
+      timestamp: Date.now(),
+    });
+    
+    if (addLog) {
+      addLog(`(Offline) You moved item "${item?.content || active.id}"`);
+    }
+    setActiveId(null);
+    return;
+  }
+
   (async () => {
     await apiFetch({
       endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}/${username}/move`,
@@ -150,11 +209,13 @@ const handleDragEndAdd = (active, over, { setShowModal, setActiveId, currentUser
 const handleDragEndDelete = (
   active,
   over,
-  { setSections, sections, activeId, setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, }
+  { setSections, sections, activeId, setSectionOrder, setActiveId, getAccessTokenSilently, username, currentUser, addLog, apiFetch, isOnline }
 ) => {
   // Delete item
   if (active.data.current?.type === DraggableComponentTypes.ITEM) {
     const fromSectionId = active.data.current.sectionId;
+    const item = findItemBySection(sections[fromSectionId], { activeId: active.id });
+    
     setSections((prev) => ({
       ...prev,
       [fromSectionId]: {
@@ -162,6 +223,27 @@ const handleDragEndDelete = (
         items: prev[fromSectionId].items.filter((i) => i.id !== active.id),
       },
     }));
+
+    // Check if offline
+    if (!isOnline) {
+      addPendingEdit({
+        type: "item",
+        action: "delete",
+        payload: {
+          sectionId: fromSectionId,
+          itemId: active.id,
+          username: username,
+        },
+        timestamp: Date.now(),
+      });
+      
+      if (addLog) {
+        addLog(`(Offline) You deleted item "${item?.content}"`);
+      }
+      setActiveId(null);
+      return;
+    }
+
     (async () => {
       await apiFetch({
         endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}/${username}`,
@@ -172,33 +254,54 @@ const handleDragEndDelete = (
     })();
 
     if (addLog) {
-      const item = findItemBySection(sections[fromSectionId], { activeId });
       addLog(`You deleted item "${item?.content}"`);
     }
   }
   // Delete section
   if (active.data.current?.type === DraggableComponentTypes.SECTION) {
+    const section = sections[active.id];
+    
     setSections((prev) => {
       const newSections = { ...prev };
       delete newSections[active.id];
-
-      (async () => {
-        await apiFetch({
-          endpoint: `${URL}/api/sections/${active.id}/${username}`,
-          method: "DELETE",
-          body: { username: currentUser?.nickname },
-          getAccessTokenSilently,
-        });
-      })();
       return newSections;
     });
     setSectionOrder((prevSectionOrder) => {
-      const updatedOrder = prevSectionOrder.filter((id) => id !== active.id); // remove deleted section ids
+      const updatedOrder = prevSectionOrder.filter((id) => id !== active.id);
       return updatedOrder;
     });
+
+    // Check if offline
+    if (!isOnline) {
+      addPendingEdit({
+        type: "section",
+        action: "delete",
+        payload: {
+          sectionId: active.id,
+          username: username,
+        },
+        timestamp: Date.now(),
+      });
+      
+      if (addLog) {
+        addLog(`(Offline) You deleted section "${section?.title || active.id}"`);
+      }
+      setActiveId(null);
+      return;
+    }
+
+    (async () => {
+      await apiFetch({
+        endpoint: `${URL}/api/sections/${active.id}/${username}`,
+        method: "DELETE",
+        body: { username: currentUser?.nickname },
+        getAccessTokenSilently,
+      });
+    })();
+    
     if (addLog) {
       const section = sections[active.id];
-  addLog(`You deleted section "${section?.title || active.id}"`);
+      addLog(`You deleted section "${section?.title || active.id}"`);
     }
   }
   setActiveId(null);
@@ -221,6 +324,7 @@ export const handleDragEnd = (
     currentUser,
     addLog,
     apiFetch,
+    isOnline, // Add this parameter
   }
 ) => {
   const { active, over } = event;
@@ -266,6 +370,7 @@ export const handleDragEnd = (
         addLog,
         activeId,
         apiFetch,
+        isOnline, // Pass isOnline
       });
       break;
     case DragEndActions.ADD_SECTION:
@@ -297,6 +402,7 @@ export const handleDragEnd = (
         currentUser,
         addLog,
         apiFetch,
+        isOnline, // Pass isOnline
       });
       break;
     case DragEndActions.MOVE_ITEM:
@@ -310,6 +416,7 @@ export const handleDragEnd = (
         currentUser,
         addLog,
         apiFetch,
+        isOnline, // Pass isOnline
       });
       break;
     default:

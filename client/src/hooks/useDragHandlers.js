@@ -1,5 +1,8 @@
 const URL = import.meta.env.VITE_API_URL;
 import { SectionActions } from "../utils/constants";
+import { addPendingEdit } from "../utils/offlineQueue";
+import { useContext } from "react";
+import { NetworkStatusContext } from "../contexts/NetworkStatusContext";
 
 /**
  * Custom hook for managing drag-and-drop logic in the SectionList.
@@ -57,6 +60,8 @@ const useDragHandlers = (
   apiFetch,
   safeEmit,
 ) => {
+  const isOnline = useContext(NetworkStatusContext);
+
   const handleDragStart = (event) => {
     setActiveId(event.active.id);
     activeIdRef.current = event.active.id;
@@ -88,6 +93,39 @@ const useDragHandlers = (
         addLog(`You moved section "${section.title}"`);
       }
     }
+
+    // check if dropping on delete zone
+    if (event.over?.id === SectionActions.DELETE_ZONE) {
+      const draggedItem = event.active;
+      const section = sections[draggedItem.id];
+
+      if (section && !isOnline) {
+        // add to offline queue
+        addPendingEdit({
+          type: "section",
+          action: "delete",
+          payload: {
+            sectionId: draggedItem.id,
+            username: username,
+          },
+          timestamp: Date.now(),
+        });
+
+        // update local state
+        setSections((prev) => {
+          const newSections = { ...prev };
+          delete newSections[draggedItem.id];
+          return newSections;
+        });
+        setSectionOrder((prev) => prev.filter((id) => id !== draggedItem.id));
+        addLog(`(Offline) You deleted section "${section.title}"`);
+
+        setActiveId(null);
+        setIsDragging(false);
+        return;
+      }
+    }
+
     setActiveId(null);
     setIsDragging(false);
     handleDragEndUtil(event, {

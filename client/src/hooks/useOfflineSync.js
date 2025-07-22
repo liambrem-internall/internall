@@ -11,39 +11,32 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
 
   const syncPendingEdits = useCallback(async () => {
     if (isSyncing.current) {
-      console.log("Already syncing, skipping...");
       return false;
     }
 
     const edits = getPendingEdits();
     if (edits.length === 0) {
-      console.log("No pending edits to sync");
       return false;
     }
 
     isSyncing.current = true;
-    console.log("Syncing pending edits:", edits);
 
     try {
-      // Process edits sequentially to maintain order
+      // process edits sequentially from queue
       for (const edit of edits) {
-        console.log("Processing edit:", edit);
         
-        // Use username from payload if available, otherwise fall back to passed username
         const editUsername = edit.payload.username || username;
-        console.log("Using username:", editUsername);
 
         if (!editUsername) {
           console.error("No username available for edit:", edit);
-          continue; // Skip this edit if no username is available
+          continue; // skip this edit if no username is available
         }
 
         // SECTION ACTIONS
         if (edit.type === "section") {
           if (edit.action === "create") {
-            console.log("Syncing section create:", edit.payload.title);
             await apiFetch({
-              endpoint: `/api/sections/${editUsername}`,
+              endpoint: `${URL}/api/sections/${editUsername}`,
               method: "POST",
               body: {
                 title: edit.payload.title,
@@ -54,9 +47,8 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
             });
           }
           if (edit.action === "edit") {
-            console.log("Syncing section edit:", edit.payload.title);
             await apiFetch({
-              endpoint: `/api/sections/${edit.payload.sectionId}`,
+              endpoint: `${URL}/api/sections/${edit.payload.sectionId}`,
               method: "PUT",
               body: {
                 title: edit.payload.title,
@@ -67,9 +59,8 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
             });
           }
           if (edit.action === "delete") {
-            console.log("Syncing section delete:", edit.payload.sectionId);
             await apiFetch({
-              endpoint: `/api/sections/${edit.payload.sectionId}/${editUsername}`,
+              endpoint: `${URL}/api/sections/${edit.payload.sectionId}/${editUsername}`,
               method: "DELETE",
               body: { username: editUsername },
               getAccessTokenSilently,
@@ -77,9 +68,8 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
             });
           }
           if (edit.action === "reorder") {
-            console.log("Syncing section reorder");
             await apiFetch({
-              endpoint: `/api/sections/user/${editUsername}/order`,
+              endpoint: `${URL}/api/sections/user/${editUsername}/order`,
               method: "PUT",
               body: {
                 order: edit.payload.order,
@@ -95,9 +85,8 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
         // ITEM ACTIONS
         if (edit.type === "item") {
           if (edit.action === "create") {
-            console.log("Syncing item create:", edit.payload.content);
             await apiFetch({
-              endpoint: `/api/items/${edit.payload.sectionId}/items/${editUsername}`,
+              endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${editUsername}`,
               method: "POST",
               body: {
                 content: edit.payload.content,
@@ -111,7 +100,6 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
             });
           }
           if (edit.action === "edit") {
-            console.log("Syncing item edit:", edit.payload.content);
             await apiFetch({
               endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
               method: "PUT",
@@ -127,9 +115,8 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
             });
           }
           if (edit.action === "delete") {
-            console.log("Syncing item delete:", edit.payload.itemId);
             await apiFetch({
-              endpoint: `/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
+              endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
               method: "DELETE",
               body: { username: editUsername },
               getAccessTokenSilently,
@@ -137,9 +124,8 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
             });
           }
           if (edit.action === "reorder") {
-            console.log("Syncing item reorder");
             await apiFetch({
-              endpoint: `/api/items/${edit.payload.sectionId}/items/${editUsername}/order`,
+              endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${editUsername}/order`,
               method: "PUT",
               body: {
                 order: edit.payload.order,
@@ -150,9 +136,8 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
             });
           }
           if (edit.action === "move") {
-            console.log("Syncing item move");
             await apiFetch({
-              endpoint: `/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}/move`,
+              endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}/move`,
               method: "PUT",
               body: {
                 toSectionId: edit.payload.toSectionId,
@@ -165,30 +150,30 @@ export default function useOfflineSync(getAccessTokenSilently, username) {
           }
         }
 
-        // Small delay between operations to avoid overwhelming the server
-        await new Promise(resolve => setTimeout(resolve, 100));
+        const timeout = 100;
+        // small delay between requests
+        await new Promise(resolve => setTimeout(resolve, timeout));
       }
 
       clearPendingEdits();
-      console.log("Successfully synced all pending edits");
       isSyncing.current = false;
       return true;
     } catch (error) {
       console.error("Failed to sync pending edits:", error);
       isSyncing.current = false;
-      // Don't clear edits if sync failed - they'll be retried next time
       return false;
     }
   }, [getAccessTokenSilently, isOnline, username]);
 
   useEffect(() => {
     if (!isOnline) return;
+
+    const timeout = 1000;
     
-    // Sync when coming online with a small delay to ensure connection is stable
+    //sync when coming online with a small delay
     const timeoutId = setTimeout(() => {
-      console.log("Coming online, attempting to sync...");
       syncPendingEdits();
-    }, 1000);
+    }, timeout);
 
     return () => clearTimeout(timeoutId);
   }, [isOnline, syncPendingEdits]);
