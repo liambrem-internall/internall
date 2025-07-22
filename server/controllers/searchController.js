@@ -10,11 +10,13 @@ const SearchStats = require("../models/SearchStats");
 
 const { COMPONENT_TYPES } = require("../utils/constants");
 const { getEmbedding } = require("../utils/embedder");
-const fuzzySearch = require("../utils/fuzzySearch");
+const { fuzzySearch } = require("../utils/fuzzySearch");
 const { runSearchAlgorithm } = require("../utils/searchAlgorithm");
+const { getGraph, buildGraph } = require("../utils/graphCache");
 
 const PAGE_SIZE_DEFAULT = 8;
 const OFFSET_DEFAULT = 0;
+const STRING_MAX = 50;
 
 const fetchDuckDuckGoData = async (query) => {
   const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
@@ -53,6 +55,8 @@ exports.search = async (req, res) => {
       ddgStats,
       ddgData,
       ItemModel: Item,
+      query: q,
+      roomId,
     });
 
     const pagedResults = results.slice(offset, offset + limit);
@@ -95,7 +99,7 @@ exports.accessSearch = async (req, res) => {
     );
 
     const incObj = {};
-    MATCH_TYPES.forEach(type => {
+    MATCH_TYPES.forEach((type) => {
       incObj[`matchTypeCounts.${type}`] = req.body[`${type}Score`] || 0;
     });
 
@@ -117,7 +121,6 @@ exports.accessSearch = async (req, res) => {
 
 exports.webAccessed = async (req, res) => {
   try {
-    const { url, text, timestamp } = req.body;
     await DdgStats.findOneAndUpdate(
       {},
       { $inc: { totalClicks: 1 } },
@@ -126,5 +129,46 @@ exports.webAccessed = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to log web access" });
+  }
+};
+
+exports.getSemanticGraph = async (req, res) => {
+  try {
+    const { roomId } = req.query;
+    if (!roomId) return res.status(400).json({ error: "Missing roomId" });
+
+    const user = await User.findOne({ username: roomId });
+    if (!user) return res.status(404).json({ error: "User/Room not found" });
+
+    const userSections = await Section.find({ userId: user.auth0Id });
+    const sectionIds = userSections.map((section) => section._id);
+    const itemsRaw = await Item.find({ sectionId: { $in: sectionIds } });
+
+    // pull graph from cache
+    let graph = getGraph(roomId);
+    if (!graph) {
+      graph = buildGraph(roomId, itemsRaw);
+    }
+
+    const nodes = Object.entries(graph.nodes).map(([id, node]) => ({
+      id,
+      label: (node.item.title || node.item.content || "Untitled").substring(
+        0,
+        STRING_MAX
+      ),
+      hasEmbedding: !!(node.item.embedding && node.item.embedding.length > 0),
+    }));
+
+    const edges = [];
+    Object.entries(graph.nodes).forEach(([id, node]) => {
+      node.edges.forEach((edge) => {
+        edges.push({ source: id, target: edge.id, weight: edge.weight });
+      });
+    });
+
+    res.json({ nodes, edges });
+  } catch (err) {
+    console.error("Semantic graph error:", err);
+    res.status(500).json({ error: "Failed to generate semantic graph" });
   }
 };

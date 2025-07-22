@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import React, { useContext, useState } from "react";
 
 import { useParams } from "react-router-dom";
 
@@ -13,7 +13,7 @@ import { BsFillPersonFill } from "react-icons/bs";
 import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
 import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
 import { useApiFetch } from "../../hooks/useApiFetch";
-
+import SemanticGraphOverlay from "./SemanticGraphOverlay";
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
@@ -30,6 +30,7 @@ const Navigation = () => {
   const isOnline = useContext(NetworkStatusContext);
   const otherUsers = useRoomUsers(roomId, userId, user.nickname);
   const apiFetch = useApiFetch();
+  const [showGraph, setShowGraph] = useState(false);
 
   const userColors = otherUsers.map((user, i) => (
     <OverlayTrigger
@@ -67,6 +68,12 @@ const Navigation = () => {
           <Navbar.Collapse id="basic-navbar-nav">
             <div className="d-flex ms-auto align-items-center">
               <Nav className="mx-auto">
+                <Nav.Link
+                  className="nav-link-custom"
+                  onClick={() => setShowGraph((prev) => !prev)}
+                >
+                  {showGraph ? "Hide Graph" : "Show Graph"}
+                </Nav.Link>
                 <Nav.Link
                   className="nav-link-custom"
                   onClick={() =>
@@ -112,6 +119,11 @@ const Navigation = () => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
+      <SemanticGraphOverlay
+        isVisible={showGraph}
+        onClose={() => setShowGraph(false)}
+        roomId={roomId}
+      />
     </div>
   );
 };

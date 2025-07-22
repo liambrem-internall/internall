@@ -47,6 +47,7 @@ const useSaveHandlers = (
   const apiFetch = useApiFetch();
 
   const handleSaveSection = async () => {
+    // if user is offline, save action to offline queue
     if (!isOnline) {
       // save to offline queue
       addPendingEdit({
@@ -111,6 +112,7 @@ const useSaveHandlers = (
       return;
     }
 
+    // if user is offline, save action to offline queue
     if (!isOnline) {
       // save to offline queue
       addPendingEdit({
