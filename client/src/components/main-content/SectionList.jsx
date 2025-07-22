@@ -116,19 +116,17 @@ const SectionList = ({
 
   const cursors = useRoomCursors(roomId, userId);
 
-  // Initial data fetch - only runs once
+  // initial data fetch
   useEffect(() => {
     if (!isAuthenticated || !username || hasInitialLoad) return;
     
     const fetchSections = async () => {
       try {
-        console.log("Fetching sections from server...");
         const data = await apiFetch({
           endpoint: `${URL}/api/sections/user/${username}`,
           getAccessTokenSilently,
         });
 
-        // Convert to object
         const sectionsObj = {};
         const order = [];
         data.forEach((section) => {
@@ -160,24 +158,19 @@ const SectionList = ({
     fetchSections();
   }, [getAccessTokenSilently, isAuthenticated, username, hasInitialLoad]);
 
-  // Sync pending edits when coming online
+  // sync pending edits when coming online
   useEffect(() => {
     if (!hasInitialLoad || hasSynced) return;
     
     const performSync = async () => {
-      console.log("Attempting to sync pending edits...");
       const syncResult = await syncPendingEdits();
       setHasSynced(true);
       
-      // If sync was successful, we don't need to re-fetch since socket events
-      // will update the UI with the changes
-      if (syncResult) {
-        console.log("Sync completed successfully");
-      }
+      // if sync was successful, no need to re-fetch since socket events will update the UI with the changes
     };
     
     performSync();
-  }, [hasInitialLoad, hasSynced]);
+  }, [isOnline, hasInitialLoad, hasSynced]);
 
   // Reset sync flag when going offline
   useEffect(() => {
