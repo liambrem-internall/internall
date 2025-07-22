@@ -55,7 +55,7 @@ const useSaveHandlers = (
         action: "create",
         payload: {
           title: pendingSectionTitle,
-          username: currentUser?.nickname,
+          username: username, // Use the username from useParams, not currentUser?.nickname
         },
         timestamp: Date.now(),
       });
@@ -101,11 +101,6 @@ const useSaveHandlers = (
 
   const handleSaveItem = async ({ content, link, notes }) => {
     if (!content.trim() || !targetSectionId) {
-      if (editingItem) {
-        addLog(`You edited item "${editingItem.content}"`);
-      } else {
-        addLog(`${currentUser?.nickname || "Someone"} added item "${content}"`);
-      }
       setShowItemModal(false);
       setEditingItem(null);
       setTargetSectionId(null);
@@ -123,32 +118,55 @@ const useSaveHandlers = (
           link,
           notes,
           sectionId: targetSectionId,
-          username: currentUser?.nickname,
+          username: username, // Use the username from useParams, not currentUser?.nickname
           itemId: editingItem?.id,
         },
         timestamp: Date.now(),
       });
-      setSections((prev) => {
-        const section = prev[targetSectionId];
-        if (!section) return prev;
-        return {
-          ...prev,
-          [targetSectionId]: {
-            ...section,
-            items: [
-              ...section.items,
-              {
-                id: `offline-item-${Date.now()}`,
-                content,
-                link,
-                notes,
-                offline: true,
-              },
-            ],
-          },
-        };
-      });
-      addLog(`(Offline) You added item "${content}"`);
+
+      if (editingItem) {
+        // Update existing item
+        setSections((prev) => {
+          const section = prev[targetSectionId];
+          if (!section) return prev;
+          return {
+            ...prev,
+            [targetSectionId]: {
+              ...section,
+              items: section.items.map(item => 
+                item.id === editingItem.id 
+                  ? { ...item, content, link, notes, offline: true }
+                  : item
+              ),
+            },
+          };
+        });
+        addLog(`(Offline) You edited item "${content}"`);
+      } else {
+        // Create new item
+        setSections((prev) => {
+          const section = prev[targetSectionId];
+          if (!section) return prev;
+          return {
+            ...prev,
+            [targetSectionId]: {
+              ...section,
+              items: [
+                ...section.items,
+                {
+                  id: `offline-item-${Date.now()}`,
+                  content,
+                  link,
+                  notes,
+                  offline: true,
+                },
+              ],
+            },
+          };
+        });
+        addLog(`(Offline) You added item "${content}"`);
+      }
+      
       setShowItemModal(false);
       setEditingItem(null);
       setTargetSectionId(null);
