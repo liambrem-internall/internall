@@ -139,7 +139,18 @@ const SectionList = ({
       });
 
       setSections(sectionsObj);
-      setSectionOrder(order);
+      
+      // clean up section order to only include existing sections
+      setSectionOrder(prevOrder => {
+        const validIds = new Set(order);
+        const cleanedOrder = prevOrder.filter(id => validIds.has(id));
+        
+        // add any new sections that aren't in the current order
+        const existingIds = new Set(cleanedOrder);
+        const newSections = order.filter(id => !existingIds.has(id));
+        
+        return [...cleanedOrder, ...newSections];
+      });
       
       if (onSectionsChange) {
         onSectionsChange(sectionsObj);
@@ -288,6 +299,9 @@ const SectionList = ({
       ? verticalListSortingStrategy
       : horizontalListSortingStrategy;
 
+  // filter out any section IDs that don't exist in sections
+  const validSectionOrder = sectionOrder.filter(sectionId => sections[sectionId]);
+
   return (
     <>
       <Container className="section-list-container">
@@ -298,13 +312,13 @@ const SectionList = ({
             collisionDetection={customCollisionDetection}
             onDragOver={handleDragOver}
           >
-            <SortableContext items={sectionOrder} strategy={sortStrategy}>
+            <SortableContext items={validSectionOrder} strategy={sortStrategy}>
               <div
                 className={`sections-row ${
                   viewMode === ViewModes.LIST ? "list-view" : "board-view"
                 }`}
               >
-                {sectionOrder.map((sectionId) => (
+                {validSectionOrder.map((sectionId) => (
                   <DroppableSection
                     key={sectionId}
                     id={sectionId}
