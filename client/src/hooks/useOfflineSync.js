@@ -7,7 +7,7 @@ const URL = import.meta.env.VITE_API_URL;
 
 const EDIT_TYPES = Object.freeze({
   SECTION: "section",
-  ITEM: "item"
+  ITEM: "item",
 });
 
 const EDIT_ACTIONS = Object.freeze({
@@ -15,10 +15,14 @@ const EDIT_ACTIONS = Object.freeze({
   EDIT: "edit",
   DELETE: "delete",
   REORDER: "reorder",
-  MOVE: "move"
+  MOVE: "move",
 });
 
-export default function useOfflineSync(getAccessTokenSilently, username, addLog) {
+export default function useOfflineSync(
+  getAccessTokenSilently,
+  username,
+  addLog
+) {
   const isOnline = useContext(NetworkStatusContext);
   const isSyncing = useRef(false);
 
@@ -39,7 +43,6 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
     try {
       // process edits sequentially from queue
       for (const edit of edits) {
-        
         const editUsername = edit.payload.username || username;
 
         if (!editUsername) {
@@ -62,7 +65,8 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
                 getAccessTokenSilently,
                 isOnline,
               });
-              if (addLog) addLog(`Synced: Created section "${edit.payload.title}"`);
+              if (addLog)
+                addLog(`Synced: Created section "${edit.payload.title}"`);
             }
             if (edit.action === EDIT_ACTIONS.EDIT) {
               await apiFetch({
@@ -76,13 +80,14 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
                 getAccessTokenSilently,
                 isOnline,
               });
-              if (addLog) addLog(`Synced: Updated section "${edit.payload.title}"`);
+              if (addLog)
+                addLog(`Synced: Updated section "${edit.payload.title}"`);
             }
             if (edit.action === EDIT_ACTIONS.DELETE) {
               await apiFetch({
                 endpoint: `${URL}/api/sections/${edit.payload.sectionId}/${editUsername}`,
                 method: "DELETE",
-                body: { 
+                body: {
                   username: editUsername,
                   timestamp: edit.timestamp,
                 },
@@ -124,7 +129,8 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
                 getAccessTokenSilently,
                 isOnline,
               });
-              if (addLog) addLog(`Synced: Created item "${edit.payload.content}"`);
+              if (addLog)
+                addLog(`Synced: Created item "${edit.payload.content}"`);
             }
             if (edit.action === EDIT_ACTIONS.EDIT) {
               await apiFetch({
@@ -141,13 +147,14 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
                 getAccessTokenSilently,
                 isOnline,
               });
-              if (addLog) addLog(`Synced: Updated item "${edit.payload.content}"`);
+              if (addLog)
+                addLog(`Synced: Updated item "${edit.payload.content}"`);
             }
             if (edit.action === EDIT_ACTIONS.DELETE) {
               await apiFetch({
                 endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
                 method: "DELETE",
-                body: { 
+                body: {
                   username: editUsername,
                   timestamp: edit.timestamp,
                 },
@@ -187,27 +194,26 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
 
           syncedCount++;
         } catch (error) {
-          // Handle conflict (409 status)
           if (error.status === 409) {
             conflictCount++;
             if (addLog) {
-              addLog(`Conflict resolved: ${edit.type} was modified by another user more recently`);
+              addLog(
+                `Conflict resolved: ${edit.type} was modified by another user more recently`
+              );
             }
-            // Continue with next edit instead of failing completely
             continue;
           } else {
-            // Re-throw other errors
             throw error;
           }
         }
 
         const timeout = 100;
-        await new Promise(resolve => setTimeout(resolve, timeout));
+        await new Promise((resolve) => setTimeout(resolve, timeout));
       }
 
       clearPendingEdits();
       isSyncing.current = false;
-      
+
       if (addLog) {
         if (syncedCount > 0) {
           addLog(`Successfully synced ${syncedCount} offline changes`);
@@ -216,13 +222,18 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
           addLog(`${conflictCount} changes were skipped due to conflicts`);
         }
       }
-      
-      return true;
+
+      return {
+        success: true,
+        syncedCount,
+        conflictCount,
+        needsRefetch: syncedCount > 0 || conflictCount > 0,
+      };
     } catch (error) {
       console.error("Failed to sync pending edits:", error);
       isSyncing.current = false;
       if (addLog) addLog(`Failed to sync offline changes: ${error.message}`);
-      return false;
+      return { success: false, error };
     }
   }, [getAccessTokenSilently, isOnline, username, addLog]);
 
@@ -230,7 +241,7 @@ export default function useOfflineSync(getAccessTokenSilently, username, addLog)
     if (!isOnline) return;
 
     const timeout = 1000;
-    
+
     const timeoutId = setTimeout(() => {
       syncPendingEdits();
     }, timeout);

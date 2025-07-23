@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState, useCallback } from "react";
 
 import { useParams } from "react-router-dom";
 
@@ -115,61 +115,76 @@ const SectionList = ({
 
   const cursors = useRoomCursors(roomId, userId);
 
+  const fetchSections = useCallback(async () => {
+    try {
+      const data = await apiFetch({
+        endpoint: `${URL}/api/sections/user/${username}`,
+        getAccessTokenSilently,
+      });
+
+      const sectionsObj = {};
+      const order = [];
+      data.forEach((section) => {
+        const { _id, items = [], ...rest } = section;
+        const id = _id;
+        sectionsObj[id] = {
+          ...rest,
+          id,
+          items: items.map(({ _id: itemId, ...itemRest }) => ({
+            ...itemRest,
+            id: itemId,
+          })),
+        };
+        order.push(id);
+      });
+
+      setSections(sectionsObj);
+      setSectionOrder(order);
+      
+      if (onSectionsChange) {
+        onSectionsChange(sectionsObj);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error fetching sections:", error);
+      return false;
+    }
+  }, [apiFetch, getAccessTokenSilently, username, setSections, setSectionOrder, onSectionsChange]);
+
   // initial data fetch
   useEffect(() => {
     if (!isAuthenticated || !username || hasInitialLoad) return;
     
-    const fetchSections = async () => {
-      try {
-        const data = await apiFetch({
-          endpoint: `${URL}/api/sections/user/${username}`,
-          getAccessTokenSilently,
-        });
-
-        const sectionsObj = {};
-        const order = [];
-        data.forEach((section) => {
-          const { _id, items = [], ...rest } = section;
-          const id = _id;
-          sectionsObj[id] = {
-            ...rest,
-            id,
-            items: items.map(({ _id: itemId, ...itemRest }) => ({
-              ...itemRest,
-              id: itemId,
-            })),
-          };
-          order.push(id);
-        });
-
-        setSections(sectionsObj);
-        setSectionOrder(order);
+    const performInitialFetch = async () => {
+      const success = await fetchSections();
+      if (success) {
         setHasInitialLoad(true);
-        
-        if (onSectionsChange) {
-          onSectionsChange(sectionsObj);
-        }
-      } catch (error) {
-        console.error("Error fetching sections:", error);
       }
     };
     
-    fetchSections();
-  }, [getAccessTokenSilently, isAuthenticated, username, hasInitialLoad]);
+    performInitialFetch();
+  }, [isAuthenticated, username, hasInitialLoad, fetchSections]);
 
   // sync pending edits when coming online
   useEffect(() => {
-    if (!hasInitialLoad || hasSynced) return;
+    if (!isOnline || !hasInitialLoad || hasSynced) return;
     
     const performSync = async () => {
       const syncResult = await syncPendingEdits();
       setHasSynced(true);
       
-      // if sync was successful, no need to re-fetch since socket events will update the UI with the changes
+      // refetch after syncing to get the latest state
+      const refetchSuccess = await fetchSections();
+      if (refetchSuccess && addLog) {
+        addLog("Refreshed data to show latest changes");
+      } else if (!refetchSuccess && addLog) {
+        addLog("Failed to refresh data after sync");
+      }
     };
     
     performSync();
-  }, [isOnline, hasInitialLoad, hasSynced]);
+  }, [isOnline, hasInitialLoad, hasSynced, syncPendingEdits, fetchSections, addLog]);
 
   useEffect(() => {
     if (!isOnline) {
@@ -234,7 +249,7 @@ const SectionList = ({
     setIsDragging,
     apiFetch,
     safeEmit,
-    isOnline  // Add this parameter
+    isOnline
   );
 
   const saveHandlers = useSaveHandlers(
