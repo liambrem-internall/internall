@@ -12,5 +12,6 @@ router.put("/:sectionId/items/:username/order", itemController.updateItemOrder);
 router.put("/:sectionId/items/:itemId/:username/move", itemController.moveItem); // PUT /api/items/:sectionId/items/:itemId/:username/move
 router.put("/:sectionId/items/:itemId/:username", itemController.updateItem); // PUT /api/items/:sectionId/items/:itemId/:username
 router.delete("/:sectionId/items/:itemId/:username", itemController.deleteItem); // DELETE /api/items/:sectionId/items/:itemId/:username
+router.get("/find/:itemId", itemController.findItem); // GET /api/items/find/:itemId
 
 module.exports = router;

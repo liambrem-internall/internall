@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState, useCallback } from "react";
 
 import { useParams } from "react-router-dom";
 
@@ -115,67 +115,113 @@ const SectionList = ({
 
   const cursors = useRoomCursors(roomId, userId);
 
+  const fetchSections = useCallback(async () => {
+    try {
+      const data = await apiFetch({
+        endpoint: `${URL}/api/sections/user/${username}`,
+        getAccessTokenSilently,
+      });
+
+      const sectionsObj = {};
+      const order = [];
+      data.forEach((section) => {
+        const { _id, items = [], ...rest } = section;
+        const id = _id;
+        sectionsObj[id] = {
+          ...rest,
+          id,
+          items: items.map(({ _id: itemId, ...itemRest }) => ({
+            ...itemRest,
+            id: itemId,
+          })),
+        };
+        order.push(id);
+      });
+
+      setSections(sectionsObj);
+      
+      // clean up section order to only include existing sections
+      setSectionOrder(prevOrder => {
+        const validIds = new Set(order);
+        const cleanedOrder = prevOrder.filter(id => validIds.has(id));
+        
+        // add any new sections that aren't in the current order
+        const existingIds = new Set(cleanedOrder);
+        const newSections = order.filter(id => !existingIds.has(id));
+        
+        return [...cleanedOrder, ...newSections];
+      });
+      
+      if (onSectionsChange) {
+        onSectionsChange(sectionsObj);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error fetching sections:", error);
+      return false;
+    }
+  }, [apiFetch, getAccessTokenSilently, username, setSections, setSectionOrder, onSectionsChange]);
+
   // initial data fetch
   useEffect(() => {
     if (!isAuthenticated || !username || hasInitialLoad) return;
     
-    const fetchSections = async () => {
-      try {
-        const data = await apiFetch({
-          endpoint: `${URL}/api/sections/user/${username}`,
-          getAccessTokenSilently,
-        });
-
-        const sectionsObj = {};
-        const order = [];
-        data.forEach((section) => {
-          const { _id, items = [], ...rest } = section;
-          const id = _id;
-          sectionsObj[id] = {
-            ...rest,
-            id,
-            items: items.map(({ _id: itemId, ...itemRest }) => ({
-              ...itemRest,
-              id: itemId,
-            })),
-          };
-          order.push(id);
-        });
-
-        setSections(sectionsObj);
-        setSectionOrder(order);
+    const performInitialFetch = async () => {
+      const success = await fetchSections();
+      if (success) {
         setHasInitialLoad(true);
-        
-        if (onSectionsChange) {
-          onSectionsChange(sectionsObj);
-        }
-      } catch (error) {
-        console.error("Error fetching sections:", error);
       }
     };
     
-    fetchSections();
-  }, [getAccessTokenSilently, isAuthenticated, username, hasInitialLoad]);
+    performInitialFetch();
+  }, [isAuthenticated, username, hasInitialLoad, fetchSections]);
 
   // sync pending edits when coming online
   useEffect(() => {
-    if (!hasInitialLoad || hasSynced) return;
+    if (!isOnline || !hasInitialLoad || hasSynced) return;
     
     const performSync = async () => {
       const syncResult = await syncPendingEdits();
       setHasSynced(true);
       
-      // if sync was successful, no need to re-fetch since socket events will update the UI with the changes
+      // refetch after syncing to get the latest state
+      const refetchSuccess = await fetchSections();
+      if (refetchSuccess && addLog) {
+        addLog("Refreshed data to show latest changes");
+      } else if (!refetchSuccess && addLog) {
+        addLog("Failed to refresh data after sync");
+      }
     };
     
     performSync();
-  }, [isOnline, hasInitialLoad, hasSynced]);
+  }, [isOnline, hasInitialLoad, hasSynced, syncPendingEdits, fetchSections, addLog]);
 
   useEffect(() => {
     if (!isOnline) {
       setHasSynced(false);
     }
   }, [isOnline]);
+
+  useEffect(() => {
+    if (isOnline && roomId && userId) {
+      // small delay to ensure socket is connected
+      const timeoutId = setTimeout(() => {
+        if (socket && socket.connected) {
+          socket.emit('room:join', {
+            roomId,
+            userId,
+            nickname: currentUser?.nickname
+          });
+          if (addLog) {
+            addLog("Rejoined room for real-time updates");
+          }
+        }
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOnline, roomId, userId, currentUser?.nickname, addLog]);
 
   useEffect(() => {
     if (onSectionsChange) {
@@ -234,7 +280,7 @@ const SectionList = ({
     setIsDragging,
     apiFetch,
     safeEmit,
-    isOnline  // Add this parameter
+    isOnline
   );
 
   const saveHandlers = useSaveHandlers(
@@ -273,6 +319,9 @@ const SectionList = ({
       ? verticalListSortingStrategy
       : horizontalListSortingStrategy;
 
+  // filter out any section IDs that don't exist in sections
+  const validSectionOrder = sectionOrder.filter(sectionId => sections[sectionId]);
+
   return (
     <>
       <Container className="section-list-container">
@@ -283,13 +332,13 @@ const SectionList = ({
             collisionDetection={customCollisionDetection}
             onDragOver={handleDragOver}
           >
-            <SortableContext items={sectionOrder} strategy={sortStrategy}>
+            <SortableContext items={validSectionOrder} strategy={sortStrategy}>
               <div
                 className={`sections-row ${
                   viewMode === ViewModes.LIST ? "list-view" : "board-view"
                 }`}
               >
-                {sectionOrder.map((sectionId) => (
+                {validSectionOrder.map((sectionId) => (
                   <DroppableSection
                     key={sectionId}
                     id={sectionId}

@@ -119,7 +119,7 @@ const handleDragEndItem = (active, over, params) => {
           order: newOrder,
           username: username,
         },
-        timestamp: Date.now(),
+        timestamp: Date.now(), // This is when the user actually made the change
       });
 
       if (addLog) {
@@ -214,7 +214,11 @@ const handleDragEndItem = (active, over, params) => {
     await apiFetch({
       endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}/${username}/move`,
       method: "PUT",
-      body: { toSectionId, username: currentUser?.nickname },
+      body: { 
+        toSectionId, 
+        username: currentUser?.nickname,
+        timestamp: Date.now() 
+      },
       getAccessTokenSilently,
     });
   })();

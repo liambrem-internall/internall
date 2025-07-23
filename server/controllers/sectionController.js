@@ -112,25 +112,42 @@ exports.createSection = async (req, res) => {
 
 exports.updateSection = async (req, res) => {
   try {
+    const section = await Section.findById(req.params.id);
+    if (!section) return res.status(404).json({ error: "Section not found" });
+
+    // Check timestamp for conflict resolution
+    const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
+    const serverTimestamp = section.lastModified || section.updatedAt || new Date(0);
+
+    if (clientTimestamp < serverTimestamp) {
+      return res.status(409).json({ 
+        error: "Conflict: Section was modified more recently by another user",
+        serverSection: section,
+        serverTimestamp: serverTimestamp
+      });
+    }
+
     let embedding;
     if (req.body.title) {
       embedding = await getEmbedding(req.body.title);
     }
 
-    const updateData = { ...req.body };
+    const updateData = { 
+      ...req.body,
+      lastModified: clientTimestamp
+    };
     if (embedding) updateData.embedding = embedding;
 
-    const section = await Section.findByIdAndUpdate(req.params.id, updateData, {
+    const updatedSection = await Section.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
     });
-    if (!section) return res.status(404).json({ error: "Section not found" });
 
     sectionEvents.emitSectionUpdated(req.params.username, {
-      ...section.toObject(),
+      ...updatedSection.toObject(),
       username: req.body.username,
     });
 
-    res.json(section);
+    res.json(updatedSection);
   } catch (err) {
     res.status(404).json({ error: "Section not found" });
   }
@@ -138,8 +155,20 @@ exports.updateSection = async (req, res) => {
 
 exports.deleteSection = async (req, res) => {
   try {
-    const section = await Section.findById(req.params.id).populate('items');
+    const section = await Section.findById(req.params.id);
     if (!section) return res.status(404).json({ error: "Section not found" });
+
+    // Check timestamp for conflict resolution
+    const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
+    const serverTimestamp = section.lastModified || section.updatedAt || new Date(0);
+
+    if (clientTimestamp < serverTimestamp) {
+      return res.status(409).json({ 
+        error: "Conflict: Section was modified more recently",
+        serverSection: section,
+        serverTimestamp: serverTimestamp
+      });
+    }
 
     const roomId = req.params.username;
 

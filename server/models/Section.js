@@ -28,6 +28,16 @@ const SectionSchema = new mongoose.Schema({
     type: [Number],
     default: []
   },
+  lastModified: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// update lastModified on save
+SectionSchema.pre('save', function(next) {
+  this.lastModified = new Date();
+  next();
 });
 
 module.exports = mongoose.model("Section", SectionSchema);

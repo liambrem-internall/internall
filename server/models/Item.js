@@ -47,6 +47,16 @@ const ItemSchema = new mongoose.Schema({
     of: Number,
     default: {},
   },
+  lastModified: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Update lastModified on save
+ItemSchema.pre("save", function (next) {
+  this.lastModified = new Date();
+  next();
 });
 
 module.exports = mongoose.model("Item", ItemSchema);

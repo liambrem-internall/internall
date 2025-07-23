@@ -31,9 +31,15 @@ export const apiFetch = async ({
     fetchOptions.body = JSON.stringify(body);
   }
 
-  const res = await fetch(endpoint, fetchOptions);
-  if (!res.ok) throw new Error(await res.text());
-  const text = await res.text();
+  const response = await fetch(endpoint, fetchOptions);
+  if (!response.ok) {
+    const errorData = await response.json();
+    const error = new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    error.status = response.status;
+    error.data = errorData;
+    throw error;
+  }
+  const text = await response.text();
   if (!text) return {};
   try {
     return JSON.parse(text);
