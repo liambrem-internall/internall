@@ -119,7 +119,7 @@ const handleDragEndItem = (active, over, params) => {
           order: newOrder,
           username: username,
         },
-        timestamp: Date.now(),
+        timestamp: Date.now(), // This is when the user actually made the change
       });
 
       if (addLog) {
@@ -272,7 +272,7 @@ const handleDragEndDelete = (active, over, params) => {
           itemId: active.id,
           username: username,
         },
-        timestamp: Date.now(),
+        timestamp: Date.now(), // When user made the delete action
       });
 
       if (addLog) {

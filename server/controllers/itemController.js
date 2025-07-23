@@ -67,6 +67,19 @@ exports.updateItem = async (req, res) => {
     const item = await Item.findById(req.params.itemId);
     if (!item) return res.status(404).json({ error: "Item not found" });
 
+    // Check timestamp for conflict resolution
+    const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
+    const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
+
+    // If client timestamp is older than server, reject the update
+    if (clientTimestamp < serverTimestamp) {
+      return res.status(409).json({ 
+        error: "Conflict: Item was modified more recently by another user",
+        serverItem: item,
+        serverTimestamp: serverTimestamp
+      });
+    }
+
     const oldSectionId = item.sectionId.toString();
     const newSectionId = req.body.sectionId;
     const roomId = req.params.username;
@@ -78,6 +91,7 @@ exports.updateItem = async (req, res) => {
     item.link = req.body.link ?? item.link;
     item.notes = req.body.notes ?? item.notes;
     item.sectionId = newSectionId ?? item.sectionId;
+    item.lastModified = clientTimestamp;
 
     await item.save();
 
@@ -197,11 +211,23 @@ exports.moveItem = async (req, res) => {
 
 exports.deleteItem = async (req, res) => {
   try {
-    const section = await Section.findById(req.params.sectionId);
-    if (!section) return res.status(404).json({ error: "Section not found" });
-
     const item = await Item.findById(req.params.itemId);
     if (!item) return res.status(404).json({ error: "Item not found" });
+
+    // Check timestamp for conflict resolution
+    const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
+    const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
+
+    if (clientTimestamp < serverTimestamp) {
+      return res.status(409).json({ 
+        error: "Conflict: Item was modified more recently",
+        serverItem: item,
+        serverTimestamp: serverTimestamp
+      });
+    }
+
+    const section = await Section.findById(req.params.sectionId);
+    if (!section) return res.status(404).json({ error: "Section not found" });
 
     const roomId = req.params.username;
 
