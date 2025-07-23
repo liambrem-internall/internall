@@ -73,11 +73,7 @@ exports.updateItem = async (req, res) => {
     const isOfflineEdit = req.body.isOfflineEdit === true;
 
     // only check for conflicts if this isn't an offline edit being synced
-    // or if the timestamp difference is more than 5 minutes
-    const timeDifferenceMs = Math.abs(clientTimestamp.getTime() - serverTimestamp.getTime());
-    const significantTimeDifference = timeDifferenceMs > 5 * 60 * 1000;
-
-    if (!isOfflineEdit && clientTimestamp < serverTimestamp && significantTimeDifference) {
+    if (!isOfflineEdit && clientTimestamp < serverTimestamp) {
       return res.status(409).json({ 
         error: "Conflict: Item was modified more recently by another user",
         serverItem: item,
