@@ -67,12 +67,17 @@ exports.updateItem = async (req, res) => {
     const item = await Item.findById(req.params.itemId);
     if (!item) return res.status(404).json({ error: "Item not found" });
 
-    // Check timestamp for conflict resolution
+    // check timestamp for conflict resolution
     const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
     const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
+    const isOfflineEdit = req.body.isOfflineEdit === true;
 
-    // If client timestamp is older than server, reject the update
-    if (clientTimestamp < serverTimestamp) {
+    // only check for conflicts if this isn't an offline edit being synced
+    // or if the timestamp difference is more than 5 minutes
+    const timeDifferenceMs = Math.abs(clientTimestamp.getTime() - serverTimestamp.getTime());
+    const significantTimeDifference = timeDifferenceMs > 5 * 60 * 1000;
+
+    if (!isOfflineEdit && clientTimestamp < serverTimestamp && significantTimeDifference) {
       return res.status(409).json({ 
         error: "Conflict: Item was modified more recently by another user",
         serverItem: item,
@@ -173,7 +178,7 @@ exports.moveItem = async (req, res) => {
     const item = await Item.findById(itemId);
     if (!item) return res.status(404).json({ error: "Item not found" });
 
-    // Check timestamp for conflict resolution
+    // check timestamp for conflict resolution
     const clientTimestamp = timestamp ? new Date(timestamp) : new Date();
     const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
 
@@ -226,11 +231,11 @@ exports.deleteItem = async (req, res) => {
   try {
     const item = await Item.findById(req.params.itemId);
     if (!item) {
-      // If item doesn't exist, consider it already deleted (idempotent operation)
+      // if item not found, consider it as nonexistent
       return res.status(204).send();
     }
 
-    // Check timestamp for conflict resolution
+    // check timestamp for conflict resolution
     const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
     const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
 
@@ -242,10 +247,9 @@ exports.deleteItem = async (req, res) => {
       });
     }
 
-    // Find the section that currently contains this item
+    // find the section that currently contains this item
     const section = await Section.findOne({ items: req.params.itemId });
     if (!section) {
-      // Item not in any section, but still exists in Item collection
       await Item.findByIdAndDelete(req.params.itemId);
       return res.status(204).send();
     }

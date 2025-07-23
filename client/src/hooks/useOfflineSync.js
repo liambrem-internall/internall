@@ -154,6 +154,7 @@ export default function useOfflineSync(
                     sectionId: edit.payload.sectionId,
                     username: editUsername,
                     timestamp: edit.timestamp,
+                    isOfflineEdit: true,
                   },
                   getAccessTokenSilently,
                   isOnline,
