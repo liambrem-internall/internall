@@ -67,6 +67,20 @@ exports.updateItem = async (req, res) => {
     const item = await Item.findById(req.params.itemId);
     if (!item) return res.status(404).json({ error: "Item not found" });
 
+    // check timestamp for conflict resolution
+    const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
+    const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
+    const isOfflineEdit = req.body.isOfflineEdit === true;
+
+    // only check for conflicts if this isn't an offline edit being synced
+    if (!isOfflineEdit && clientTimestamp < serverTimestamp) {
+      return res.status(409).json({ 
+        error: "Conflict: Item was modified more recently by another user",
+        serverItem: item,
+        serverTimestamp: serverTimestamp
+      });
+    }
+
     const oldSectionId = item.sectionId.toString();
     const newSectionId = req.body.sectionId;
     const roomId = req.params.username;
@@ -78,6 +92,7 @@ exports.updateItem = async (req, res) => {
     item.link = req.body.link ?? item.link;
     item.notes = req.body.notes ?? item.notes;
     item.sectionId = newSectionId ?? item.sectionId;
+    item.lastModified = clientTimestamp;
 
     await item.save();
 
@@ -149,7 +164,7 @@ exports.updateItemOrder = async (req, res) => {
 
 exports.moveItem = async (req, res) => {
   try {
-    const { toSectionId, toIndex } = req.body;
+    const { toSectionId, toIndex, timestamp } = req.body;
     const { sectionId, itemId } = req.params;
 
     if (!toSectionId) {
@@ -158,6 +173,18 @@ exports.moveItem = async (req, res) => {
 
     const item = await Item.findById(itemId);
     if (!item) return res.status(404).json({ error: "Item not found" });
+
+    // check timestamp for conflict resolution
+    const clientTimestamp = timestamp ? new Date(timestamp) : new Date();
+    const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
+
+    if (clientTimestamp < serverTimestamp) {
+      return res.status(409).json({ 
+        error: "Conflict: Item was moved more recently by another user",
+        serverItem: item,
+        serverTimestamp: serverTimestamp
+      });
+    }
 
     const fromSection = await Section.findById(sectionId);
     if (!fromSection)
@@ -181,6 +208,7 @@ exports.moveItem = async (req, res) => {
     await toSection.save();
 
     item.sectionId = toSectionId;
+    item.lastModified = clientTimestamp;
     await item.save();
 
     itemEvents.emitItemUpdated(req.params.username, {
@@ -197,11 +225,30 @@ exports.moveItem = async (req, res) => {
 
 exports.deleteItem = async (req, res) => {
   try {
-    const section = await Section.findById(req.params.sectionId);
-    if (!section) return res.status(404).json({ error: "Section not found" });
-
     const item = await Item.findById(req.params.itemId);
-    if (!item) return res.status(404).json({ error: "Item not found" });
+    if (!item) {
+      // if item not found, consider it as nonexistent
+      return res.status(204).send();
+    }
+
+    // check timestamp for conflict resolution
+    const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
+    const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
+
+    if (clientTimestamp < serverTimestamp) {
+      return res.status(409).json({ 
+        error: "Conflict: Item was modified more recently",
+        serverItem: item,
+        serverTimestamp: serverTimestamp
+      });
+    }
+
+    // find the section that currently contains this item
+    const section = await Section.findOne({ items: req.params.itemId });
+    if (!section) {
+      await Item.findByIdAndDelete(req.params.itemId);
+      return res.status(204).send();
+    }
 
     const roomId = req.params.username;
 
@@ -221,6 +268,23 @@ exports.deleteItem = async (req, res) => {
     res.status(204).send();
   } catch (err) {
     console.error("Delete item error:", err);
-    res.status(400).json({ error: "Invalid data" });
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+
+exports.findItem = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId);
+    if (!item) return res.status(404).json({ error: "Item not found" });
+    
+    const section = await Section.findOne({ items: req.params.itemId });
+    
+    res.json({
+      ...item.toObject(),
+      currentSectionId: section ? section._id : item.sectionId // fallback to item's sectionId if not found in any section
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 };
