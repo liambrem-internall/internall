@@ -214,7 +214,11 @@ const handleDragEndItem = (active, over, params) => {
     await apiFetch({
       endpoint: `${URL}/api/items/${fromSectionId}/items/${active.id}/${username}/move`,
       method: "PUT",
-      body: { toSectionId, username: currentUser?.nickname },
+      body: { 
+        toSectionId, 
+        username: currentUser?.nickname,
+        timestamp: Date.now() 
+      },
       getAccessTokenSilently,
     });
   })();
@@ -272,7 +276,7 @@ const handleDragEndDelete = (active, over, params) => {
           itemId: active.id,
           username: username,
         },
-        timestamp: Date.now(), // When user made the delete action
+        timestamp: Date.now(),
       });
 
       if (addLog) {

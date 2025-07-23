@@ -204,6 +204,26 @@ const SectionList = ({
   }, [isOnline]);
 
   useEffect(() => {
+    if (isOnline && roomId && userId) {
+      // small delay to ensure socket is connected
+      const timeoutId = setTimeout(() => {
+        if (socket && socket.connected) {
+          socket.emit('room:join', {
+            roomId,
+            userId,
+            nickname: currentUser?.nickname
+          });
+          if (addLog) {
+            addLog("Rejoined room for real-time updates");
+          }
+        }
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOnline, roomId, userId, currentUser?.nickname, addLog]);
+
+  useEffect(() => {
     if (onSectionsChange) {
       onSectionsChange(sections);
     }

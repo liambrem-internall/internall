@@ -133,35 +133,154 @@ export default function useOfflineSync(
                 addLog(`Synced: Created item "${edit.payload.content}"`);
             }
             if (edit.action === EDIT_ACTIONS.EDIT) {
-              await apiFetch({
-                endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
-                method: "PUT",
-                body: {
-                  content: edit.payload.content,
-                  link: edit.payload.link,
-                  notes: edit.payload.notes,
-                  sectionId: edit.payload.sectionId,
-                  username: editUsername,
-                  timestamp: edit.timestamp,
-                },
-                getAccessTokenSilently,
-                isOnline,
-              });
+              // frst, try to find the item to get its current location
+              try {
+                const currentItem = await apiFetch({
+                  endpoint: `${URL}/api/items/find/${edit.payload.itemId}`,
+                  method: "GET",
+                  getAccessTokenSilently,
+                  isOnline,
+                });
+                
+                const currentSectionId = currentItem.currentSectionId || currentItem.sectionId;
+                
+                await apiFetch({
+                  endpoint: `${URL}/api/items/${currentSectionId}/items/${edit.payload.itemId}/${editUsername}`,
+                  method: "PUT",
+                  body: {
+                    content: edit.payload.content,
+                    link: edit.payload.link,
+                    notes: edit.payload.notes,
+                    sectionId: edit.payload.sectionId,
+                    username: editUsername,
+                    timestamp: edit.timestamp,
+                  },
+                  getAccessTokenSilently,
+                  isOnline,
+                });
+              } catch (findError) {
+                if (findError.status === 404) {
+                  // item was deleted, skip this edit
+                  if (addLog) {
+                    addLog(`Skipped edit: Item was deleted`);
+                  }
+                  continue;
+                } else if (findError.status === 409) {
+                  // edit conflict
+                  if (addLog) {
+                    addLog(`Conflict: Item was modified by another user more recently`);
+                  }
+                  continue;
+                } else {
+                  // try with the original section ID as fallback
+                  try {
+                    await apiFetch({
+                      endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
+                      method: "PUT",
+                      body: {
+                        content: edit.payload.content,
+                        link: edit.payload.link,
+                        notes: edit.payload.notes,
+                        sectionId: edit.payload.sectionId,
+                        username: editUsername,
+                        timestamp: edit.timestamp,
+                      },
+                      getAccessTokenSilently,
+                      isOnline,
+                    });
+                  } catch (fallbackError) {
+                    if (fallbackError.status === 404) {
+                      if (addLog) {
+                        addLog(`Skipped edit: Item was deleted`);
+                      }
+                      continue;
+                    } else if (fallbackError.status === 409) {
+                      if (addLog) {
+                        addLog(`Conflict: Item was modified by another user more recently`);
+                      }
+                      continue;
+                    } else {
+                      throw fallbackError;
+                    }
+                  }
+                }
+              }
+              
               if (addLog)
                 addLog(`Synced: Updated item "${edit.payload.content}"`);
             }
             if (edit.action === EDIT_ACTIONS.DELETE) {
-              await apiFetch({
-                endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
-                method: "DELETE",
-                body: {
-                  username: editUsername,
-                  timestamp: edit.timestamp,
-                },
-                getAccessTokenSilently,
-                isOnline,
-              });
-              if (addLog) addLog(`Synced: Deleted item`);
+              // try to delete from the original section first, then try to find and delete
+              let deleteSuccessful = false;
+              
+              try {
+                // try deleting from original section first
+                await apiFetch({
+                  endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}`,
+                  method: "DELETE",
+                  body: {
+                    username: editUsername,
+                    timestamp: edit.timestamp,
+                  },
+                  getAccessTokenSilently,
+                  isOnline,
+                });
+                deleteSuccessful = true;
+              } catch (originalError) {
+                if (originalError.status === 404) {
+                  // item not in original section, try to find current location
+                  try {
+                    const currentItem = await apiFetch({
+                      endpoint: `${URL}/api/items/find/${edit.payload.itemId}`,
+                      method: "GET",
+                      getAccessTokenSilently,
+                      isOnline,
+                    });
+                    
+                    const currentSectionId = currentItem.sectionId;
+                    
+                    await apiFetch({
+                      endpoint: `${URL}/api/items/${currentSectionId}/items/${edit.payload.itemId}/${editUsername}`,
+                      method: "DELETE",
+                      body: {
+                        username: editUsername,
+                        timestamp: edit.timestamp,
+                      },
+                      getAccessTokenSilently,
+                      isOnline,
+                    });
+                    deleteSuccessful = true;
+                  } catch (findError) {
+                    if (findError.status === 404) {
+                      // item was already deleted by someone else
+                      if (addLog) {
+                        addLog(`Skipped delete: Item was already deleted`);
+                      }
+                      deleteSuccessful = true; 
+                    } else if (findError.status === 409) {
+                      // delete conflict - item was modified more recently
+                      if (addLog) {
+                        addLog(`Conflict: Item was modified by another user more recently, delete skipped`);
+                      }
+                      deleteSuccessful = true; 
+                    } else {
+                      throw findError;
+                    }
+                  }
+                } else if (originalError.status === 409) {
+                  // delete conflict on original section
+                  if (addLog) {
+                    addLog(`Conflict: Item was modified by another user more recently, delete skipped`);
+                  }
+                  deleteSuccessful = true; 
+                } else {
+                  throw originalError;
+                }
+              }
+              
+              if (deleteSuccessful && addLog) {
+                addLog(`Synced: Deleted item`);
+              }
             }
             if (edit.action === EDIT_ACTIONS.REORDER) {
               await apiFetch({
@@ -177,18 +296,47 @@ export default function useOfflineSync(
               if (addLog) addLog(`Synced: Reordered items`);
             }
             if (edit.action === EDIT_ACTIONS.MOVE) {
-              await apiFetch({
-                endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${edit.payload.itemId}/${editUsername}/move`,
-                method: "PUT",
-                body: {
-                  toSectionId: edit.payload.toSectionId,
-                  toIndex: edit.payload.toIndex,
-                  username: editUsername,
-                },
-                getAccessTokenSilently,
-                isOnline,
-              });
-              if (addLog) addLog(`Synced: Moved item`);
+              try {
+                // first check if item still exists and get current location
+                const currentItem = await apiFetch({
+                  endpoint: `${URL}/api/items/find/${edit.payload.itemId}`,
+                  method: "GET",
+                  getAccessTokenSilently,
+                  isOnline,
+                });
+                
+                const currentSectionId = currentItem.currentSectionId || currentItem.sectionId;
+                
+                await apiFetch({
+                  endpoint: `${URL}/api/items/${currentSectionId}/items/${edit.payload.itemId}/${editUsername}/move`,
+                  method: "PUT",
+                  body: {
+                    toSectionId: edit.payload.toSectionId,
+                    toIndex: edit.payload.toIndex,
+                    username: editUsername,
+                    timestamp: edit.timestamp,
+                  },
+                  getAccessTokenSilently,
+                  isOnline,
+                });
+                if (addLog) addLog(`Synced: Moved item`);
+              } catch (error) {
+                if (error.status === 409) {
+                  // move conflict - item was moved more recently
+                  if (addLog) {
+                    addLog(`Conflict: Item was moved by another user more recently`);
+                  }
+                  continue;
+                } else if (error.status === 404) {
+                  // item was deleted
+                  if (addLog) {
+                    addLog(`Skipped move: Item was deleted`);
+                  }
+                  continue;
+                } else {
+                  throw error;
+                }
+              }
             }
           }
 
