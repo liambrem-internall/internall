@@ -56,6 +56,7 @@ const useSaveHandlers = (
         payload: {
           title: pendingSectionTitle,
           username: username,
+          isRoomOwner: true, // room owner creating section
         },
         timestamp: Date.now(),
       });
@@ -81,7 +82,11 @@ const useSaveHandlers = (
     const newSection = await apiFetch({
       endpoint: `${URL}/api/sections/${username}`,
       method: "POST",
-      body: { title: pendingSectionTitle, username: currentUser?.nickname },
+      body: { 
+        title: pendingSectionTitle, 
+        username: currentUser?.nickname,
+        isRoomOwner: currentUser?.nickname === username,
+      },
       getAccessTokenSilently,
     });
 
@@ -120,6 +125,7 @@ const useSaveHandlers = (
           sectionId: targetSectionId,
           username: username,
           itemId: editingItem?.id,
+          isRoomOwner: currentUser?.nickname === username,
         },
         timestamp: Date.now(),
       });
@@ -183,6 +189,7 @@ const useSaveHandlers = (
           notes,
           sectionId: targetSectionId,
           username: currentUser?.nickname,
+          isRoomOwner: currentUser?.nickname === username,
         },
         getAccessTokenSilently,
       });
@@ -197,6 +204,7 @@ const useSaveHandlers = (
           notes,
           sectionId: targetSectionId,
           username: currentUser?.nickname,
+          isRoomOwner: currentUser?.nickname === username,
         },
         getAccessTokenSilently,
       });
