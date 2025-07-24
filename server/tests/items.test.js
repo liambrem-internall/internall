@@ -6,12 +6,13 @@ const Section = require("../models/Section");
 const Item = require("../models/Item");
 const User = require("../models/User");
 
-// mock checkJwt middleware
+// Mock checkJwt middleware to bypass authentication in tests
 jest.mock("../middleware/checkJwt", () => (req, res, next) => {
   req.auth = { sub: "test-auth0-id" };
   next();
 });
 
+// Mock embedder to avoid external service calls during tests
 jest.mock("../utils/embedder", () => ({
   getEmbedding: jest.fn().mockResolvedValue([0.1, 0.2, 0.3]),
 }));
@@ -50,6 +51,7 @@ describe("Items API tests", () => {
   });
 
   afterAll(async () => {
+    // clean up test data and close connections
     await Item.deleteMany({ sectionId: testSectionId });
     await Section.deleteMany({ userId: "test-auth0-id" });
     await User.deleteMany({ username: USERNAME });
@@ -58,10 +60,13 @@ describe("Items API tests", () => {
   });
 
   beforeEach(async () => {
+    // clean up items before each test
     await Item.deleteMany({ sectionId: testSectionId });
+    // reset the section's items array
     await Section.findByIdAndUpdate(testSectionId, { items: [] });
   });
 
+  // test creating a new item via POST request
   it("should create a new item", async () => {
     const itemData = {
       content: "Test item content",
@@ -80,6 +85,7 @@ describe("Items API tests", () => {
     testItemId = response.body._id;
   });
 
+  // test retrieving all items within a specific section
   it("should get items by section", async () => {
     const item1 = new Item({
       content: "Item 1",
@@ -92,6 +98,7 @@ describe("Items API tests", () => {
     await item1.save();
     await item2.save();
 
+    // add items to the section's items array
     await Section.findByIdAndUpdate(testSectionId, {
       items: [item1._id, item2._id],
     });
@@ -104,6 +111,7 @@ describe("Items API tests", () => {
     expect(response.body.length).toBeGreaterThanOrEqual(2);
   });
 
+  // test updating item content and properties
   it("should update an item", async () => {
     const item = new Item({
       content: "Original content",
@@ -126,6 +134,7 @@ describe("Items API tests", () => {
     expect(response.body.content).toBe(updateData.content);
   });
 
+  // test reordering items within a section
   it("should update item order", async () => {
     const item1 = new Item({
       content: "Item 1",
@@ -138,10 +147,12 @@ describe("Items API tests", () => {
     await item1.save();
     await item2.save();
 
+    // add items to section in original order
     await Section.findByIdAndUpdate(testSectionId, {
       items: [item1._id, item2._id],
     });
 
+    // reverse the order
     const newOrder = [item2._id.toString(), item1._id.toString()];
 
     const response = await request(app)
@@ -152,6 +163,7 @@ describe("Items API tests", () => {
     expect(response.status).toBe(200);
   });
 
+  // test moving an item from one section to another
   it("should move item between sections", async () => {
     const targetSection = new Section({
       title: "Target Section",
@@ -167,6 +179,7 @@ describe("Items API tests", () => {
     });
     await item.save();
 
+    // add item to original section
     await Section.findByIdAndUpdate(testSectionId, {
       items: [item._id],
     });
@@ -188,6 +201,7 @@ describe("Items API tests", () => {
     await Section.findByIdAndDelete(targetSection._id);
   });
 
+  // test deleting an item
   it("should delete an item", async () => {
     const item = new Item({
       content: "Item to delete",
@@ -209,10 +223,12 @@ describe("Items API tests", () => {
       })
       .expect(204);
 
+    // verify item was deleted
     const deletedItem = await Item.findById(item._id);
     expect(deletedItem).toBeNull();
   });
 
+  // test finding a specific item by its ID
   it("should find an item by ID", async () => {
     const item = new Item({
       content: "Findable item",
@@ -228,6 +244,7 @@ describe("Items API tests", () => {
     expect(response.body).toHaveProperty("currentSectionId");
   });
 
+  // test error handling for non-existent items
   it("should return 404 for non-existent item", async () => {
     const fakeId = new mongoose.Types.ObjectId();
 
@@ -241,6 +258,7 @@ describe("Items API tests", () => {
       .expect(404);
   });
 
+  // test error handling for non-existent sections
   it("should return 404 for non-existent section", async () => {
     const fakeId = new mongoose.Types.ObjectId();
 
