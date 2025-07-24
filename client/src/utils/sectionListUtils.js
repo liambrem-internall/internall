@@ -44,6 +44,7 @@ const handleDragEndSection = (active, over, params) => {
             order: newOrder,
             movedId: active.id,
             username: username,
+            isRoomOwner: currentUser?.nickname === username,
           },
           timestamp: Date.now(),
         });
@@ -61,6 +62,7 @@ const handleDragEndSection = (active, over, params) => {
             order: newOrder,
             username: currentUser?.nickname,
             movedId: active.id,
+            isRoomOwner: currentUser?.nickname === username,
           },
           getAccessTokenSilently,
         });
