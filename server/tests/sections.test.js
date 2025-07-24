@@ -5,12 +5,13 @@ const connectDB = require("../utils/db");
 const Section = require("../models/Section");
 const User = require("../models/User");
 
-// mock checkJwt middleware
+// mock checkJwt middleware 
 jest.mock("../middleware/checkJwt", () => (req, res, next) => {
   req.auth = { sub: "test-auth0-id" };
   next();
 });
 
+// mock embedder
 jest.mock("../utils/embedder", () => ({
   getEmbedding: jest.fn().mockResolvedValue([0.1, 0.2, 0.3]),
 }));
@@ -39,7 +40,7 @@ describe("Sections API tests", () => {
   });
 
   afterAll(async () => {
-    // clean up test data
+    // clean up test data and close connections
     await Section.deleteMany({ userId: "test-auth0-id" });
     await User.deleteMany({ username: USERNAME });
     await mongoose.connection.close();
@@ -47,10 +48,10 @@ describe("Sections API tests", () => {
   });
 
   beforeEach(async () => {
-    // clean up sections before each test
     await Section.deleteMany({ userId: "test-auth0-id" });
   });
 
+  // test creating a new section with POST request
   it("should create a new section", async () => {
     const sectionData = {
       title: "Test Section",
@@ -67,6 +68,7 @@ describe("Sections API tests", () => {
     testSectionId = response.body._id;
   });
 
+  // test retrieving sections for a specific user
   it("should get sections by username", async () => {
     const section1 = new Section({
       title: "Section 1",
@@ -91,6 +93,7 @@ describe("Sections API tests", () => {
     expect(response.body.length).toBeGreaterThanOrEqual(2);
   });
 
+  // test updating the order of sections for a user
   it("should update section order", async () => {
     const section1 = new Section({
       title: "Section 1",
@@ -117,6 +120,7 @@ describe("Sections API tests", () => {
     expect(response.status).toBe(200);
   });
 
+  // test updating section content 
   it("should update a section", async () => {
     const section = new Section({
       title: "Original Title",
@@ -139,6 +143,7 @@ describe("Sections API tests", () => {
     expect(response.body.title).toBe(updateData.title);
   });
 
+  // test deleting a section
   it("should delete a section", async () => {
     const section = new Section({
       title: "To Delete",
@@ -157,6 +162,7 @@ describe("Sections API tests", () => {
     expect(deletedSection).toBeNull();
   });
 
+  // test error handling for non-existent sections
   it("should return 404 for non-existent section", async () => {
     const fakeId = new mongoose.Types.ObjectId();
 
@@ -166,6 +172,7 @@ describe("Sections API tests", () => {
       .expect(404);
   });
 
+  // test behavior when requesting sections for non-existent user
   it("should handle empty sections list", async () => {
     const response = await request(app)
       .get(`${SECTIONS_ENDPOINT}/user/nonexistentuser`)
