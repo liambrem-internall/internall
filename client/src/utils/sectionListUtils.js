@@ -25,7 +25,7 @@ const handleOfflineEdit = ({
   setActiveId,
 }) => {
   addPendingEdit(edit);
-  if (addLog && logMessage) addLog(logMessage);
+  if (addLog && logMessage) addLog(`(Offline) ${logMessage}`);
   if (setActiveId) setActiveId(null);
 };
 
@@ -83,7 +83,7 @@ const handleDragEndSection = (active, over, params) => {
             },
             timestamp: Date.now(),
           },
-          logMessage: "(Offline) You moved section",
+          logMessage: "You moved section",
         });
         return newOrder;
       }
@@ -101,8 +101,8 @@ const handleDragEndSection = (active, over, params) => {
           },
           getAccessTokenSilently,
           addLog,
-          logMessage: null, 
-          setActiveId: null, 
+          logMessage: null,
+          setActiveId: null,
         });
       })();
 
@@ -165,7 +165,7 @@ const handleDragEndItem = (active, over, params) => {
           },
           timestamp: Date.now(),
         },
-        logMessage: `(Offline) You reordered item "${item?.content}"`,
+        logMessage: `You reordered item "${item?.content}"`,
       });
       return;
     }
@@ -243,7 +243,7 @@ const handleDragEndItem = (active, over, params) => {
         },
         timestamp: Date.now(),
       },
-      logMessage: `(Offline) You moved item "${item?.content || active.id}"`,
+      logMessage: `You moved item "${item?.content || active.id}"`,
     });
     return;
   }
@@ -313,7 +313,7 @@ const handleDragEndDelete = (active, over, params) => {
           },
           timestamp: Date.now(),
         },
-        logMessage: `(Offline) ${logMessage}`,
+        logMessage: logMessage,
       });
       return;
     }
@@ -363,7 +363,7 @@ const handleDragEndDelete = (active, over, params) => {
           },
           timestamp: Date.now(),
         },
-        logMessage: `(Offline) ${logMessage}`,
+        logMessage: logMessage,
       });
       return;
     }
