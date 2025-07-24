@@ -33,8 +33,8 @@ describe("Search API speed tests", () => {
     const { res, duration } = await measureSearchTime("test", roomId);
     expect(res.status).toBe(200);
     expect(duration).toBeLessThan(1000);
-    expect(res.body).toHaveProperty(ITEMS);
-    expect(res.body).toHaveProperty(SECTIONS);
+    expect(res.body).toHaveProperty("results");
+    expect(res.body).toHaveProperty("total");
   });
 
   it("should handle empty query quickly", async () => {
@@ -74,8 +74,8 @@ describe("Search API speed tests", () => {
     results.forEach(({ res, duration }) => {
       expect(res.status).toBe(200);
       expect(duration).toBeLessThan(1200);
-      expect(res.body).toHaveProperty(ITEMS);
-      expect(res.body).toHaveProperty(SECTIONS);
+      expect(res.body).toHaveProperty("results");
+      expect(res.body).toHaveProperty("total");
     });
   });
 });
