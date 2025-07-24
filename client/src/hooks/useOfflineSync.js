@@ -44,6 +44,7 @@ export default function useOfflineSync(
       // process edits sequentially from queue
       for (const edit of edits) {
         const editUsername = edit.payload.username || username;
+        const isRoomOwner = editUsername === username; // check if user is room owner
 
         if (!editUsername) {
           console.error("No username available for edit:", edit);
@@ -61,6 +62,7 @@ export default function useOfflineSync(
                   title: edit.payload.title,
                   username: editUsername,
                   timestamp: edit.timestamp,
+                  isRoomOwner: isRoomOwner,
                 },
                 getAccessTokenSilently,
                 isOnline,
@@ -76,6 +78,7 @@ export default function useOfflineSync(
                   title: edit.payload.title,
                   username: editUsername,
                   timestamp: edit.timestamp,
+                  isRoomOwner: isRoomOwner,
                 },
                 getAccessTokenSilently,
                 isOnline,
@@ -90,6 +93,7 @@ export default function useOfflineSync(
                 body: {
                   username: editUsername,
                   timestamp: edit.timestamp,
+                  isRoomOwner: isRoomOwner,
                 },
                 getAccessTokenSilently,
                 isOnline,
@@ -114,6 +118,7 @@ export default function useOfflineSync(
 
           // ITEM ACTIONS
           if (edit.type === EDIT_TYPES.ITEM) {
+            // Apply isRoomOwner to all item operations
             if (edit.action === EDIT_ACTIONS.CREATE) {
               await apiFetch({
                 endpoint: `${URL}/api/items/${edit.payload.sectionId}/items/${editUsername}`,
@@ -125,6 +130,7 @@ export default function useOfflineSync(
                   sectionId: edit.payload.sectionId,
                   username: editUsername,
                   timestamp: edit.timestamp,
+                  isRoomOwner: isRoomOwner,
                 },
                 getAccessTokenSilently,
                 isOnline,
@@ -155,6 +161,7 @@ export default function useOfflineSync(
                     username: editUsername,
                     timestamp: edit.timestamp,
                     isOfflineEdit: true,
+                    isRoomOwner: isRoomOwner,
                   },
                   getAccessTokenSilently,
                   isOnline,
@@ -185,6 +192,7 @@ export default function useOfflineSync(
                         sectionId: edit.payload.sectionId,
                         username: editUsername,
                         timestamp: edit.timestamp,
+                        isRoomOwner: isRoomOwner,
                       },
                       getAccessTokenSilently,
                       isOnline,
@@ -222,6 +230,7 @@ export default function useOfflineSync(
                   body: {
                     username: editUsername,
                     timestamp: edit.timestamp,
+                    isRoomOwner: isRoomOwner,
                   },
                   getAccessTokenSilently,
                   isOnline,
@@ -246,6 +255,7 @@ export default function useOfflineSync(
                       body: {
                         username: editUsername,
                         timestamp: edit.timestamp,
+                        isRoomOwner: isRoomOwner,
                       },
                       getAccessTokenSilently,
                       isOnline,

@@ -42,6 +42,7 @@ import {
   SectionActions,
   THROTTLE_MS,
   ViewModes,
+  roomActions,
 } from "../../utils/constants";
 import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
 import useSafeSocketEmit from "../../hooks/socketHandlers/useSafeSocketEmit";
@@ -208,7 +209,7 @@ const SectionList = ({
       // small delay to ensure socket is connected
       const timeoutId = setTimeout(() => {
         if (socket && socket.connected) {
-          socket.emit('room:join', {
+          socket.emit(roomActions.JOIN, {
             roomId,
             userId,
             nickname: currentUser?.nickname
