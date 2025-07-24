@@ -118,8 +118,10 @@ exports.updateSection = async (req, res) => {
     // Check timestamp for conflict resolution
     const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
     const serverTimestamp = section.lastModified || section.updatedAt || new Date(0);
+    const isRoomOwner = req.body.username === req.params.username;
 
-    if (clientTimestamp < serverTimestamp) {
+    // room owner has admin privileges
+    if (!isRoomOwner && clientTimestamp < serverTimestamp) {
       return res.status(409).json({ 
         error: "Conflict: Section was modified more recently by another user",
         serverSection: section,
@@ -161,8 +163,10 @@ exports.deleteSection = async (req, res) => {
     // Check timestamp for conflict resolution
     const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
     const serverTimestamp = section.lastModified || section.updatedAt || new Date(0);
+    const isRoomOwner = req.body.username === req.params.username;
 
-    if (clientTimestamp < serverTimestamp) {
+    // room owner has admin privileges
+    if (!isRoomOwner && clientTimestamp < serverTimestamp) {
       return res.status(409).json({ 
         error: "Conflict: Section was modified more recently",
         serverSection: section,

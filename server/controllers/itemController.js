@@ -71,9 +71,11 @@ exports.updateItem = async (req, res) => {
     const clientTimestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
     const serverTimestamp = item.lastModified || item.updatedAt || new Date(0);
     const isOfflineEdit = req.body.isOfflineEdit === true;
+    const isRoomOwner = req.body.username === req.params.username; // room owner check
 
-    // only check for conflicts if this isn't an offline edit being synced
-    if (!isOfflineEdit && clientTimestamp < serverTimestamp) {
+    // room owner has admin privileges - their changes always take precedence
+    // only check for conflicts if this isn't an offline edit being synced AND user is not room owner
+    if (!isOfflineEdit && !isRoomOwner && clientTimestamp < serverTimestamp) {
       return res.status(409).json({ 
         error: "Conflict: Item was modified more recently by another user",
         serverItem: item,
