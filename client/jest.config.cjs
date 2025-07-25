@@ -11,19 +11,14 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/src/tests/setupTests.js'],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(gif|ttf|eot|svg|png)$': 'jest-transform-stub'
+    '\\.(gif|ttf|eot|svg|png)$': 'jest-transform-stub',
+    '^react-force-graph-2d$': '<rootDir>/src/tests/__mocks__/react-force-graph-2d.js',
   },
   testEnvironmentOptions: {
     customExportConditions: ['node', 'node-addons']
   },
   extensionsToTreatAsEsm: ['.jsx'],
-  globals: {
-    'import.meta': {
-      env: {
-        VITE_API_URL: 'http://localhost:3001',
-        VITE_API_AUDIENCE: 'test-audience',
-        VITE_AUTH0_DOMAIN: 'test-domain'
-      }
-    }
-  }
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-force-graph-2d|react-kapsule|d3-.*)/)'
+  ]
 };
