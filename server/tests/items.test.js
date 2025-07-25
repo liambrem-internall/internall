@@ -8,7 +8,7 @@ const User = require("../models/User");
 
 // Mock checkJwt middleware to bypass authentication in tests
 jest.mock("../middleware/checkJwt", () => (req, res, next) => {
-  req.auth = { sub: "test-auth0-id" };
+  req.auth = { sub: "test-auth0-id-items" };
   next();
 });
 
@@ -19,7 +19,7 @@ jest.mock("../utils/embedder", () => ({
 
 require("dotenv").config();
 
-const USERNAME = "testuser";
+const USERNAME = "testuser-items";
 const ITEMS_ENDPOINT = "/api/items";
 
 describe("Items API tests", () => {
@@ -34,8 +34,8 @@ describe("Items API tests", () => {
 
     const testUser = new User({
       username: USERNAME,
-      email: "test@example.com",
-      auth0Id: "test-auth0-id",
+      email: "test-items@example.com",
+      auth0Id: "test-auth0-id-items",
     });
     await testUser.save();
     testUserId = testUser._id;
@@ -43,7 +43,7 @@ describe("Items API tests", () => {
     const testSection = new Section({
       title: "Test Section",
       username: USERNAME,
-      userId: "test-auth0-id",
+      userId: "test-auth0-id-items",
       order: 0,
     });
     await testSection.save();
@@ -53,7 +53,7 @@ describe("Items API tests", () => {
   afterAll(async () => {
     // clean up test data and close connections
     await Item.deleteMany({ sectionId: testSectionId });
-    await Section.deleteMany({ userId: "test-auth0-id" });
+    await Section.deleteMany({ userId: "test-auth0-id-items" });
     await User.deleteMany({ username: USERNAME });
     await mongoose.connection.close();
     if (server) server.close();
@@ -168,7 +168,7 @@ describe("Items API tests", () => {
     const targetSection = new Section({
       title: "Target Section",
       username: USERNAME,
-      userId: "test-auth0-id",
+      userId: "test-auth0-id-items",
       order: 1,
     });
     await targetSection.save();
