@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 
 import { useParams } from "react-router-dom";
 
@@ -75,7 +75,6 @@ const SectionList = ({
       setIsDragging,
       isDeleteZoneOver,
       setIsDeleteZoneOver,
-      dragPosition,
       setDragPosition,
       activeIdRef,
     },
@@ -183,7 +182,7 @@ const SectionList = ({
     if (!isOnline || !hasInitialLoad || hasSynced) return;
     
     const performSync = async () => {
-      const syncResult = await syncPendingEdits();
+      await syncPendingEdits();
       setHasSynced(true);
       
       // refetch after syncing to get the latest state

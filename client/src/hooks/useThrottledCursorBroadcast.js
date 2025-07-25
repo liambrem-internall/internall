@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { socket } from "../utils/socket";
 import useSafeSocketEmit from "./socketHandlers/useSafeSocketEmit";
 
 const useThrottledCursorBroadcast = ({
@@ -37,7 +36,7 @@ const useThrottledCursorBroadcast = ({
     };
     window.addEventListener("mousemove", handler);
     return () => window.removeEventListener("mousemove", handler);
-  }, [roomId, userId, color, eventType, throttleMs, active, getPosition]);
+  }, [roomId, userId, color, eventType, throttleMs, active, getPosition, safeEmit]);
 };
 
 export default useThrottledCursorBroadcast;

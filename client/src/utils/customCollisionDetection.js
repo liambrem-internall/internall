@@ -1,7 +1,6 @@
 import {
   pointerWithin,
   rectIntersection,
-  getFirstCollision,
 } from "@dnd-kit/core";
 import { DraggableComponentTypes, SectionActions } from "./constants";
 
