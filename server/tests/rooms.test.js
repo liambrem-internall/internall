@@ -6,13 +6,13 @@ const User = require("../models/User");
 
 // mock checkJwt middleware to bypass authentication
 jest.mock("../middleware/checkJwt", () => (req, res, next) => {
-  req.auth = { sub: "test-auth0-id" };
+  req.auth = { sub: "test-auth0-id-rooms" };
   next();
 });
 
 require("dotenv").config();
 
-const USERNAME = "testuser";
+const USERNAME = "testuser-rooms";
 const USERS_ENDPOINT = "/api/users";
 
 describe("Rooms/Users API tests", () => {
@@ -33,15 +33,15 @@ describe("Rooms/Users API tests", () => {
 
   beforeEach(async () => {
     // clean up users before each test
-    await User.deleteMany({ auth0Id: "test-auth0-id" });
+    await User.deleteMany({ auth0Id: "test-auth0-id-rooms" });
   });
 
   // test creating a new user account
   it("should create a new user/room", async () => {
     const userData = {
       username: USERNAME,
-      email: "test@example.com",
-      auth0Id: "test-auth0-id",
+      email: "test-rooms@example.com",
+      auth0Id: "test-auth0-id-rooms",
     };
 
     const response = await request(app)
@@ -59,23 +59,23 @@ describe("Rooms/Users API tests", () => {
   it("should get current user", async () => {
     const testUser = new User({
       username: USERNAME,
-      email: "test@example.com",
-      auth0Id: "test-auth0-id",
+      email: "test-rooms@example.com",
+      auth0Id: "test-auth0-id-rooms",
     });
     await testUser.save();
 
     const response = await request(app).get(USERS_ENDPOINT).expect(200);
 
     expect(response.body.username).toBe(USERNAME);
-    expect(response.body.email).toBe("test@example.com");
+    expect(response.body.email).toBe("test-rooms@example.com");
   });
 
   // test updating user profile information
   it("should update a user", async () => {
     const testUser = new User({
       username: USERNAME,
-      email: "test@example.com",
-      auth0Id: "test-auth0-id",
+      email: "test-rooms@example.com",
+      auth0Id: "test-auth0-id-rooms",
     });
     await testUser.save();
 
@@ -96,8 +96,8 @@ describe("Rooms/Users API tests", () => {
   it("should delete a user", async () => {
     const testUser = new User({
       username: USERNAME,
-      email: "test@example.com",
-      auth0Id: "test-auth0-id",
+      email: "test-rooms@example.com",
+      auth0Id: "test-auth0-id-rooms",
     });
     await testUser.save();
 
@@ -116,7 +116,7 @@ describe("Rooms/Users API tests", () => {
 
     await request(app)
       .put(`${USERS_ENDPOINT}/${fakeId}`)
-      .send({ email: "test@example.com" })
+      .send({ email: "test-rooms@example.com" })
       .expect(404);
   });
 
@@ -124,8 +124,8 @@ describe("Rooms/Users API tests", () => {
   it("should handle duplicate username creation", async () => {
     const testUser = new User({
       username: USERNAME,
-      email: "test@example.com",
-      auth0Id: "test-auth0-id",
+      email: "test-rooms@example.com",
+      auth0Id: "test-auth0-id-rooms",
     });
     await testUser.save();
 
@@ -149,14 +149,14 @@ describe("Rooms/Users API tests", () => {
   it("should get user by auth0Id when accessing current user", async () => {
     const testUser = new User({
       username: USERNAME,
-      email: "test@example.com",
-      auth0Id: "test-auth0-id",
+      email: "test-rooms@example.com",
+      auth0Id: "test-auth0-id-rooms",
     });
     await testUser.save();
 
     const response = await request(app).get(USERS_ENDPOINT).expect(200);
 
-    expect(response.body.auth0Id).toBe("test-auth0-id");
+    expect(response.body.auth0Id).toBe("test-auth0-id-rooms");
     expect(response.body.username).toBe(USERNAME);
   });
 });

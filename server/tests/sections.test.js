@@ -7,7 +7,7 @@ const User = require("../models/User");
 
 // mock checkJwt middleware 
 jest.mock("../middleware/checkJwt", () => (req, res, next) => {
-  req.auth = { sub: "test-auth0-id" };
+  req.auth = { sub: "test-auth0-id-sections-sections" };
   next();
 });
 
@@ -18,7 +18,7 @@ jest.mock("../utils/embedder", () => ({
 
 require("dotenv").config();
 
-const USERNAME = "testuser";
+const USERNAME = "testuser-sections";
 const SECTIONS_ENDPOINT = "/api/sections";
 
 describe("Sections API tests", () => {
@@ -32,8 +32,8 @@ describe("Sections API tests", () => {
 
     const testUser = new User({
       username: USERNAME,
-      email: "test@example.com",
-      auth0Id: "test-auth0-id",
+      email: "test-sections@example.com",
+      auth0Id: "test-auth0-id-sections",
     });
     await testUser.save();
     testUserId = testUser._id;
@@ -41,14 +41,14 @@ describe("Sections API tests", () => {
 
   afterAll(async () => {
     // clean up test data and close connections
-    await Section.deleteMany({ userId: "test-auth0-id" });
+    await Section.deleteMany({ userId: "test-auth0-id-sections" });
     await User.deleteMany({ username: USERNAME });
     await mongoose.connection.close();
     if (server) server.close();
   });
 
   beforeEach(async () => {
-    await Section.deleteMany({ userId: "test-auth0-id" });
+    await Section.deleteMany({ userId: "test-auth0-id-sections" });
   });
 
   // test creating a new section with POST request
@@ -73,13 +73,13 @@ describe("Sections API tests", () => {
     const section1 = new Section({
       title: "Section 1",
       username: USERNAME,
-      userId: "test-auth0-id",
+      userId: "test-auth0-id-sections",
       order: 0,
     });
     const section2 = new Section({
       title: "Section 2",
       username: USERNAME,
-      userId: "test-auth0-id",
+      userId: "test-auth0-id-sections",
       order: 1,
     });
     await section1.save();
@@ -98,13 +98,13 @@ describe("Sections API tests", () => {
     const section1 = new Section({
       title: "Section 1",
       username: USERNAME,
-      userId: "test-auth0-id",
+      userId: "test-auth0-id-sections",
       order: 0,
     });
     const section2 = new Section({
       title: "Section 2",
       username: USERNAME,
-      userId: "test-auth0-id",
+      userId: "test-auth0-id-sections",
       order: 1,
     });
     await section1.save();
@@ -125,7 +125,7 @@ describe("Sections API tests", () => {
     const section = new Section({
       title: "Original Title",
       username: USERNAME,
-      userId: "test-auth0-id",
+      userId: "test-auth0-id-sections",
       order: 0,
     });
     await section.save();
@@ -148,7 +148,7 @@ describe("Sections API tests", () => {
     const section = new Section({
       title: "To Delete",
       username: USERNAME,
-      userId: "test-auth0-id",
+      userId: "test-auth0-id-sections",
       order: 0,
     });
     await section.save();
