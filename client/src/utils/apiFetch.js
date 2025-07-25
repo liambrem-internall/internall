@@ -44,6 +44,7 @@ export const apiFetch = async ({
   try {
     return JSON.parse(text);
   } catch (e) {
+    console.warn("Failed to parse JSON response", e, text);
     return {};
   }
 };
