@@ -21,11 +21,26 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      - name: Install dependencies (client)
+        working-directory: ./client
         run: npm install
 
-      - name: Run tests
+      - name: Install dependencies (server)
+        working-directory: ./server
+        run: npm install
+
+      - name: Run tests (client)
+        working-directory: ./client
         run: npm test
 
-      - name: Lint code
+      - name: Run tests (server)
+        working-directory: ./server
+        run: npm test
+
+      - name: Lint code (client)
+        working-directory: ./client
+        run: npm run lint
+
+      - name: Lint code (server)
+        working-directory: ./server
         run: npm run lint
