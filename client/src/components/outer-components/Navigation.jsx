@@ -32,7 +32,7 @@ const Navigation = () => {
   const apiFetch = useApiFetch();
   const [showGraph, setShowGraph] = useState(false);
 
-  const userColors = otherUsers.map((user, i) => (
+  const userColors = otherUsers.map((user) => (
     <OverlayTrigger
       key={user.socketId}
       placement="bottom"
