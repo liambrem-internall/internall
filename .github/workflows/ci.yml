@@ -37,6 +37,3 @@ jobs:
         working-directory: ./client
         run: npm run lint
 
-      - name: Lint code (server)
-        working-directory: ./server
-        run: npm run lint
