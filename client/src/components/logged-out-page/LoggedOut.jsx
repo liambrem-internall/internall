@@ -6,9 +6,12 @@ const LoggedOut = () => {
   const { loginWithRedirect } = useAuth0();
   return (
     <div className="logged-out-container">
-      <button className="login-btn" onClick={() => loginWithRedirect()}>
-        Signup/Login
-      </button>
+      <div className="welcome-content">
+        <h1 className="welcome-title">Welcome to InternAll</h1>
+        <button className="login-btn" onClick={() => loginWithRedirect()}>
+          Get Started
+        </button>
+      </div>
     </div>
   );
 };
