@@ -9,6 +9,10 @@ import { addPendingEdit } from "./offlineQueue";
 const URL = import.meta.env.VITE_API_URL;
 
 export const findItemBySection = (section, { activeId }) => {
+  if (!section || !section.items || !Array.isArray(section.items)) {
+    return null;
+  }
+  
   for (const i of section.items) {
     if (i.id === activeId) {
       return i;
