@@ -1,8 +1,6 @@
 const URL = import.meta.env.VITE_API_URL;
 import { SectionActions } from "../utils/constants";
 import { addPendingEdit } from "../utils/offlineQueue";
-import { useContext } from "react";
-import { NetworkStatusContext } from "../contexts/NetworkStatusContext";
 
 /**
  * Custom hook for managing drag-and-drop logic in the SectionList.

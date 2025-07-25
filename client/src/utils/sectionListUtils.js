@@ -270,11 +270,19 @@ const handleDragEndItem = (active, over, params) => {
   })();
 };
 
+const handleDragEndAdd = (active, over, params) => {
+  const { setShowModal, setActiveId } = params;
+
+  if (active.id === SectionActions.ADD && over.id === SectionActions.DROPZONE) {
+    setShowModal(true);
+    setActiveId(null);
+  }
+};
+
 const handleDragEndDelete = (active, over, params) => {
   const {
     setSections,
     sections,
-    activeId,
     setSectionOrder,
     setActiveId,
     getAccessTokenSilently,

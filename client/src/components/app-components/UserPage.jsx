@@ -22,7 +22,7 @@ const getDisplayName = (user) => {
 };
 
 const UserPage = ({ setUserReady, userReady }) => {
-  const { user, isLoading, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated } = useAuth0();
   const { username } = useParams();
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
@@ -54,7 +54,7 @@ const UserPage = ({ setUserReady, userReady }) => {
       safeEmit(roomActions.LEAVE, { roomId });
       socket.off("connect", handleConnect);
     };
-  }, [roomId, userId, nickname]);
+  }, [roomId, userId, nickname, safeEmit]);
 
   if (!isAuthenticated || !user) return <LoggedOut />;
 

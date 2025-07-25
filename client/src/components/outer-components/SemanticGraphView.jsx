@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
 const API_URL = import.meta.env.VITE_API_URL;
