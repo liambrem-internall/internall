@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { socket } from "../utils/socket";
 import { itemEvents } from "../utils/constants";
 import useSafeSocketEmit from "./socketHandlers/useSafeSocketEmit";
 
@@ -23,7 +22,7 @@ const useEditingSocket = ({ roomId, userId, itemId, editing, color }) => {
         safeEmit(itemEvents.ITEM_EDITING_STOP, { roomId, userId });
       }
     };
-  }, [roomId, userId, itemId, editing, color]);
+  }, [roomId, userId, itemId, editing, color, safeEmit]);
 };
 
 export default useEditingSocket;

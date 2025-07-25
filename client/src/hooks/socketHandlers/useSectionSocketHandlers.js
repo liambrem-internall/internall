@@ -72,7 +72,7 @@ const useSectionSocketHandlers = ({
         handleSectionOrderUpdated
       );
     };
-  }, [setSections, setSectionOrder, username]);
+  }, [setSections, setSectionOrder, username, addLog]);
 };
 
 export default useSectionSocketHandlers;

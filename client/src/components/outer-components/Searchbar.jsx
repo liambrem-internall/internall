@@ -13,7 +13,7 @@ const Searchbar = ({ onSearch, onAutocomplete, suggestions = [] }) => {
       if (onAutocomplete) onAutocomplete(query);
     }, DEBOUNCE_DELAY);
     return () => clearTimeout(handler);
-  }, [query]);
+  }, [query, onAutocomplete, onSearch]);
 
   useEffect(() => {
     if (

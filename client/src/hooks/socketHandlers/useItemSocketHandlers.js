@@ -143,7 +143,7 @@ const useItemSocketHandlers = ({ setSections, username, addLog }) => {
       socket.off(itemEvents.ITEM_DELETED, handleItemDeleted);
       socket.off(itemEvents.ITEM_ORDER_UPDATED, handleItemOrderUpdated);
     };
-  }, [setSections, username]);
+  }, [setSections, username, addLog]);
 };
 
 export default useItemSocketHandlers;

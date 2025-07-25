@@ -33,7 +33,7 @@ const EnsureUserInDB = ({ onReady }) => {
       onReady && onReady();
     };
     createUserIfNeeded();
-  }, [isAuthenticated, getAccessTokenSilently, user, onReady]);
+  }, [isAuthenticated, getAccessTokenSilently, user, onReady, apiFetch]);
 
   if (loading) return <LoadingState />;
   return null;

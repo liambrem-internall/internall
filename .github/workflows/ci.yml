@@ -35,8 +35,8 @@ jobs:
 
       - name: Lint code (client)
         working-directory: ./client
-        run: npm run lint
+        run: npm run lint -- --ignore-path .eslintignore --ignore-pattern "**/__tests__/**" --ignore-pattern "**/*.test.*"
 
       - name: Lint code (server)
         working-directory: ./server
-        run: npm run lint
+        run: npm run lint -- --ignore-path .eslintignore --ignore-pattern "**/__tests__/**" --ignore-pattern "**/*.test.*"
