@@ -17,6 +17,8 @@ import SemanticGraphOverlay from "./SemanticGraphOverlay";
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
 import useRoomUsers from "../../hooks/rooms/useRoomUsers";
+import { FaListUl } from "react-icons/fa6";
+import { TbColumns3 } from "react-icons/tb";
 
 import "./Navbar.css";
 
@@ -30,6 +32,10 @@ const Navigation = () => {
   const otherUsers = useRoomUsers(roomId, userId, user.nickname);
   const apiFetch = useApiFetch();
   const [showGraph, setShowGraph] = useState(false);
+
+  const toggleViewMode = () => {
+    setViewMode(viewMode === ViewModes.BOARD ? ViewModes.LIST : ViewModes.BOARD);
+  };
 
   const userColors = otherUsers.map((user) => (
     <OverlayTrigger
@@ -85,22 +91,21 @@ const Navigation = () => {
                 >
                   Demo-Data
                 </Nav.Link>
-                <Nav.Link
-                  className={`nav-link-custom${
-                    viewMode === ViewModes.BOARD ? " selected" : ""
-                  }`}
-                  onClick={() => setViewMode(ViewModes.BOARD)}
+                <OverlayTrigger
+                  placement="bottom"
+                  overlay={
+                    <Tooltip id="view-toggle-tooltip">
+                      Switch to {viewMode === ViewModes.BOARD ? "List" : "Board"} View
+                    </Tooltip>
+                  }
                 >
-                  Board
-                </Nav.Link>
-                <Nav.Link
-                  className={`nav-link-custom${
-                    viewMode === ViewModes.LIST ? " selected" : ""
-                  }`}
-                  onClick={() => setViewMode(ViewModes.LIST)}
-                >
-                  List
-                </Nav.Link>
+                  <Nav.Link
+                    className="nav-link-custom"
+                    onClick={toggleViewMode}
+                  >
+                    {viewMode === ViewModes.BOARD ? <FaListUl size={20} /> : <TbColumns3 size={20} />}
+                  </Nav.Link>
+                </OverlayTrigger>
               </Nav>
               <Button
                 className="get-started-btn"
