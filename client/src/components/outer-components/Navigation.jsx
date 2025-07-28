@@ -44,7 +44,7 @@ const Navigation = () => {
       }
     >
       <div
-        className="user-avatar"
+        className={`user-avatar ${!isOnline ? 'offline' : ''}`}
         style={{
           backgroundColor: user.color,
           "--user-color": user.color,

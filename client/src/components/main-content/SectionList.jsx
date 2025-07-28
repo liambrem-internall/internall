@@ -57,7 +57,7 @@ const SectionList = ({
   setShowItemModal,
   editingItem,
   setEditingItem,
-  onSectionsChange
+  onSectionsChange,
 }) => {
   const {
     sectionState: { sections, setSections, sectionOrder, setSectionOrder },
@@ -83,7 +83,7 @@ const SectionList = ({
   const { viewMode } = useContext(ViewContext);
   const { username } = useParams();
   const { getAccessTokenSilently, isAuthenticated, user } = useAuth0();
-  
+
   const roomId = username;
   const editingUsers = useRoomEditing(roomId);
   const allUsers = useRoomUsers(roomId, null);
@@ -94,11 +94,14 @@ const SectionList = ({
   const { logs, addLog } = useLogs();
   const apiFetch = useApiFetch();
   const safeEmit = useSafeSocketEmit(socket, roomId);
-  const { syncPendingEdits } = useOfflineSync(getAccessTokenSilently, username, addLog);
+  const { syncPendingEdits } = useOfflineSync(
+    getAccessTokenSilently,
+    username,
+    addLog
+  );
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
   const [hasSynced, setHasSynced] = useState(false);
   const isOnline = useContext(NetworkStatusContext);
-
 
   useSectionSocketHandlers({
     setSections,
@@ -139,52 +142,59 @@ const SectionList = ({
       });
 
       setSections(sectionsObj);
-      
+
       // clean up section order to only include existing sections
-      setSectionOrder(prevOrder => {
+      setSectionOrder((prevOrder) => {
         const validIds = new Set(order);
-        const cleanedOrder = prevOrder.filter(id => validIds.has(id));
-        
+        const cleanedOrder = prevOrder.filter((id) => validIds.has(id));
+
         // add any new sections that aren't in the current order
         const existingIds = new Set(cleanedOrder);
-        const newSections = order.filter(id => !existingIds.has(id));
-        
+        const newSections = order.filter((id) => !existingIds.has(id));
+
         return [...cleanedOrder, ...newSections];
       });
-      
+
       if (onSectionsChange) {
         onSectionsChange(sectionsObj);
       }
-      
+
       return true;
     } catch (error) {
       console.error("Error fetching sections:", error);
       return false;
     }
-  }, [apiFetch, getAccessTokenSilently, username, setSections, setSectionOrder, onSectionsChange]);
+  }, [
+    apiFetch,
+    getAccessTokenSilently,
+    username,
+    setSections,
+    setSectionOrder,
+    onSectionsChange,
+  ]);
 
   // initial data fetch
   useEffect(() => {
     if (!isAuthenticated || !username || hasInitialLoad) return;
-    
+
     const performInitialFetch = async () => {
       const success = await fetchSections();
       if (success) {
         setHasInitialLoad(true);
       }
     };
-    
+
     performInitialFetch();
   }, [isAuthenticated, username, hasInitialLoad, fetchSections]);
 
   // sync pending edits when coming online
   useEffect(() => {
     if (!isOnline || !hasInitialLoad || hasSynced) return;
-    
+
     const performSync = async () => {
       await syncPendingEdits();
       setHasSynced(true);
-      
+
       // refetch after syncing to get the latest state
       const refetchSuccess = await fetchSections();
       if (refetchSuccess && addLog) {
@@ -193,9 +203,16 @@ const SectionList = ({
         addLog("Failed to refresh data after sync");
       }
     };
-    
+
     performSync();
-  }, [isOnline, hasInitialLoad, hasSynced, syncPendingEdits, fetchSections, addLog]);
+  }, [
+    isOnline,
+    hasInitialLoad,
+    hasSynced,
+    syncPendingEdits,
+    fetchSections,
+    addLog,
+  ]);
 
   useEffect(() => {
     if (!isOnline) {
@@ -211,14 +228,14 @@ const SectionList = ({
           socket.emit(roomActions.JOIN, {
             roomId,
             userId,
-            nickname: currentUser?.nickname
+            nickname: currentUser?.nickname,
           });
           if (addLog) {
             addLog("Rejoined room for real-time updates");
           }
         }
       }, 500);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [isOnline, roomId, userId, currentUser?.nickname, addLog]);
@@ -320,7 +337,9 @@ const SectionList = ({
       : horizontalListSortingStrategy;
 
   // filter out any section IDs that don't exist in sections
-  const validSectionOrder = sectionOrder.filter(sectionId => sections[sectionId]);
+  const validSectionOrder = sectionOrder.filter(
+    (sectionId) => sections[sectionId]
+  );
 
   return (
     <>
@@ -397,7 +416,7 @@ const SectionList = ({
         initialNotes={editingItem?.notes || ""}
         itemId={editingItem?.id}
       />
-      <CursorOverlay cursors={cursors} />
+      <CursorOverlay cursors={cursors} isOnline={isOnline} />
     </>
   );
 };
