@@ -43,3 +43,18 @@
 .status-indicator {
   color: var(--gray2);
 }
+
+.user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--user-color) 50%, black);
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
