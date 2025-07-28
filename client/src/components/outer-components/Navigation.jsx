@@ -17,10 +17,11 @@ import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
 import useRoomUsers from "../../hooks/rooms/useRoomUsers";
 import { TbColumns3 } from "react-icons/tb";
+import { FaSearch } from "react-icons/fa";
 
 import "./Navbar.css";
 
-const Navigation = () => {
+const Navigation = ({ setSearchMenuOpen }) => {
   const { viewMode, setViewMode } = useContext(ViewContext);
   const { logout, user, getAccessTokenSilently } = useAuth0();
   const { username } = useParams();
@@ -32,7 +33,9 @@ const Navigation = () => {
   const [showGraph, setShowGraph] = useState(false);
 
   const toggleViewMode = () => {
-    setViewMode(viewMode === ViewModes.BOARD ? ViewModes.LIST : ViewModes.BOARD);
+    setViewMode(
+      viewMode === ViewModes.BOARD ? ViewModes.LIST : ViewModes.BOARD
+    );
   };
 
   const userColors = otherUsers.map((user) => (
@@ -44,7 +47,7 @@ const Navigation = () => {
       }
     >
       <div
-        className={`user-avatar ${!isOnline ? 'offline' : ''}`}
+        className={`user-avatar ${!isOnline ? "offline" : ""}`}
         style={{
           backgroundColor: user.color,
           "--user-color": user.color,
@@ -68,27 +71,8 @@ const Navigation = () => {
               <span className="animated-ellipses"></span>
             </span>
           )}
-          
-          <div className="d-flex align-items-center">
-            <OverlayTrigger
-              placement="bottom"
-              overlay={
-                <Tooltip id="view-toggle-tooltip">
-                  Switch to {viewMode === ViewModes.BOARD ? "List" : "Board"} View
-                </Tooltip>
-              }
-            >
-              <Nav.Link
-                className="nav-link-custom"
-                onClick={toggleViewMode}
-              >
-                <TbColumns3 
-                  size={20} 
-                  className={`view-toggle-icon ${viewMode === ViewModes.BOARD ? 'rotated' : ''}`}
-                />
-              </Nav.Link>
-            </OverlayTrigger>
-            
+
+          <div className="navbar-controls">
             <HamburgerMenu
               showGraph={showGraph}
               setShowGraph={setShowGraph}
@@ -97,6 +81,39 @@ const Navigation = () => {
               apiFetch={apiFetch}
               logout={logout}
             />
+
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="view-toggle-tooltip">
+                  Switch to {viewMode === ViewModes.BOARD ? "List" : "Board"} View
+                </Tooltip>
+              }
+            >
+              <div className="nav-link-custom" onClick={toggleViewMode}>
+                <TbColumns3
+                  size={20}
+                  className={`view-toggle-icon ${
+                    viewMode === ViewModes.BOARD ? "rotated" : ""
+                  }`}
+                />
+              </div>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="search-tooltip">Open Search</Tooltip>
+              }
+            >
+              <div
+                className="nav-link-custom"
+                onClick={() => setSearchMenuOpen(true)}
+                aria-label="Open search"
+              >
+                <FaSearch size={18} />
+              </div>
+            </OverlayTrigger>
           </div>
         </Container>
       </Navbar>
