@@ -4,23 +4,24 @@ import { useParams } from "react-router-dom";
 
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
-import Button from "react-bootstrap/Button";
 import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
 import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
 import { useApiFetch } from "../../hooks/useApiFetch";
 import SemanticGraphOverlay from "./SemanticGraphOverlay";
+import HamburgerMenu from "./HamburgerMenu";
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
 import useRoomUsers from "../../hooks/rooms/useRoomUsers";
+import { TbColumns3 } from "react-icons/tb";
+import { FaSearch } from "react-icons/fa";
 
 import "./Navbar.css";
 
-const Navigation = () => {
+const Navigation = ({ setSearchMenuOpen }) => {
   const { viewMode, setViewMode } = useContext(ViewContext);
   const { logout, user, getAccessTokenSilently } = useAuth0();
   const { username } = useParams();
@@ -31,6 +32,12 @@ const Navigation = () => {
   const apiFetch = useApiFetch();
   const [showGraph, setShowGraph] = useState(false);
 
+  const toggleViewMode = () => {
+    setViewMode(
+      viewMode === ViewModes.BOARD ? ViewModes.LIST : ViewModes.BOARD
+    );
+  };
+
   const userColors = otherUsers.map((user) => (
     <OverlayTrigger
       key={user.socketId}
@@ -40,7 +47,7 @@ const Navigation = () => {
       }
     >
       <div
-        className="user-avatar"
+        className={`user-avatar ${!isOnline ? "offline" : ""}`}
         style={{
           backgroundColor: user.color,
           "--user-color": user.color,
@@ -53,69 +60,61 @@ const Navigation = () => {
 
   return (
     <div className="navbar-float-wrapper">
-      <Navbar expand="lg" className="custom-navbar px-4 py-2">
+      <Navbar className="custom-navbar px-4 py-2">
         <Container fluid>
           <Navbar.Brand className="fw-bold d-flex align-items-center text-white">
             {userColors}
           </Navbar.Brand>
-          <span
-            className={`status-indicator ${isOnline ? "online" : "offline"}`}
-          >
-            {isOnline ? "Online" : "Offline"}
-          </span>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <div className="d-flex ms-auto align-items-center">
-              <Nav className="mx-auto">
-                <Nav.Link
-                  className="nav-link-custom"
-                  onClick={() => setShowGraph((prev) => !prev)}
-                >
-                  {showGraph ? "Hide Graph" : "Show Graph"}
-                </Nav.Link>
-                <Nav.Link
-                  className="nav-link-custom"
-                  onClick={() =>
-                    prepopulateDemoData({
-                      username,
-                      getAccessTokenSilently,
-                      apiFetch,
-                    })
-                  }
-                >
-                  Demo-Data
-                </Nav.Link>
-                <Nav.Link
-                  className={`nav-link-custom${
-                    viewMode === ViewModes.BOARD ? " selected" : ""
+          {!isOnline && (
+            <span className="status-indicator offline">
+              You are offline, changes will sync on reconnect
+              <span className="animated-ellipses"></span>
+            </span>
+          )}
+
+          <div className="navbar-controls">
+            <HamburgerMenu
+              showGraph={showGraph}
+              setShowGraph={setShowGraph}
+              username={username}
+              getAccessTokenSilently={getAccessTokenSilently}
+              apiFetch={apiFetch}
+              logout={logout}
+            />
+
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="view-toggle-tooltip">
+                  Switch to {viewMode === ViewModes.BOARD ? "List" : "Board"} View
+                </Tooltip>
+              }
+            >
+              <div className="nav-link-custom" onClick={toggleViewMode}>
+                <TbColumns3
+                  size={20}
+                  className={`view-toggle-icon ${
+                    viewMode === ViewModes.BOARD ? "rotated" : ""
                   }`}
-                  onClick={() => setViewMode(ViewModes.BOARD)}
-                >
-                  Board
-                </Nav.Link>
-                <Nav.Link
-                  className={`nav-link-custom${
-                    viewMode === ViewModes.LIST ? " selected" : ""
-                  }`}
-                  onClick={() => setViewMode(ViewModes.LIST)}
-                >
-                  List
-                </Nav.Link>
-              </Nav>
-              <Button
-                className="get-started-btn"
-                onClick={() =>
-                  logout({
-                    logoutParams: {
-                      returnTo: `${window.location.origin}/loggedOut`,
-                    },
-                  })
-                }
+                />
+              </div>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="search-tooltip">Open Search</Tooltip>
+              }
+            >
+              <div
+                className="nav-link-custom"
+                onClick={() => setSearchMenuOpen(true)}
+                aria-label="Open search"
               >
-                Log Out
-              </Button>
-            </div>
-          </Navbar.Collapse>
+                <FaSearch size={18} />
+              </div>
+            </OverlayTrigger>
+          </div>
         </Container>
       </Navbar>
       <SemanticGraphOverlay

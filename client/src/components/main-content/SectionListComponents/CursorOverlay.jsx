@@ -2,13 +2,13 @@ import { BsCursor } from "react-icons/bs";
 import "./CursorOverlay.css";
 const MAX_NAME_LENGTH = 8;
 
-const CursorOverlay = ({ cursors }) => {
+const CursorOverlay = ({ cursors, isOnline }) => {
   return (
     <div className="cursor-overlay">
       {Object.entries(cursors).map(([userId, cursor]) => (
         <div
           key={userId}
-          className="remote-cursor"
+          className={`remote-cursor ${!isOnline ? 'offline' : ''}`}
           style={{
             left: cursor.x,
             top: cursor.y,

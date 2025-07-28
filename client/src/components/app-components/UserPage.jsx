@@ -11,11 +11,8 @@ import SectionList from "../main-content/SectionList";
 import Navigation from "../outer-components/Navigation";
 import SlidingMenu from "../outer-components/SlidingMenu";
 import LightBallsOverlay from "../visuals/LightBallsOverlay";
-import { FaSearch } from "react-icons/fa";
 import LoadingState from "./LoadingState";
 import useSafeSocketEmit from "../../hooks/socketHandlers/useSafeSocketEmit";
-
-import "./UserPage.css";
 
 const getDisplayName = (user) => {
   return user?.nickname || user?.name || user?.email || "Anonymous";
@@ -34,7 +31,6 @@ const UserPage = ({ setUserReady, userReady }) => {
   const userId = user?.sub;
   const nickname = getDisplayName(user);
   const safeEmit = useSafeSocketEmit();
-
 
   useEffect(() => {
     // handles connecting for entire client lifecycle
@@ -65,14 +61,9 @@ const UserPage = ({ setUserReady, userReady }) => {
         <div className="App">
           <LightBallsOverlay />
           <div className="app-header">
-            <Navigation />
-            <button
-              className="search-button"
-              onClick={() => setSearchMenuOpen(true)}
-              aria-label="Open search"
-            >
-              <FaSearch />
-            </button>
+            <Navigation 
+              setSearchMenuOpen={setSearchMenuOpen}
+            />
           </div>
           <div className="app-content">
             <SlidingMenu
