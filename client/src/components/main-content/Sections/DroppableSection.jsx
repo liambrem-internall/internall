@@ -21,7 +21,7 @@ const DroppableSection = ({
   onItemClick,
   className = "",
   editingUsers = {},
-  users = {},
+  users = [],
   currentUserId,
 }) => {
   const { setNodeRef: setSectionDroppableRef } = useDroppable({

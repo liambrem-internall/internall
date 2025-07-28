@@ -16,6 +16,21 @@ module.exports = (io, socket, usersInRoom) => {
     }
   });
 
+
+  socket.on('disconnect', () => {
+    Object.keys(editingUsers).forEach(roomId => {
+      if (editingUsers[roomId]) {
+        const userSocketId = socket.id;
+        Object.values(usersInRoom[roomId] || {}).forEach(user => {
+          if (user.socketId === userSocketId) {
+            delete editingUsers[roomId][user.id];
+            io.to(roomId).emit(itemEvents.ITEM_EDITING_UPDATE, editingUsers[roomId]);
+          }
+        });
+      }
+    });
+  });
+
   // cursor movement
   socket.on(cursorEvents.CURSOR_MOVE, ({ roomId, userId, color, x, y }) => {
     socket.to(roomId).emit(cursorEvents.CURSOR_UPDATE, { userId, color, x, y });
