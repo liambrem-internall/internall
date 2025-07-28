@@ -10,16 +10,6 @@
   border: 1px solid var(--gray3);
 }
 
-.get-started-btn {
-  background: linear-gradient(135deg, var(--pink1) 0%, var(--pink2) 100%);
-  color: #fff;
-  border: none;
-  border-radius: 999px !important;
-  padding: 0.5em 2em;
-  font-size: 1.2rem;
-  font-weight: 400;
-}
-
 .nav-link-custom {
   font-size: 1.1rem;
   margin: 0 0.5rem;
@@ -57,4 +47,12 @@
   margin: 0 4px;
   cursor: pointer;
   text-transform: uppercase;
+}
+
+.view-toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.view-toggle-icon.rotated {
+  transform: rotate(90deg);
 }

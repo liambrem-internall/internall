@@ -1,0 +1,108 @@
+.hamburger-toggle::after {
+  display: none !important;
+}
+
+.hamburger-toggle {
+  color: #fff;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburger-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.hamburger-toggle:active {
+  transform: scale(0.95);
+}
+
+.hamburger-menu {
+  background-color: var(--dark2) !important;
+  border: 1px solid var(--gray3) !important;
+  border-radius: var(--border-radius) !important;
+  min-width: 180px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(10px);
+  animation: slideIn 0.2s ease-out;
+  transform-origin: top right;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hamburger-item {
+  color: #fff !important;
+  background-color: transparent !important;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.hamburger-item:hover,
+.hamburger-item:focus {
+  background-color: transparent !important;
+  color: var(--pink1) !important;
+  transform: translateX(4px);
+}
+
+.hamburger-item:active {
+  background-color: transparent !important;
+  transform: translateX(2px);
+}
+
+.dropdown-divider {
+  border-color: var(--gray3) !important;
+  margin: 0.5rem 0;
+  opacity: 0.5;
+}
+
+.get-started-btn {
+  background: linear-gradient(135deg, var(--pink1) 0%, var(--pink2) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px !important;
+  padding: 0.25em 1.5em;
+  font-size: 1.2rem;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.get-started-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.4s ease;
+}
+
+.get-started-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(var(--pink1-rgb), 0.4);
+  filter: brightness(1.1);
+}
+
+.get-started-btn:hover::before {
+  left: 100%;
+}
+
+.get-started-btn:active {
+  transform: translateY(0);
+}

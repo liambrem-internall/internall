@@ -4,20 +4,18 @@ import { useParams } from "react-router-dom";
 
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
-import Button from "react-bootstrap/Button";
 import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
 import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
 import { useApiFetch } from "../../hooks/useApiFetch";
 import SemanticGraphOverlay from "./SemanticGraphOverlay";
+import HamburgerMenu from "./HamburgerMenu";
 
 import ViewContext from "../../ViewContext";
 import { ViewModes } from "../../utils/constants";
 import useRoomUsers from "../../hooks/rooms/useRoomUsers";
-import { FaListUl } from "react-icons/fa6";
 import { TbColumns3 } from "react-icons/tb";
 
 import "./Navbar.css";
@@ -59,7 +57,7 @@ const Navigation = () => {
 
   return (
     <div className="navbar-float-wrapper">
-      <Navbar expand="lg" className="custom-navbar px-4 py-2">
+      <Navbar className="custom-navbar px-4 py-2">
         <Container fluid>
           <Navbar.Brand className="fw-bold d-flex align-items-center text-white">
             {userColors}
@@ -69,58 +67,36 @@ const Navigation = () => {
           >
             {isOnline ? "Online" : "Offline"}
           </span>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <div className="d-flex ms-auto align-items-center">
-              <Nav className="mx-auto">
-                <Nav.Link
-                  className="nav-link-custom"
-                  onClick={() => setShowGraph((prev) => !prev)}
-                >
-                  {showGraph ? "Hide Graph" : "Show Graph"}
-                </Nav.Link>
-                <Nav.Link
-                  className="nav-link-custom"
-                  onClick={() =>
-                    prepopulateDemoData({
-                      username,
-                      getAccessTokenSilently,
-                      apiFetch,
-                    })
-                  }
-                >
-                  Demo-Data
-                </Nav.Link>
-                <OverlayTrigger
-                  placement="bottom"
-                  overlay={
-                    <Tooltip id="view-toggle-tooltip">
-                      Switch to {viewMode === ViewModes.BOARD ? "List" : "Board"} View
-                    </Tooltip>
-                  }
-                >
-                  <Nav.Link
-                    className="nav-link-custom"
-                    onClick={toggleViewMode}
-                  >
-                    {viewMode === ViewModes.BOARD ? <FaListUl size={20} /> : <TbColumns3 size={20} />}
-                  </Nav.Link>
-                </OverlayTrigger>
-              </Nav>
-              <Button
-                className="get-started-btn"
-                onClick={() =>
-                  logout({
-                    logoutParams: {
-                      returnTo: `${window.location.origin}/loggedOut`,
-                    },
-                  })
-                }
+          
+          <div className="d-flex align-items-center">
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="view-toggle-tooltip">
+                  Switch to {viewMode === ViewModes.BOARD ? "List" : "Board"} View
+                </Tooltip>
+              }
+            >
+              <Nav.Link
+                className="nav-link-custom"
+                onClick={toggleViewMode}
               >
-                Log Out
-              </Button>
-            </div>
-          </Navbar.Collapse>
+                <TbColumns3 
+                  size={20} 
+                  className={`view-toggle-icon ${viewMode === ViewModes.BOARD ? 'rotated' : ''}`}
+                />
+              </Nav.Link>
+            </OverlayTrigger>
+            
+            <HamburgerMenu
+              showGraph={showGraph}
+              setShowGraph={setShowGraph}
+              username={username}
+              getAccessTokenSilently={getAccessTokenSilently}
+              apiFetch={apiFetch}
+              logout={logout}
+            />
+          </div>
         </Container>
       </Navbar>
       <SemanticGraphOverlay
