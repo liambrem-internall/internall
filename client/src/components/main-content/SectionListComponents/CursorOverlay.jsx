@@ -1,6 +1,6 @@
-import React from "react";
 import { BsCursor } from "react-icons/bs";
 import "./CursorOverlay.css";
+const MAX_NAME_LENGTH = 8;
 
 const CursorOverlay = ({ cursors }) => {
   return (
@@ -19,7 +19,10 @@ const CursorOverlay = ({ cursors }) => {
             className="cursor-nametag" 
             style={{ backgroundColor: cursor.color }}
           >
-            {cursor.nickname}
+            {cursor.nickname?.length > MAX_NAME_LENGTH 
+              ? cursor.nickname.slice(0, MAX_NAME_LENGTH) + '...' 
+              : cursor.nickname
+            }
           </div>
         </div>
       ))}
