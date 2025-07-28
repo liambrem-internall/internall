@@ -32,6 +32,21 @@
 
 .status-indicator {
   color: var(--gray2);
+  font-size: 0.8rem;
+}
+
+.animated-ellipses::after {
+  content: '...';
+  display: inline-block;
+  width: 1.2em;
+  animation: ellipses 1.5s infinite;
+}
+
+@keyframes ellipses {
+  0% { content: ' '}
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
 }
 
 .user-avatar {

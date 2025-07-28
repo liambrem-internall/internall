@@ -62,11 +62,12 @@ const Navigation = () => {
           <Navbar.Brand className="fw-bold d-flex align-items-center text-white">
             {userColors}
           </Navbar.Brand>
-          <span
-            className={`status-indicator ${isOnline ? "online" : "offline"}`}
-          >
-            {isOnline ? "Online" : "Offline"}
-          </span>
+          {!isOnline && (
+            <span className="status-indicator offline">
+              You are offline, changes will sync on reconnect
+              <span className="animated-ellipses"></span>
+            </span>
+          )}
           
           <div className="d-flex align-items-center">
             <OverlayTrigger
