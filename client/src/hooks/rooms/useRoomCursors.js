@@ -7,11 +7,11 @@ const useRoomCursors = (roomId, userId) => {
 
   useEffect(() => {
     if (!roomId) return;
-    const handler = ({ userId: uid, color, x, y }) => {
+    const handler = ({ userId: uid, color, x, y, nickname }) => {
       if (uid !== userId) {
         setCursors((prev) => ({
           ...prev,
-          [uid]: { color, x, y },
+          [uid]: { color, x, y, nickname },
         }));
       }
     };
