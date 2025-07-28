@@ -9,7 +9,6 @@ import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import { BsFillPersonFill } from "react-icons/bs";
 import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
 import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
 import { useApiFetch } from "../../hooks/useApiFetch";
@@ -40,15 +39,15 @@ const Navigation = () => {
         <Tooltip id={`tooltip-${user.socketId}`}>{user.nickname}</Tooltip>
       }
     >
-      <BsFillPersonFill
-        fontSize={25}
+      <div
+        className="user-avatar"
         style={{
-          display: "inline-block",
-          margin: "0 2px",
-          color: user.color,
-          cursor: "pointer",
+          backgroundColor: user.color,
+          "--user-color": user.color,
         }}
-      />
+      >
+        {user.nickname?.charAt(0) || "?"}
+      </div>
     </OverlayTrigger>
   ));
 
