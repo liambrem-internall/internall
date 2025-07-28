@@ -27,11 +27,11 @@ html, body, #root, .App {
 .App {
   
   background: 
-  repeating-linear-gradient(0deg, transparent, transparent 39px, #292929a9 40px),
-    repeating-linear-gradient(90deg, transparent, transparent 39px, #292929a9 40px),
+  repeating-linear-gradient(0deg, transparent, transparent 39px, #29292955 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, #29292955 40px),
     radial-gradient(
-    circle at 50% 20%,
-    var(--dark1) 0%,
-    var(--dark2) 75%
+    circle at 50% 5%,
+    #1c183c 0%,
+    #0c091a 25%
   );
 }
