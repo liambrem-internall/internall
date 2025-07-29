@@ -293,7 +293,7 @@ const SectionList = ({
     socket,
     cursorEvents,
     handleDragEndUtil,
-    setIsDeleteZoneOver,
+    setIsDeleteZoneOver, // This should already be passed
     setIsDragging,
     apiFetch,
     safeEmit,
@@ -331,6 +331,11 @@ const SectionList = ({
 
   const handleCloseModal = () => setShowModal(false);
 
+  const handleDragEnd = (event) => {
+    dragHandlers.handleDragEnd(event);
+    setIsDeleteZoneOver(false);
+  };
+
   const sortStrategy =
     viewMode === ViewModes.LIST
       ? verticalListSortingStrategy
@@ -347,7 +352,7 @@ const SectionList = ({
         <div className="sections-scroll-container">
           <DndContext
             onDragStart={dragHandlers.handleDragStart}
-            onDragEnd={dragHandlers.handleDragEnd}
+            onDragEnd={handleDragEnd} // use the wrapper
             collisionDetection={customCollisionDetection}
             onDragOver={handleDragOver}
           >

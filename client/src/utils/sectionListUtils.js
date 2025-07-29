@@ -291,6 +291,7 @@ const handleDragEndDelete = (active, over, params) => {
     addLog,
     apiFetch,
     isOnline,
+    setIsDeleteZoneOver,
   } = params;
 
   // delete item
@@ -299,6 +300,16 @@ const handleDragEndDelete = (active, over, params) => {
     const item = findItemBySection(sections[fromSectionId], {
       activeId: active.id,
     });
+
+    // cormation dialog
+    const itemName = item?.content || 'this item';
+    const confirmDelete = window.confirm(`Are you sure you want to delete "${itemName}"?`);
+    
+    if (!confirmDelete) {
+      setActiveId(null);
+      if (setIsDeleteZoneOver) setIsDeleteZoneOver(false); // Reset delete zone state
+      return;
+    }
 
     setSections((prev) => ({
       ...prev,
@@ -309,12 +320,15 @@ const handleDragEndDelete = (active, over, params) => {
     }));
 
     const logMessage = `You deleted item "${item?.content}"`;
+    
+    setActiveId(null);
+    if (setIsDeleteZoneOver) setIsDeleteZoneOver(false);
 
     if (!isOnline) {
       handleOfflineEdit({
         addPendingEdit,
         addLog,
-        setActiveId,
+        setActiveId: null,
         edit: {
           type: DraggableComponentTypes.ITEM,
           action: DragEndActions.DELETE,
@@ -339,7 +353,7 @@ const handleDragEndDelete = (active, over, params) => {
         getAccessTokenSilently,
         addLog,
         logMessage,
-        setActiveId,
+        setActiveId: null,
       });
     })();
     return;
@@ -348,6 +362,22 @@ const handleDragEndDelete = (active, over, params) => {
   // delete section
   if (active.data.current?.type === DraggableComponentTypes.SECTION) {
     const section = sections[active.id];
+    const sectionName = section?.title || 'this section';
+    const itemCount = section?.items?.length || 0;
+    
+    // confirmation doalog
+    let confirmMessage = `Are you sure you want to delete "${sectionName}"?`;
+    if (itemCount > 0) {
+      confirmMessage += `\n\nThis will also delete ${itemCount} item${itemCount !== 1 ? 's' : ''} inside this section.`;
+    }
+    
+    const confirmDelete = window.confirm(confirmMessage);
+    
+    if (!confirmDelete) {
+      setActiveId(null);
+      if (setIsDeleteZoneOver) setIsDeleteZoneOver(false);
+      return;
+    }
 
     setSections((prev) => {
       const newSections = { ...prev };
@@ -360,12 +390,15 @@ const handleDragEndDelete = (active, over, params) => {
     });
 
     const logMessage = `You deleted section "${section?.title || active.id}"`;
+    
+    setActiveId(null);
+    if (setIsDeleteZoneOver) setIsDeleteZoneOver(false);
 
     if (!isOnline) {
       handleOfflineEdit({
         addPendingEdit,
         addLog,
-        setActiveId,
+        setActiveId: null,
         edit: {
           type: DraggableComponentTypes.SECTION,
           action: DragEndActions.DELETE,
@@ -389,13 +422,14 @@ const handleDragEndDelete = (active, over, params) => {
         getAccessTokenSilently,
         addLog,
         logMessage,
-        setActiveId,
+        setActiveId: null,
       });
     })();
     return;
   }
 
   setActiveId(null);
+  if (setIsDeleteZoneOver) setIsDeleteZoneOver(false);
 };
 
 export const handleDragEnd = (event, params) => {
