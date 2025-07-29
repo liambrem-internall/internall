@@ -378,7 +378,7 @@ const SectionList = ({
               </div>
             </SortableContext>
             <div className="bottom-row">
-              <DeleteButton />
+              {isDragging && <DeleteButton />}
               <Logs logs={logs} />
               <AddButton />
             </div>
@@ -397,6 +397,7 @@ const SectionList = ({
           </DndContext>
         </div>
       </Container>
+      {isDeleteZoneOver && <div className="delete-overlay" />}
       <SectionModal
         show={showModal}
         onHide={handleCloseModal}
