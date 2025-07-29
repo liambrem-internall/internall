@@ -41,7 +41,7 @@ const useSaveHandlers = (
   pendingSectionTitle,
   editingItem,
   setEditingItem,
-  targetSectionId,
+  targetSectionId
 ) => {
   const isOnline = useContext(NetworkStatusContext);
   const apiFetch = useApiFetch();
@@ -82,8 +82,8 @@ const useSaveHandlers = (
     const newSection = await apiFetch({
       endpoint: `${URL}/api/sections/${username}`,
       method: "POST",
-      body: { 
-        title: pendingSectionTitle, 
+      body: {
+        title: pendingSectionTitle,
         username: currentUser?.nickname,
         isRoomOwner: currentUser?.nickname === username,
       },
@@ -139,8 +139,8 @@ const useSaveHandlers = (
             ...prev,
             [targetSectionId]: {
               ...section,
-              items: section.items.map(item => 
-                item.id === editingItem.id 
+              items: section.items.map((item) =>
+                item.id === editingItem.id
                   ? { ...item, content, link, notes, offline: true }
                   : item
               ),
@@ -172,7 +172,7 @@ const useSaveHandlers = (
         });
         addLog(`(Offline) You added item "${content}"`);
       }
-      
+
       setShowItemModal(false);
       setEditingItem(null);
       setTargetSectionId(null);
@@ -216,9 +216,53 @@ const useSaveHandlers = (
     setTargetSectionId(null);
   };
 
+  const handleDeleteItem = async (itemId) => {
+    if (!itemId || !targetSectionId) return;
+
+    setSections((prev) => ({
+      ...prev,
+      [targetSectionId]: {
+        ...prev[targetSectionId],
+        items: prev[targetSectionId].items.filter((item) => item.id !== itemId),
+      },
+    }));
+
+    if (!isOnline) {
+        addPendingEdit({
+        type: "item",
+        action: "delete",
+        payload: {
+          sectionId: targetSectionId,
+          itemId,
+          username,
+          isRoomOwner: currentUser?.nickname === username,
+        },
+        timestamp: Date.now(),
+      });
+      if (addLog) addLog(`(Offline) You deleted an item`);
+      setShowItemModal(false);
+      setEditingItem(null);
+      setTargetSectionId(null);
+      return;
+    }
+
+    await apiFetch({
+      endpoint: `${URL}/api/items/${targetSectionId}/items/${itemId}/${username}`,
+      method: "DELETE",
+      body: { username: currentUser?.nickname },
+      getAccessTokenSilently,
+    });
+
+    if (addLog) addLog(`You deleted an item`);
+    setShowItemModal(false);
+    setEditingItem(null);
+    setTargetSectionId(null);
+  };
+
   return {
     handleSaveSection,
     handleSaveItem,
+    handleDeleteItem,
   };
 };
 
