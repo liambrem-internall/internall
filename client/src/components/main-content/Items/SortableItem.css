@@ -28,10 +28,6 @@
   border-radius: 4px;
 }
 
-.drag-handle:hover {
-  background: var(--gray1) !important;
-}
-
 @property --angle {
   syntax: "<angle>";
   inherits: false;
@@ -69,25 +65,39 @@
   opacity: 1;
 }
 
-.edit-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+.sortable-item .edit-handle {
   opacity: 0;
-  transition: opacity 0.2s ease;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .sortable-item:hover .edit-handle {
-  opacity: 1;
-}
-
-.edit-handle:hover {
-  background: var(--gray1) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto;
 }
 
 .right-controls {
   display: flex;
   align-items: center;
   margin-right: 4px;
+}
+
+.edit-handle,
+.drag-handle {
+  transition: transform 0.2s;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.edit-handle svg,
+.drag-handle svg {
+  transition: color 0.5s, transform 0.5s;
+}
+
+.edit-handle:hover svg,
+.drag-handle:hover svg {
+  color: var(--pink1) !important;
+  transform: translateY(-2px);
 }

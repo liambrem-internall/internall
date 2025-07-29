@@ -5,7 +5,6 @@ import { DraggableComponentTypes } from "../../../utils/constants";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import "./SortableItem.css";
 import { FaEdit } from "react-icons/fa";
-import { useState } from "react";
 
 const SortableItem = ({
   id,
@@ -16,7 +15,6 @@ const SortableItem = ({
   editingUsers = {},
   users = [],
 }) => {
-  const [hovered, setHovered] = useState(false);
   const {
     setNodeRef,
     attributes,
@@ -49,7 +47,7 @@ const SortableItem = ({
   };
 
   const handleItemClick = (e) => {
-    // Only open link if not clicking edit or drag handle
+    e.stopPropagation();
     if (link) {
       window.open(link, "_blank", "noopener,noreferrer");
     }
@@ -60,26 +58,23 @@ const SortableItem = ({
       className={`sortable-item${editingUserEntry ? " editing" : ""}`}
       ref={setNodeRef}
       style={style}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       onClick={handleItemClick}
     >
       {content}
       <div className="right-controls">
         <span
           className="edit-handle"
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation();
             onEdit();
           }}
-          style={{ pointerEvents: hovered ? "auto" : "none" }}
         >
           <OverlayTrigger
             placement="top"
             delay={{ show: 400, hide: 100 }}
             overlay={<Tooltip id="edit-item-tooltip">Edit Item</Tooltip>}
           >
-            <FaEdit size={18} color="white" />
+            <FaEdit size={18} style={{ color: "inherit" }} />
           </OverlayTrigger>
         </span>
         <span
@@ -96,7 +91,7 @@ const SortableItem = ({
               <Tooltip id="reorder-section-tooltip">Reorder Items</Tooltip>
             }
           >
-            <BsGripVertical size={20} color="white" />
+            <BsGripVertical size={20} style={{ color: "inherit" }} />
           </OverlayTrigger>
         </span>
       </div>
