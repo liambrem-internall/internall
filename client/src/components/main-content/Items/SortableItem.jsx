@@ -60,7 +60,7 @@ const SortableItem = ({
       style={style}
       onClick={handleItemClick}
     >
-      {content}
+      <span className="item-content">{content}</span>
       <div className="right-controls">
         <span
           className="edit-handle"

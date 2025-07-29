@@ -1,6 +1,7 @@
 .sortable-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 4px;
   margin-top: 8px;
   margin-left: 4px;
@@ -78,10 +79,20 @@
   pointer-events: auto;
 }
 
+.item-content {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px; 
+}
+
 .right-controls {
   display: flex;
   align-items: center;
   margin-right: 4px;
+  flex-shrink: 0;
 }
 
 .edit-handle,
