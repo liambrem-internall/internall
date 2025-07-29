@@ -90,9 +90,6 @@ const DroppableSection = ({
               <div
                 key={item.id}
                 className={DraggableComponentTypes.ITEM}
-                onClick={
-                  isBeingEditedByOther ? undefined : () => onItemClick(item, id)
-                }
                 style={{
                   cursor: isBeingEditedByOther ? "not-allowed" : "pointer",
                   pointerEvents: isBeingEditedByOther ? "none" : "auto",
@@ -102,7 +99,8 @@ const DroppableSection = ({
                   id={item.id}
                   content={item.content}
                   sectionId={id}
-                  onClick={() => onItemClick(item, id)}
+                  link={item.link}
+                  onEdit={() => onItemClick(item, id)}
                   editingUsers={editingUsers}
                   users={users}
                   currentUserId={currentUserId}

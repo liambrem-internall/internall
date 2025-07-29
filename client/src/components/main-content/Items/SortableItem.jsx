@@ -4,11 +4,14 @@ import { BsGripVertical } from "react-icons/bs";
 import { DraggableComponentTypes } from "../../../utils/constants";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import "./SortableItem.css";
+import { FaEdit } from "react-icons/fa";
 
 const SortableItem = ({
   id,
   content,
   sectionId,
+  link,
+  onEdit,
   editingUsers = {},
   users = [],
 }) => {
@@ -23,7 +26,6 @@ const SortableItem = ({
     id,
     data: { type: DraggableComponentTypes.ITEM, sectionId },
   });
-
 
   const editingUserEntry = Object.entries(editingUsers).find(
     ([, value]) => value.itemId === id
@@ -44,30 +46,55 @@ const SortableItem = ({
     "--border-color": borderColor,
   };
 
+  const handleItemClick = (e) => {
+    e.stopPropagation();
+    if (link) {
+      window.open(link, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <div
       className={`sortable-item${editingUserEntry ? " editing" : ""}`}
       ref={setNodeRef}
       style={style}
+      onClick={handleItemClick}
     >
-      {content}
-      <span
-        className="drag-handle"
-        {...attributes}
-        {...listeners}
-        onClick={(e) => e.stopPropagation()}
-        style={{ cursor: "grab", marginLeft: 8 }}
-      >
-        <OverlayTrigger
-          placement="top"
-          delay={{ show: 800, hide: 100 }}
-          overlay={
-            <Tooltip id="reorder-section-tooltip">Reorder Items</Tooltip>
-          }
+      <span className="item-content">{content}</span>
+      <div className="right-controls">
+        <span
+          className="edit-handle"
+          onClick={e => {
+            e.stopPropagation();
+            onEdit();
+          }}
         >
-          <BsGripVertical size={20} color="white" />
-        </OverlayTrigger>
-      </span>
+          <OverlayTrigger
+            placement="top"
+            delay={{ show: 400, hide: 100 }}
+            overlay={<Tooltip id="edit-item-tooltip">Edit Item</Tooltip>}
+          >
+            <FaEdit size={18} style={{ color: "inherit" }} />
+          </OverlayTrigger>
+        </span>
+        <span
+          className="drag-handle"
+          {...attributes}
+          {...listeners}
+          onClick={(e) => e.stopPropagation()}
+          style={{ cursor: "grab", marginLeft: 8 }}
+        >
+          <OverlayTrigger
+            placement="top"
+            delay={{ show: 800, hide: 100 }}
+            overlay={
+              <Tooltip id="reorder-section-tooltip">Reorder Items</Tooltip>
+            }
+          >
+            <BsGripVertical size={20} style={{ color: "inherit" }} />
+          </OverlayTrigger>
+        </span>
+      </div>
     </div>
   );
 };

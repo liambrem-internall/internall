@@ -1,6 +1,7 @@
 .sortable-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 4px;
   margin-top: 8px;
   margin-left: 4px;
@@ -26,10 +27,6 @@
   align-items: center;
   margin-right: 7px;
   border-radius: 4px;
-}
-
-.drag-handle:hover {
-  background: var(--gray1) !important;
 }
 
 @property --angle {
@@ -67,4 +64,51 @@
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 1;
+}
+
+.sortable-item .edit-handle {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.sortable-item:hover .edit-handle {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto;
+}
+
+.item-content {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px; 
+}
+
+.right-controls {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.edit-handle,
+.drag-handle {
+  transition: transform 0.2s;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.edit-handle svg,
+.drag-handle svg {
+  transition: color 0.5s, transform 0.5s;
+}
+
+.edit-handle:hover svg,
+.drag-handle:hover svg {
+  color: var(--pink1) !important;
+  transform: translateY(-2px);
 }
