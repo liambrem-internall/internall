@@ -1,6 +1,21 @@
 .modal-content {
   background: var(--dark2) !important;
   color: #fff !important;
+  border: 1px solid var(--gray3);
+  box-shadow: 0 8px 32px 0 #b116957c, 0 1.5px 8px 0 #ff00ee5c;
+    border: none !important;
+}
+
+.modal-header,
+.modal-footer {
+  border: none !important;
+  background: transparent !important;
+}
+
+hr {
+  border: none !important;
+  background: none !important;
+  height: 0 !important;
 }
 
 .modal-title {
