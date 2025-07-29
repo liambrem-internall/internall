@@ -293,7 +293,7 @@ const SectionList = ({
     socket,
     cursorEvents,
     handleDragEndUtil,
-    setIsDeleteZoneOver, // This should already be passed
+    setIsDeleteZoneOver,
     setIsDragging,
     apiFetch,
     safeEmit,
@@ -417,6 +417,7 @@ const SectionList = ({
           setEditingItem(null);
         }}
         handleSaveItem={saveHandlers.handleSaveItem}
+        handleDeleteItem={saveHandlers.handleDeleteItem}
         initialContent={editingItem?.content || ""}
         initialLink={editingItem?.link || ""}
         initialNotes={editingItem?.notes || ""}

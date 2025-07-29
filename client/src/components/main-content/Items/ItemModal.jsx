@@ -5,11 +5,14 @@ import useEditingSocket from "../../../hooks/useEditingSocket";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useParams } from "react-router-dom";
 import useRoomUsers from "../../../hooks/rooms/useRoomUsers";
+import { BsTrashFill } from "react-icons/bs";
+
 
 const ItemModal = ({
   show,
   onHide,
   handleSaveItem,
+  handleDeleteItem,
   initialContent = "",
   initialLink = "",
   initialNotes = "",
@@ -23,6 +26,13 @@ const ItemModal = ({
   const allUsers = useRoomUsers(roomId, null); // null so it doesn't filter out self
   const currentUser = allUsers.find((u) => u.id === user?.sub);
   const color = currentUser?.color;
+
+  const onDelete = () => {
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      handleDeleteItem(itemId);
+      onHide();
+    }
+  };
 
   useEditingSocket({
     roomId,
@@ -90,6 +100,16 @@ const ItemModal = ({
         </Form.Group>
       </Form>
       <Modal.Footer>
+        {itemId && (
+          <Button
+            variant="danger"
+            onClick={onDelete}
+            style={{ marginRight: "auto" }}
+          >
+            <BsTrashFill style={{ marginRight: 6, marginBottom: 2 }} />
+            Delete
+          </Button>
+        )}
         <Button variant="primary" onClick={onAdd}>
           {itemId ? "Update Item" : "Add Item"}
         </Button>
