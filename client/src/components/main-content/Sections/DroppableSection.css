@@ -73,6 +73,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px;
+  padding-top: 0;
   scrollbar-width: thin;
   scrollbar-color: #666 transparent;
 }
