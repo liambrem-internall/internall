@@ -68,3 +68,26 @@
   mask-composite: exclude;
   opacity: 1;
 }
+
+.edit-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sortable-item:hover .edit-handle {
+  opacity: 1;
+}
+
+.edit-handle:hover {
+  background: var(--gray1) !important;
+}
+
+.right-controls {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
