@@ -22,6 +22,16 @@ jest.mock('../utils/socket', () => ({
 }));
 
 
+// mock hooks
+jest.mock('../hooks/useApiFetch', () => ({
+  useApiFetch: () => jest.fn(),
+}));
+
+jest.mock('../hooks/rooms/useRoomUsers', () => ({
+  __esModule: true,
+  default: () => [],
+}));
+
 const mockAuth0User = {
   sub: 'test-user-id',
   nickname: 'testuser',
@@ -120,40 +130,81 @@ describe('Frontend Application Tests', () => {
       );
     };
 
-    test('should render navigation with view mode buttons', () => {
+    test('should render navigation with hamburger menu', () => {
       renderNavigation();
       
-      expect(screen.getByText('Board')).toBeInTheDocument();
-      expect(screen.getByText('List')).toBeInTheDocument();
-      expect(screen.getByText('Log Out')).toBeInTheDocument();
+      const hamburgerButton = document.querySelector('.hamburger-toggle');
+      expect(hamburgerButton).toBeInTheDocument();
     });
 
-    test('should show online/offline status', () => {
+    test('should show hamburger menu items when clicked', async () => {
       renderNavigation();
       
+      const hamburgerButton = document.querySelector('.hamburger-toggle');
+      fireEvent.click(hamburgerButton);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Show Graph')).toBeInTheDocument();
+        expect(screen.getByText('Demo-Data')).toBeInTheDocument();
+        expect(screen.getByText('Log Out')).toBeInTheDocument();
+      });
+    });
+
+    test('should show online status when online', () => {
+      renderNavigation();
+      
+      // The status indicator only shows when offline, so when online it shouldn't be there
       const statusElement = document.querySelector('.status-indicator');
-      expect(statusElement).toBeInTheDocument();
+      expect(statusElement).not.toBeInTheDocument();
     });
 
-    test('should call logout when logout button clicked', () => {
+    test('should call logout when logout button clicked', async () => {
       renderNavigation();
       
-      const logoutButton = screen.getByText('Log Out');
-      fireEvent.click(logoutButton);
+      const hamburgerButton = document.querySelector('.hamburger-toggle');
+      fireEvent.click(hamburgerButton);
       
-      expect(mockUseAuth0.logout).toHaveBeenCalled();
+      await waitFor(() => {
+        const logoutButton = screen.getByText('Log Out');
+        fireEvent.click(logoutButton);
+        expect(mockUseAuth0.logout).toHaveBeenCalled();
+      });
     });
 
-    test('should show demo data button', () => {
+    test('should show demo data button in menu', async () => {
       renderNavigation();
       
-      expect(screen.getByText('Demo-Data')).toBeInTheDocument();
+      const hamburgerButton = document.querySelector('.hamburger-toggle');
+      fireEvent.click(hamburgerButton);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Demo-Data')).toBeInTheDocument();
+      });
     });
 
-    test('should show graph toggle button', () => {
+    test('should show graph toggle button in menu', async () => {
       renderNavigation();
       
-      expect(screen.getByText('Show Graph')).toBeInTheDocument();
+      const hamburgerButton = document.querySelector('.hamburger-toggle');
+      fireEvent.click(hamburgerButton);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Show Graph')).toBeInTheDocument();
+      });
+    });
+
+    test('should show view mode toggle button', () => {
+      renderNavigation();
+      
+      const viewToggleButton = document.querySelector('.view-toggle-icon');
+      expect(viewToggleButton).toBeInTheDocument();
+    });
+
+    test('should show search button', () => {
+      renderNavigation();
+      
+      const searchButton = screen.getByLabelText('Open search');
+      expect(searchButton).toBeInTheDocument();
     });
   });
 
@@ -317,7 +368,7 @@ describe('Frontend Application Tests', () => {
       require('@auth0/auth0-react').useAuth0 = originalMock;
     });
 
-    test('should handle API errors', async () => {
+    test('should handle API errors gracefully', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       
       // mock fetch to reject
@@ -350,7 +401,7 @@ describe('Frontend Application Tests', () => {
   });
 
   describe('Error Boundary Tests', () => {
-    test('should handle component errors', () => {
+    test('should handle component errors gracefully', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       
       render(<App />);

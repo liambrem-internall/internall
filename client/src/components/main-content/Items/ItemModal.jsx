@@ -51,55 +51,47 @@ const ItemModal = ({
     notesRef.current.value = "";
   };
 
-  // define fields for form to be mapped over
-  const fields = [
-    {
-      ref: contentRef,
-      size: "lg",
-      type: "text",
-      placeholder: "Title",
-      controlId: "itemContent",
-    },
-    {
-      ref: linkRef,
-      size: "md",
-      type: "text",
-      placeholder: "Link",
-      controlId: "itemLink",
-    },
-    {
-      ref: notesRef,
-      size: "sm",
-      type: "text",
-      placeholder: "Notes",
-      controlId: "itemNotes",
-    },
-  ];
-
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Item Content</Modal.Title>
+        <Modal.Title>
+          {itemId ? "Update Item" : "Add Item"}
+        </Modal.Title>
       </Modal.Header>
       <Form className="p-3">
-        {fields.map((field) => (
-          <Form.Group
-            className="mb-3"
-            controlId={field.controlId}
-            key={field.controlId}
-          >
-            <Form.Control
-              ref={field.ref}
-              size={field.size}
-              type={field.type}
-              placeholder={field.placeholder}
-            />
-          </Form.Group>
-        ))}
+        <div className="mb-2">Title:</div>
+        <Form.Group className="mb-3" controlId="itemContent">
+          <Form.Control
+            ref={contentRef}
+            size="sm"
+            type="text"
+            placeholder="Title"
+          />
+        </Form.Group>
+        <div className="mb-2">Link:</div>
+        <Form.Group className="mb-3" controlId="itemLink">
+          <Form.Control
+            ref={linkRef}
+            size="sm"
+            type="text"
+            placeholder="Link"
+          />
+        </Form.Group>
+        <div className="mb-2">Notes:</div>
+        <Form.Group className="mb-3" controlId="itemNotes">
+          <Form.Control
+            ref={notesRef}
+            as="textarea"
+            rows={6}
+            size="sm"
+            type="text"
+            placeholder="Notes"
+          />
+        </Form.Group>
       </Form>
       <Modal.Footer>
         <Button variant="primary" onClick={onAdd}>
-          Add Item
+          {itemId ? "Update Item" : "Add Item"}
         </Button>
       </Modal.Footer>
     </Modal>

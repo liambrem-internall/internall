@@ -10,7 +10,7 @@
 
 .sections-scroll-container {
   width: 75vw;
-  height: 80vh;
+  height: calc(100vh - 120px);
   overflow-x: auto;
   overflow-y: auto;
   padding-bottom: 24px;

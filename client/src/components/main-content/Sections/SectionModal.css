@@ -3,14 +3,29 @@
   color: #fff !important;
 }
 
+.modal-header,
+.modal-footer {
+  border: none !important;
+  background: transparent !important;
+}
+
+hr {
+  border: none !important;
+  background: none !important;
+  height: 0 !important;
+}
+
 .modal-title {
   color: #fff !important;
 }
 
 #sectionTitle.form-control {
-  background: var(--gray2) !important;
-  color: #fff !important;
+  background: #fff !important;
+  color: #111 !important;
   border: 1px solid var(--gray3) !important;
+  width: 80%;
+  margin: 0 auto;
+  display: block;
 }
 
 #sectionTitle.form-control:focus {
