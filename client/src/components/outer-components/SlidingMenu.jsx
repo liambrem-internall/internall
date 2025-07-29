@@ -81,6 +81,10 @@ const SlidingMenu = ({
 
   const handleSearch = useCallback(
     async (q) => {
+      if (q === query && results.length > 0) {
+        return;
+      }
+      
       setQuery(q);
       setPage(0);
       if (!q) {
@@ -92,7 +96,6 @@ const SlidingMenu = ({
         return;
       }
 
-      // check cache first
       if (searchCacheRef.current.has(q)) {
         const cached = searchCacheRef.current.get(q);
         setResults(cached.results);
@@ -116,7 +119,6 @@ const SlidingMenu = ({
       setResults(normalizedResults);
       setTotal(data.total || 0);
 
-      // Cache the results
       searchCacheRef.current.set(q, {
         results: normalizedResults,
         total: data.total || 0,
@@ -126,7 +128,7 @@ const SlidingMenu = ({
         resultsContainerRef.current.scrollTop = 0;
       }
     },
-    [roomId]
+    [roomId, query, results.length]
   );
 
   const handleLoadMore = useCallback(async () => {

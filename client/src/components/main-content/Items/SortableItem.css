@@ -70,7 +70,7 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .sortable-item:hover .edit-handle {
@@ -104,7 +104,7 @@
 
 .edit-handle svg,
 .drag-handle svg {
-  transition: color 0.5s, transform 0.5s;
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .edit-handle:hover svg,

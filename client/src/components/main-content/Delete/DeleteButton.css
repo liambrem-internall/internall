@@ -4,7 +4,7 @@
   position: fixed !important;
   bottom: 32px;
   left: 12.5vw;
-  z-index: 500;
+  z-index: 999;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
