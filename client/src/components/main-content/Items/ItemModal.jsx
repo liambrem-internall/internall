@@ -54,7 +54,9 @@ const ItemModal = ({
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Item Content</Modal.Title>
+        <Modal.Title>
+          {itemId ? "Update Item" : "Add Item"}
+        </Modal.Title>
       </Modal.Header>
       <Form className="p-3">
         <div className="mb-2">Title:</div>
@@ -89,7 +91,7 @@ const ItemModal = ({
       </Form>
       <Modal.Footer>
         <Button variant="primary" onClick={onAdd}>
-          Add Item
+          {itemId ? "Update Item" : "Add Item"}
         </Button>
       </Modal.Footer>
     </Modal>
