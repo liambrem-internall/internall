@@ -44,6 +44,7 @@
   align-items: center;
   margin-right: 7px;
   border-radius: 4px;
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .drag-handle:hover {
