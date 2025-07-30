@@ -14,6 +14,7 @@ import { ViewModes } from "./utils/constants";
 import LoggedOut from "./components/logged-out-page/LoggedOut";
 import UserPage from "./components/app-components/UserPage";
 import LoadingState from "./components/app-components/LoadingState";
+import BrowseBoards from "./components/browse-boards/BrowseBoards";
 import useSocketConnection from "./hooks/socketHandlers/useSocketConnection";
 
 import "./App.css";
@@ -63,6 +64,7 @@ const App = () => {
         <Router>
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
+            <Route path="/browse" element={<BrowseBoards />} />
             <Route
               path="/:username"
               element={

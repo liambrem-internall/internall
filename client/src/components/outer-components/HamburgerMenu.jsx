@@ -1,6 +1,7 @@
 import Dropdown from "react-bootstrap/Dropdown";
 import Button from "react-bootstrap/Button";
 import { FaBars } from "react-icons/fa6";
+import { FaCompass } from "react-icons/fa";
 import { prepopulateDemoData } from "../../utils/functions/prepopulateDemoData";
 
 import "./HamburgerMenu.css";
@@ -12,6 +13,7 @@ const HamburgerMenu = ({
   getAccessTokenSilently,
   apiFetch,
   logout,
+  navigate,
 }) => {
   return (
     <Dropdown align="end">
@@ -42,6 +44,13 @@ const HamburgerMenu = ({
         >
           Demo-Data
         </Dropdown.Item>
+        <Dropdown.Item
+          className="hamburger-item"
+          onClick={() => navigate("/browse")}
+        >
+          Browse Boards
+        </Dropdown.Item>
+
         <div className="px-3 py-2">
           <Button
             className="get-started-btn w-100"
