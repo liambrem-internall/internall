@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -58,6 +58,26 @@ const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
       </div>
     </OverlayTrigger>
   ));
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      console.log("keydown event", e.key, e.altKey, e.ctrlKey, e.metaKey, e.shiftKey);
+      if (
+        e.altKey &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.shiftKey &&
+        (e.key === "s" || e.key === "S" || e.key === "ß")
+      ) {
+        console.log("Option+S pressed, opening search menu");
+        e.preventDefault();
+        setSearchMenuOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [setSearchMenuOpen]);
 
   return (
     <div className="navbar-float-wrapper">
@@ -127,7 +147,7 @@ const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
             {username && (
               <OverlayTrigger
                 placement="bottom"
-                overlay={<Tooltip id="search-tooltip">Open Search</Tooltip>}
+                overlay={<Tooltip id="search-tooltip">Open Search (⌥+S)</Tooltip>}
               >
                 <div
                   className="nav-link-custom"
