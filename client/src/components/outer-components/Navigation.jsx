@@ -124,7 +124,7 @@ const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
               </OverlayTrigger>
             )}
 
-            {username && setSearchMenuOpen && (
+            {username && (
               <OverlayTrigger
                 placement="bottom"
                 overlay={<Tooltip id="search-tooltip">Open Search</Tooltip>}
@@ -133,6 +133,11 @@ const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
                   className="nav-link-custom"
                   onClick={() => setSearchMenuOpen(true)}
                   aria-label="Open search"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setSearchMenuOpen(true);
+                  }}
                 >
                   <FaSearch size={18} />
                 </div>

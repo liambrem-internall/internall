@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Auth0Provider } from '@auth0/auth0-react';
 
 // mock components and modules
@@ -85,6 +85,26 @@ describe('Frontend Application Tests', () => {
     });
   });
 
+  const renderNavigationWithUsername = (username = 'testuser') => {
+    return render(
+      <MemoryRouter initialEntries={[`/${username}`]}>
+        <Routes>
+          <Route path="/:username" element={<Navigation />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
+
+  const renderUserPageWithUsername = (username = 'testuser', props = {}) => {
+    return render(
+      <MemoryRouter initialEntries={[`/${username}`]}>
+        <Routes>
+          <Route path="/:username" element={<UserPage {...props} />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
+
   describe('UserPage Component', () => {
     const mockSetUserReady = jest.fn();
     
@@ -105,18 +125,15 @@ describe('Frontend Application Tests', () => {
     });
 
     test('should show search button', () => {
-      renderUserPage();
-      
+      renderUserPageWithUsername('testuser', { setUserReady: mockSetUserReady, userReady: true });
       const searchButton = screen.getByLabelText('Open search');
       expect(searchButton).toBeInTheDocument();
     });
 
     test('should open search menu when search button clicked', async () => {
-      renderUserPage();
-      
+      renderUserPageWithUsername('testuser', { setUserReady: mockSetUserReady, userReady: true });
       const searchButton = screen.getByLabelText('Open search');
       fireEvent.click(searchButton);
-      
       expect(searchButton).toBeInTheDocument();
     });
   });
@@ -194,15 +211,13 @@ describe('Frontend Application Tests', () => {
     });
 
     test('should show view mode toggle button', () => {
-      renderNavigation();
-      
+      renderNavigationWithUsername('testuser');
       const viewToggleButton = document.querySelector('.view-toggle-icon');
       expect(viewToggleButton).toBeInTheDocument();
     });
 
     test('should show search button', () => {
-      renderNavigation();
-      
+      renderNavigationWithUsername('testuser');
       const searchButton = screen.getByLabelText('Open search');
       expect(searchButton).toBeInTheDocument();
     });
