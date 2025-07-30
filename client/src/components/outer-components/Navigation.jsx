@@ -1,8 +1,7 @@
 import React, { useContext, useState } from "react";
 
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
-import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { useAuth0 } from "@auth0/auth0-react";
 import Container from "react-bootstrap/Container";
@@ -20,17 +19,17 @@ import { TbColumns3 } from "react-icons/tb";
 import { FaSearch } from "react-icons/fa";
 import { FaBook } from "react-icons/fa6";
 
-
 import "./Navbar.css";
 
 const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
   const { viewMode, setViewMode } = useContext(ViewContext);
   const { logout, user, getAccessTokenSilently } = useAuth0();
   const { username } = useParams();
+  const navigate = useNavigate();
   const roomId = username;
   const userId = user?.sub;
   const isOnline = useContext(NetworkStatusContext);
-  const otherUsers = useRoomUsers(roomId, userId, user.nickname);
+  const otherUsers = useRoomUsers(roomId, userId, user?.nickname);
   const apiFetch = useApiFetch();
   const [showGraph, setShowGraph] = useState(false);
 
@@ -82,57 +81,63 @@ const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
               getAccessTokenSilently={getAccessTokenSilently}
               apiFetch={apiFetch}
               logout={logout}
+              navigate={navigate}
             />
 
-            <OverlayTrigger
-              placement="bottom"
-              overlay={
-                <Tooltip id="view-toggle-tooltip">
-                  Switch to {viewMode === ViewModes.BOARD ? "List" : "Board"} View
-                </Tooltip>
-              }
-            >
-              <div className="nav-link-custom" onClick={toggleViewMode}>
-                <TbColumns3
-                  size={20}
-                  className={`view-toggle-icon ${
-                    viewMode === ViewModes.BOARD ? "rotated" : ""
-                  }`}
-                />
-              </div>
-            </OverlayTrigger>
-
-            <OverlayTrigger
-              placement="bottom"
-              overlay={
-                <Tooltip id="logs-tooltip">
-                  {showLogs ? "Hide Logs" : "Show Logs"}
-                </Tooltip>
-              }
-            >
-              <div
-                className={`nav-link-custom ${showLogs ? "active" : ""}`}
-                onClick={() => setShowLogs(!showLogs)}
-                aria-label={showLogs ? "Hide logs" : "Show logs"}
+            {username && (
+              <OverlayTrigger
+                placement="bottom"
+                overlay={
+                  <Tooltip id="view-toggle-tooltip">
+                    Switch to {viewMode === ViewModes.BOARD ? "List" : "Board"}{" "}
+                    View
+                  </Tooltip>
+                }
               >
-                <FaBook size={18} />
-              </div>
-            </OverlayTrigger>
+                <div className="nav-link-custom" onClick={toggleViewMode}>
+                  <TbColumns3
+                    size={20}
+                    className={`view-toggle-icon ${
+                      viewMode === ViewModes.BOARD ? "rotated" : ""
+                    }`}
+                  />
+                </div>
+              </OverlayTrigger>
+            )}
 
-            <OverlayTrigger
-              placement="bottom"
-              overlay={
-                <Tooltip id="search-tooltip">Open Search</Tooltip>
-              }
-            >
-              <div
-                className="nav-link-custom"
-                onClick={() => setSearchMenuOpen(true)}
-                aria-label="Open search"
+            {username && (
+              <OverlayTrigger
+                placement="bottom"
+                overlay={
+                  <Tooltip id="logs-tooltip">
+                    {showLogs ? "Hide Logs" : "Show Logs"}
+                  </Tooltip>
+                }
               >
-                <FaSearch size={18} />
-              </div>
-            </OverlayTrigger>
+                <div
+                  className={`nav-link-custom ${showLogs ? "active" : ""}`}
+                  onClick={() => setShowLogs(!showLogs)}
+                  aria-label={showLogs ? "Hide logs" : "Show logs"}
+                >
+                  <FaBook size={18} />
+                </div>
+              </OverlayTrigger>
+            )}
+
+            {username && setSearchMenuOpen && (
+              <OverlayTrigger
+                placement="bottom"
+                overlay={<Tooltip id="search-tooltip">Open Search</Tooltip>}
+              >
+                <div
+                  className="nav-link-custom"
+                  onClick={() => setSearchMenuOpen(true)}
+                  aria-label="Open search"
+                >
+                  <FaSearch size={18} />
+                </div>
+              </OverlayTrigger>
+            )}
           </div>
         </Container>
       </Navbar>

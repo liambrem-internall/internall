@@ -1,0 +1,35 @@
+.board-search-form {
+  max-width: 600px;
+  margin: 0 auto;
+  margin-bottom: 2rem;
+}
+
+.board-search-group {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.board-search-input {
+  background: var(--dark2) !important;
+  border: 1px solid var(--gray3) !important;
+  color: white !important;
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+}
+
+.board-search-input:focus {
+  border-color: var(--pink1) !important;
+  box-shadow: 0 0 0 0.2rem rgba(229, 22, 184, 0.25) !important;
+  background: var(--dark2) !important;
+  color: white !important;
+}
+
+.board-search-input::placeholder {
+  color: var(--gray2);
+}
+
+.search-icon {
+  background: var(--dark2) !important;
+  border: 1px solid var(--gray3) !important;
+  border-left: none !important;
+  color: var(--gray2);
+}
