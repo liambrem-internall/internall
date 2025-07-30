@@ -18,10 +18,12 @@ import { ViewModes } from "../../utils/constants";
 import useRoomUsers from "../../hooks/rooms/useRoomUsers";
 import { TbColumns3 } from "react-icons/tb";
 import { FaSearch } from "react-icons/fa";
+import { FaBook } from "react-icons/fa6";
+
 
 import "./Navbar.css";
 
-const Navigation = ({ setSearchMenuOpen }) => {
+const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
   const { viewMode, setViewMode } = useContext(ViewContext);
   const { logout, user, getAccessTokenSilently } = useAuth0();
   const { username } = useParams();
@@ -97,6 +99,23 @@ const Navigation = ({ setSearchMenuOpen }) => {
                     viewMode === ViewModes.BOARD ? "rotated" : ""
                   }`}
                 />
+              </div>
+            </OverlayTrigger>
+
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="logs-tooltip">
+                  {showLogs ? "Hide Logs" : "Show Logs"}
+                </Tooltip>
+              }
+            >
+              <div
+                className={`nav-link-custom ${showLogs ? "active" : ""}`}
+                onClick={() => setShowLogs(!showLogs)}
+                aria-label={showLogs ? "Hide logs" : "Show logs"}
+              >
+                <FaBook size={18} />
               </div>
             </OverlayTrigger>
 

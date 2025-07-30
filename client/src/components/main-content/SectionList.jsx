@@ -58,6 +58,7 @@ const SectionList = ({
   editingItem,
   setEditingItem,
   onSectionsChange,
+  showLogs,
 }) => {
   const {
     sectionState: { sections, setSections, sectionOrder, setSectionOrder },
@@ -352,7 +353,7 @@ const SectionList = ({
         <div className="sections-scroll-container">
           <DndContext
             onDragStart={dragHandlers.handleDragStart}
-            onDragEnd={handleDragEnd} // use the wrapper
+            onDragEnd={handleDragEnd}
             collisionDetection={customCollisionDetection}
             onDragOver={handleDragOver}
           >
@@ -384,7 +385,6 @@ const SectionList = ({
             </SortableContext>
             <div className="bottom-row">
               {isDragging && <DeleteButton />}
-              <Logs logs={logs} />
               <AddButton />
             </div>
             <DragOverlay dropAnimation={null}>
@@ -403,6 +403,7 @@ const SectionList = ({
         </div>
       </Container>
       {isDeleteZoneOver && <div className="delete-overlay" />}
+      <Logs logs={logs} show={showLogs} />
       <SectionModal
         show={showModal}
         onHide={handleCloseModal}

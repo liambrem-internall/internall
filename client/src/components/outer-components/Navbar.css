@@ -38,6 +38,10 @@
   transform: translateY(-2px);
 }
 
+.nav-link-custom.active {
+  color: var(--pink1) !important;
+}
+
 .status-indicator {
   color: var(--gray2);
   font-size: 0.8rem;

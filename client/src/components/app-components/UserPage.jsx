@@ -25,6 +25,7 @@ const UserPage = ({ setUserReady, userReady }) => {
   const [showItemModal, setShowItemModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [sections, setSections] = useState({}); 
+  const [showLogs, setShowLogs] = useState(false);
   const isOwnPage =
     user && (username === user.nickname || username === user.name);
   const roomId = username;
@@ -63,6 +64,8 @@ const UserPage = ({ setUserReady, userReady }) => {
           <div className="app-header">
             <Navigation 
               setSearchMenuOpen={setSearchMenuOpen}
+              showLogs={showLogs}
+              setShowLogs={setShowLogs}
             />
           </div>
           <div className="app-content">
@@ -78,7 +81,8 @@ const UserPage = ({ setUserReady, userReady }) => {
               setShowItemModal={setShowItemModal}
               editingItem={editingItem}
               setEditingItem={setEditingItem}
-              onSectionsChange={setSections} 
+              onSectionsChange={setSections}
+              showLogs={showLogs}
             />
           </div>
         </div>
