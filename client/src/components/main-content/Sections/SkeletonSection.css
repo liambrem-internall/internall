@@ -1,0 +1,46 @@
+.skeleton-section {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.skeleton-title,
+.skeleton-drag,
+.skeleton-item {
+  background: #333;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-title {
+  width: 70%;
+  height: 7px;
+  margin: 8px 0 8px 10px;
+}
+
+.skeleton-item {
+  width: 95%;
+  height: 38px;
+  margin: 10px auto;
+}
+
+.shimmer {
+  animation: shimmer 1.2s infinite linear;
+  background: linear-gradient(
+    90deg,
+    #333 25%,
+    #444 37%,
+    #333 63%
+  );
+  background-size: 400% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}

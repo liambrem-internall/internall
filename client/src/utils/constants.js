@@ -69,3 +69,5 @@ export const THROTTLE_MS = 33;
 export const logPageSize = 49;
 
 export const DEBOUNCE_DELAY = 300;
+
+export const SKELETON_SECTIONS_COUNT = 4;
