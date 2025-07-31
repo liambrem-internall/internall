@@ -47,6 +47,9 @@ import {
 import { NetworkStatusContext } from "../../contexts/NetworkStatusContext";
 import useSafeSocketEmit from "../../hooks/socketHandlers/useSafeSocketEmit";
 import useOfflineSync from "../../hooks/useOfflineSync";
+import SkeletonSection from "./Sections/SkeletonSection";
+import { SKELETON_SECTIONS_COUNT } from "../../utils/constants";
+
 
 import "./SectionList.css";
 
@@ -363,24 +366,24 @@ const SectionList = ({
                   viewMode === ViewModes.LIST ? "list-view" : "board-view"
                 }`}
               >
-                {validSectionOrder.map((sectionId) => (
-                  <DroppableSection
-                    key={sectionId}
-                    id={sectionId}
-                    items={sections[sectionId].items}
-                    title={sections[sectionId].title}
-                    onItemClick={handleItemClick}
-                    className={`section ${
-                      viewMode === ViewModes.LIST ? "list-view" : "board-view"
-                    }`}
-                    editingUsers={editingUsers}
-                    users={allUsers}
-                    currentUserId={userId}
-                  />
-                ))}
-                {activeId == SectionActions.ADD && (
-                  <NewSectionDropZone onDrop={dragHandlers.handleDragEnd} />
-                )}
+                {hasInitialLoad
+                  ? validSectionOrder.map((sectionId) => (
+                      <DroppableSection
+                        key={sectionId}
+                        id={sectionId}
+                        items={sections[sectionId].items}
+                        title={sections[sectionId].title}
+                        onItemClick={handleItemClick}
+                        className={`section ${
+                          viewMode === ViewModes.LIST ? "list-view" : "board-view"
+                        }`}
+                        editingUsers={editingUsers}
+                        users={allUsers}
+                        currentUserId={userId}
+                      />
+                    ))
+                  : // show 4 skeletons while loading
+                    [...Array(SKELETON_SECTIONS_COUNT)].map((_, i) => <SkeletonSection key={i} />)}
               </div>
             </SortableContext>
             <div className="bottom-row">

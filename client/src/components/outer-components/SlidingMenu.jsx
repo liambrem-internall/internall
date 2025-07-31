@@ -201,6 +201,17 @@ const SlidingMenu = ({
     return () => observer.disconnect();
   }, [results, total, handleLoadMore]);
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
   return (
     <div className={`sliding-menu${open ? " open" : ""}`}>
       <div className="menu-header">
