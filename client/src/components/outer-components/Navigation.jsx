@@ -61,7 +61,6 @@ const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      console.log("keydown event", e.key, e.altKey, e.ctrlKey, e.metaKey, e.shiftKey);
       if (
         e.altKey &&
         !e.ctrlKey &&
@@ -69,7 +68,6 @@ const Navigation = ({ setSearchMenuOpen, showLogs, setShowLogs }) => {
         !e.shiftKey &&
         (e.key === "s" || e.key === "S" || e.key === "ß")
       ) {
-        console.log("Option+S pressed, opening search menu");
         e.preventDefault();
         setSearchMenuOpen(true);
       }
