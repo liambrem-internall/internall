@@ -50,7 +50,6 @@ import useOfflineSync from "../../hooks/useOfflineSync";
 import SkeletonSection from "./Sections/SkeletonSection";
 import { SKELETON_SECTIONS_COUNT } from "../../utils/constants";
 
-
 import "./SectionList.css";
 
 const URL = import.meta.env.VITE_API_URL;
@@ -375,7 +374,9 @@ const SectionList = ({
                         title={sections[sectionId].title}
                         onItemClick={handleItemClick}
                         className={`section ${
-                          viewMode === ViewModes.LIST ? "list-view" : "board-view"
+                          viewMode === ViewModes.LIST
+                            ? "list-view"
+                            : "board-view"
                         }`}
                         editingUsers={editingUsers}
                         users={allUsers}
@@ -383,7 +384,14 @@ const SectionList = ({
                       />
                     ))
                   : // show 4 skeletons while loading
-                    [...Array(SKELETON_SECTIONS_COUNT)].map((_, i) => <SkeletonSection key={i} />)}
+                    [...Array(SKELETON_SECTIONS_COUNT)].map((_, i) => (
+                      <SkeletonSection key={i} />
+                    ))}
+                <NewSectionDropZone
+                  isDraggingSection={
+                    isDragging && activeId == SectionActions.ADD
+                  }
+                />
               </div>
             </SortableContext>
             <div className="bottom-row">

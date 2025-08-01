@@ -5,8 +5,10 @@ import { SectionActions } from "../../../utils/constants";
 const RELEASE_TO_ADD = "Release to add section";
 const DRAG_TO_ADD = "Drag here to add a new section";
 
-const NewSectionDropZone = () => {
+const NewSectionDropZone = ({ isDraggingSection }) => {
   const { setNodeRef, isOver } = useDroppable({ id: SectionActions.DROPZONE });
+
+  if (!isDraggingSection) return null;
 
   const dropZoneBackground = isOver ? "var(--dark1)" : "var(--dark2)";
   const dropZoneBorder = isOver
